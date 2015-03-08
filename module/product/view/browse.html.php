@@ -2,8 +2,8 @@
 /**
  * The browse view file of product module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     product
  * @version     $Id: browse.html.php 4909 2013-06-26 07:23:50Z chencongzhi520@gmail.com $
@@ -15,6 +15,7 @@
 <?php js::set('browseType', $browseType);?>
 <div id='featurebar'>
   <ul class='nav'>
+    <li id='unclosedTab'>     <?php echo html::a($this->inlink('browse', "productID=$productID&browseType=unclosed"),     $lang->product->unclosed);?></li>
     <li id='allstoryTab'>     <?php echo html::a($this->inlink('browse', "productID=$productID&browseType=allStory"),     $lang->product->allStory);?></li>
     <li id='assignedtomeTab'> <?php echo html::a($this->inlink('browse', "productID=$productID&browseType=assignedtome"), $lang->product->assignedToMe);?></li>
     <li id='openedbymeTab'>   <?php echo html::a($this->inlink('browse', "productID=$productID&browseType=openedByMe"),   $lang->product->openedByMe);?></li>
@@ -23,6 +24,7 @@
     <li id='draftstoryTab'>   <?php echo html::a($this->inlink('browse', "productID=$productID&browseType=draftStory"),   $lang->product->draftStory);?></li>
     <li id='activestoryTab'>  <?php echo html::a($this->inlink('browse', "productID=$productID&browseType=activeStory"),  $lang->product->activeStory);?></li>
     <li id='changedstoryTab'> <?php echo html::a($this->inlink('browse', "productID=$productID&browseType=changedStory"), $lang->product->changedStory);?></li>
+    <li id='willcloseTab'>    <?php echo html::a($this->inlink('browse', "productID=$productID&browseType=willClose"),    $lang->product->willClose);?></li>
     <li id='closedstoryTab'>  <?php echo html::a($this->inlink('browse', "productID=$productID&browseType=closedStory"),  $lang->product->closedStory);?></li>
     <li id='bysearchTab'><a href='javascript:;'><i class='icon-search icon'></i> <?php echo $lang->product->searchStory;?></a></li>
   </ul>
@@ -97,21 +99,21 @@
           <input type='checkbox' name='storyIDList[<?php echo $story->id;?>]' value='<?php echo $story->id;?>' /> 
           <?php if($canView) echo html::a($viewLink, sprintf('%03d', $story->id)); else printf('%03d', $story->id);?>
         </td>
-        <td><span class='<?php echo 'pri' . $lang->story->priList[$story->pri];?>'><?php echo $lang->story->priList[$story->pri]?></span></td>
+        <td><span class='<?php echo 'pri' . zget($lang->story->priList, $story->pri, $story->pri);?>'><?php echo zget($lang->story->priList, $story->pri, $story->pri)?></span></td>
         <td class='text-left' title="<?php echo $story->title?>"><nobr><?php echo html::a($viewLink, $story->title);?></nobr></td>
         <td title="<?php echo $story->planTitle?>"><?php echo $story->planTitle;?></td>
         <td><?php echo $lang->story->sourceList[$story->source];?></td>
-        <td><?php echo $users[$story->openedBy];?></td>
-        <td><?php echo $users[$story->assignedTo];?></td>
+        <td><?php echo zget($users, $story->openedBy, $story->openedBy);?></td>
+        <td><?php echo zget($users, $story->assignedTo, $story->assignedTo);?></td>
         <td><?php echo $story->estimate;?></td>
-        <td class='status-<?php echo $story->status;?>'><?php echo $lang->story->statusList[$story->status];?></td>
+        <td class='story-<?php echo $story->status;?>'><?php echo $lang->story->statusList[$story->status];?></td>
         <td><?php echo $lang->story->stageList[$story->stage];?></td>
         <td class='text-right'>
           <?php 
           $vars = "story={$story->id}";
           common::printIcon('story', 'change',     $vars, $story, 'list', 'random');
           common::printIcon('story', 'review',     $vars, $story, 'list', 'search');
-          common::printIcon('story', 'close',      $vars, $story, 'list', 'off');
+          common::printIcon('story', 'close',      $vars, $story, 'list', 'off', '', 'iframe', true);
           common::printIcon('story', 'edit',       $vars, $story, 'list', 'pencil');
           common::printIcon('story', 'createCase', "productID=$story->product&module=0&from=&param=0&$vars", $story, 'list', 'sitemap');
           ?>
@@ -218,6 +220,28 @@
                 {
                     echo '<li>' . html::a('javascript:;', $lang->story->stageAB, '', $class) . '</li>';
                 }
+
+                if(common::hasPriv('story', 'batchAssignTo'))
+                {
+                      $withSearch = count($users) > 10;
+                      $actionLink = $this->createLink('story', 'batchAssignTo', "productID=$productID");
+                      echo html::select('assignedTo', $users, '', 'class="hidden"');
+                      echo "<li class='dropdown-submenu'>";
+                      echo html::a('javascript::', $lang->story->assignedTo, 'id="assignItem"');
+                      echo "<ul class='dropdown-menu assign-menu" . ($withSearch ? ' with-search':'') . "'>";
+                      foreach ($users as $key => $value)
+                      {
+                          if(empty($key)) continue;
+                          echo "<li class='option' data-key='$key'>" . html::a("javascript:$(\"#assignedTo\").val(\"$key\");setFormAction(\"$actionLink\")", $value, '', '') . '</li>';
+                      }
+                      if($withSearch) echo "<li class='assign-search'><div class='input-group input-group-sm'><input type='text' class='form-control' placeholder=''><span class='input-group-addon'><i class='icon-search'></i></span></div></li>";
+                      echo "</ul>";
+                      echo "</li>";
+                }
+                else
+                {
+                    echo '<li>' . html::a('javascript:;', $lang->story->assignedTo, '', $class) . '</li>';
+                }
                 ?>
               </ul>
             </div>
@@ -232,7 +256,7 @@
   </form>
 </div>
 <script language='javascript'>
-$('#module<?php echo $moduleID;?>').addClass('active')
-$('#<?php echo $browseType;?>Tab').addClass('active')
+$('#module<?php echo $moduleID;?>').addClass('active');
+$('#<?php echo $browseType;?>Tab').addClass('active');
 </script>
 <?php include '../../common/view/footer.html.php';?>

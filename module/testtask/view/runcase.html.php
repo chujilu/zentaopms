@@ -2,8 +2,8 @@
 /**
  * The runrun view file of testtask of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     testtask
  * @version     $Id: runcase.html.php 4723 2013-05-03 05:19:29Z chencongzhi520@gmail.com $
@@ -46,7 +46,7 @@
       <tr class='text-center'>
         <td colspan='5'>
           <?php
-          if($preCase)  echo html::linkButton($lang->testtask->pre, inlink('runCase', "runID={$preCase['runID']}&caseID={$preCase['caseID']}&version={$preCase['version']}"));
+          if($preCase)  echo html::a(inlink('runCase', "runID={$preCase['runID']}&caseID={$preCase['caseID']}&version={$preCase['version']}"), $lang->testtask->pre, '', "id='pre' class='btn'");
           if(empty($run->case->steps))
           {
               echo html::submitButton($lang->testtask->pass, "onclick=$('#result').val('pass')", 'btn-success');
@@ -55,10 +55,8 @@
           else
           {
               echo html::submitButton();
-              echo html::submitButton($lang->testtask->pass, "onclick=$('#passall').val(1)");
           }
-          if($nextCase)  echo html::linkButton($lang->testtask->next, inlink('runCase', "runID={$nextCase['runID']}&caseID={$nextCase['caseID']}&version={$nextCase['version']}"));
-          if($run->case->steps)  echo html::hidden('passall', 0);
+          if($nextCase)  echo html::a(inlink('runCase', "runID={$nextCase['runID']}&caseID={$nextCase['caseID']}&version={$nextCase['version']}"), $lang->testtask->next, '', "id='next' class='btn'");
           if(!$run->case->steps) echo html::hidden('result', '');
           echo html::hidden('case',    $run->case->id);
           echo html::hidden('version', $run->case->currentVersion);
@@ -68,11 +66,24 @@
     </table>
   </form>
 </div>
-<?php 
-ob_start();
-$case    = $run->case; include './results.html.php'; 
-$results = ob_get_contents();
-ob_clean();
-echo preg_replace("/<h1>[\s\S]*<\/h1>|<fieldset>[\s\S]*<\/fieldset>/", "", $results);
-?>
+<div class='main' id='resultsContainer'>
+</div>
+<script>
+$(function()
+{
+    $('#resultsContainer').load("<?php echo $this->createLink('testtask', 'results', "runID=0&caseID=$caseID&version=$version");?> #casesResults", function()
+    {
+        $('.result-item').click(function()
+        {
+            var $this = $(this);
+            $this.toggleClass('show-detail');
+            var show = $this.hasClass('show-detail');
+            $this.next('.result-detail').toggleClass('hide', !show);
+            $this.find('.collapse-handle').toggleClass('icon-chevron-down', !show).toggleClass('icon-chevron-up', show);;
+        });
+
+        $('#casesResults table caption .result-tip').html($('#resultTip').html());
+    });
+});
+</script>
 <?php include '../../common/view/footer.lite.html.php';?>

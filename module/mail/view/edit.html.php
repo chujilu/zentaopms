@@ -2,8 +2,8 @@
 /**
  * The edit view file of mail module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 QingDao Nature Easy Soft Network Technology Co,LTD (www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <wwccss@cnezsoft.com>
  * @package     mail
  * @version     $Id$
@@ -25,6 +25,12 @@ include '../../common/view/header.html.php';
         <th class='rowhead w-120px'><?php echo $lang->mail->turnon; ?></th>
         <td><?php echo html::radio('turnon', $lang->mail->turnonList, 1);?></td>
       </tr>
+      <?php if($config->global->cron):?>
+      <tr>
+        <th class='text-top'><?php echo $lang->mail->async?></th>
+        <td><?php echo html::radio('async', $lang->mail->asyncList, zget($config->mail, 'async', 0))?></td>
+      </tr>
+      <?php endif;?>
       <tr>
         <th><?php echo $lang->mail->fromAddress; ?></th>
         <td><?php echo html::input('fromAddress', $mailConfig->fromAddress, "class='form-control'");?></td>
@@ -72,6 +78,7 @@ include '../../common/view/header.html.php';
            echo html::submitButton();
            if($this->config->mail->turnon and $mailExist) echo html::linkButton($lang->mail->test, inlink('test'));
            echo html::linkButton($lang->mail->reset, inlink('reset'));
+           if(common::hasPriv('mail', 'browse') and isset($config->mail->async) and $config->mail->async and $config->global->cron) echo html::linkButton($lang->mail->browse, inlink('browse'));
            ?>
          </td>
        </tr>

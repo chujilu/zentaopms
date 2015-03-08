@@ -2,8 +2,8 @@
 /**
  * The obtain view file of extension module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     extension
  * @version     $Id$
@@ -67,7 +67,7 @@
           echo " {$lang->extension->depends}: ";
           if(!empty($currentRelease->depends))
           {
-              foreach(json_decode($currentRelease->depends) as $code => $limit)
+              foreach(json_decode($currentRelease->depends, true) as $code => $limit)
               {
                   echo $code;
                   if($limit != 'all')
@@ -103,7 +103,7 @@
                       }
                       else
                       {
-                          echo html::commonButton($lang->extension->installed, "disabled='disabled' style='color:gray'");
+                          echo html::commonButton("<i class='icon-ok'></i> " . $lang->extension->installed, "disabled='disabled'", 'text-success');
                       }
                   }
                   else

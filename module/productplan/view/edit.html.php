@@ -2,8 +2,8 @@
 /**
  * The edit view of productplan module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     productplan
  * @version     $Id: edit.html.php 4728 2013-05-03 06:14:34Z chencongzhi520@gmail.com $
@@ -13,7 +13,7 @@
 <?php include '../../common/view/header.html.php';?>
 <?php include '../../common/view/datepicker.html.php';?>
 <?php include '../../common/view/kindeditor.html.php';?>
-<div class='container'>
+<div class='container mw-1400px'>
   <div id='titlebar'>
     <div class='heading'>
       <span class='prefix'><?php echo html::icon($lang->icons['plan']);?></span>
@@ -41,7 +41,7 @@
       </tr>
       <tr>
         <th><?php echo $lang->productplan->desc;?></th>
-        <td colspan='2'><?php echo html::textarea('desc', $plan->desc, "rows='10' class='form-control'");?></td>
+        <td colspan='2'><?php echo html::textarea('desc', htmlspecialchars($plan->desc), "rows='10' class='form-control'");?></td>
       </tr>  
       <tr>
         <td></td>

@@ -2,8 +2,8 @@
 /**
  * The bug view file of dashboard module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     dashboard
  * @version     $Id: bug.html.php 5107 2013-07-12 01:46:12Z chencongzhi520@gmail.com $
@@ -22,7 +22,7 @@
   </ul>
 </div>
 <form method='post' action='<?php echo $this->createLink('bug', 'batchEdit', "productID=0");?>'>
-  <table class='table table-condensed table-hover table-striped tablesorter' id='bugList'>
+  <table class='table table-condensed table-hover table-striped tablesorter table-fixed' id='bugList'>
     <?php $vars = "type=$type&orderBy=%s&recTotal=$recTotal&recPerPage=$recPerPage&pageID=$pageID"; ?>
     <thead>
     <tr class='text-center'>
@@ -46,8 +46,8 @@
         <?php if($canBatchEdit):?><input type='checkbox' name='bugIDList[]' value='<?php echo $bug->id;?>' /><?php endif;?>
         <?php echo html::a($this->createLink('bug', 'view', "bugID=$bug->id"), sprintf('%03d', $bug->id), '_blank');?>
       </td>
-      <td><span class='<?php echo 'severity' . $lang->bug->severityList[$bug->severity]?>'><?php echo isset($lang->bug->severityList[$bug->severity]) ? $lang->bug->severityList[$bug->severity] : $bug->severity;?></span></td>
-      <td><span class='<?php echo 'pri' . $lang->bug->priList[$bug->pri]?>'><?php echo isset($lang->bug->priList[$bug->pri]) ? $lang->bug->priList[$bug->pri] : $bug->pri?></span></td>
+      <td><span class='<?php echo 'severity' . zget($lang->bug->severityList, $bug->severity, $bug->severity)?>'><?php echo zget($lang->bug->severityList, $bug->severity, $bug->severity);?></span></td>
+      <td><span class='<?php echo 'pri' . zget($lang->bug->priList, $bug->pri, $bug->pri)?>'><?php echo zget($lang->bug->priList, $bug->pri, $bug->pri)?></span></td>
       <td><?php echo $lang->bug->typeList[$bug->type]?></td>
       <td class='text-left nobr'><?php echo html::a($this->createLink('bug', 'view', "bugID=$bug->id"), $bug->title);?></td>
       <td><?php echo $users[$bug->openedBy];?></td>

@@ -2,8 +2,8 @@
 /**
  * The model file of action module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     action
  * @version     $Id: model.php 5028 2013-07-06 02:59:41Z wyd621@gmail.com $
@@ -186,19 +186,116 @@ class actionModel extends model
     {
         $commiters = $this->loadModel('user')->getCommiters();
         $actions   = $this->dao->select('*')->from(TABLE_ACTION)
+            ->beginIF($objectType == 'project')
+            ->where("objectType IN('project', 'testtask', 'build')")
+            ->andWhere('project')->eq($objectID)
+            ->fi()
+            ->beginIF($objectType != 'project')
             ->where('objectType')->eq($objectType)
             ->andWhere('objectID')->eq($objectID)
+            ->fi()
             ->orderBy('date, id')->fetchAll('id');
         $histories = $this->getHistory(array_keys($actions));
         $this->loadModel('file');
+
+        if($objectType == 'project')
+        {
+            $this->app->loadLang('build');
+            $this->app->loadLang('testtask');
+            $actions = $this->processProjectActions($actions);
+        }
+
         foreach($actions as $actionID => $action)
         {
-            if(strtolower($action->action) == 'svncommited' and isset($commiters[$action->actor])) $action->actor = $commiters[$action->actor];
-            if(strtolower($action->action) == 'gitcommited' and isset($commiters[$action->actor])) $action->actor = $commiters[$action->actor];
+            $actionName = strtolower($action->action);
+            if($actionName == 'svncommited' and isset($commiters[$action->actor]))
+            {
+                $action->actor = $commiters[$action->actor];
+            }
+            elseif($actionName == 'gitcommited' and isset($commiters[$action->actor]))
+            {
+                $action->actor = $commiters[$action->actor];
+            }
+            elseif($actionName == 'linked2project')
+            {
+                $name = $this->dao->select('name')->from(TABLE_PROJECT)->where('id')->eq($action->extra)->fetch('name');
+                if($name) $action->extra = html::a(helper::createLink('project', 'story', "projectID=$action->extra"), $name);
+            }
+            elseif($actionName == 'linked2plan')
+            {
+                $title = $this->dao->select('title')->from(TABLE_PRODUCTPLAN)->where('id')->eq($action->extra)->fetch('title');
+                if($title) $action->extra = html::a(helper::createLink('productplan', 'view', "planID=$action->extra"), $title);
+            }
+            elseif($actionName == 'moved')
+            {
+                $name = $this->dao->select('name')->from(TABLE_PROJECT)->where('id')->eq($action->extra)->fetch('name');
+                if($name) $action->extra = html::a(helper::createLink('project', 'task', "projectID=$action->extra"), "#$action->extra " . $name);
+            }
+            elseif($actionName == 'frombug')
+            {
+                $action->extra = html::a(helper::createLink('bug', 'view', "bugID=$action->extra"), $action->extra);
+            }
+            elseif($actionName == 'unlinkedfromproject')
+            {
+                $name = $this->dao->select('name')->from(TABLE_PRODUCT)->where('id')->eq($action->extra)->fetch('name');
+                if($name) $action->extra = html::a(helper::createLink('product', 'browse', "productID=$action->extra"), "#$action->extra " . $name);
+            }
+            elseif($actionName == 'unlinkedfromplan')
+            {
+                $title = $this->dao->select('title')->from(TABLE_PRODUCTPLAN)->where('id')->eq($action->extra)->fetch('title');
+                if($title) $action->extra = html::a(helper::createLink('productplan', 'view', "planID=$action->extra"), "#$action->extra " . $title);
+            }
+            elseif($actionName == 'tostory')
+            {
+                $title = $this->dao->select('title')->from(TABLE_STORY)->where('id')->eq($action->extra)->fetch('title');
+                if($title) $action->extra = html::a(helper::createLink('story', 'view', "storyID=$action->extra"), "#$action->extra " . $title);
+            }
+            elseif($actionName == 'totask')
+            {
+                $name = $this->dao->select('name')->from(TABLE_TASK)->where('id')->eq($action->extra)->fetch('name');
+                if($name) $action->extra = html::a(helper::createLink('task', 'view', "taskID=$action->extra"), "#$action->extra " . $name);
+            }
+            elseif($actionName == 'buildopened')
+            {
+                $name = $this->dao->select('name')->from(TABLE_BUILD)->where('id')->eq($action->objectID)->fetch('name');
+                if($name) $action->extra = html::a(helper::createLink('build', 'view', "buildID=$action->objectID"), "#$action->objectID " . $name);
+            }
+            elseif($actionName == 'testtaskopened' or $actionName == 'testtaskstarted' or $actionName == 'testtaskclosed')
+            {
+                $name = $this->dao->select('name')->from(TABLE_TESTTASK)->where('id')->eq($action->objectID)->fetch('name');
+                if($name) $action->extra = html::a(helper::createLink('testtask', 'view', "testtaskID=$action->objectID"), "#$action->objectID " . $name);
+            }
             $action->history = isset($histories[$actionID]) ? $histories[$actionID] : array();
-            $action->comment = $this->file->setImgSize($action->comment, 870);
+            $action->comment = $this->file->setImgSize($action->comment, $this->config->action->commonImgSize);
             $actions[$actionID] = $action;
         }
+
+        return $actions;
+    }
+
+    /**
+     * process Project Actions change actionStype
+     * 
+     * @param  array    $actions 
+     * @access public
+     * @return void
+     */
+    public function processProjectActions($actions)
+    {
+        /* Define the action map table. */
+        $map = array();
+        $map['testtask']['opened']  = 'testtaskopened';
+        $map['testtask']['started'] = 'testtaskstarted';
+        $map['testtask']['closed']  = 'testtaskclosed';
+        $map['build']['opened']     = 'buildopened';
+
+        /* Process actions. */
+        foreach($actions as $key => $action)
+        {
+            if($action->objectType != 'project' and !isset($map[$action->objectType][$action->action])) unset($actions[$key]);
+            if(isset($map[$action->objectType][$action->action])) $action->action = $map[$action->objectType][$action->action];
+        }
+
         return $actions;
     }
 

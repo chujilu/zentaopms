@@ -2,8 +2,8 @@
 /**
  * The browse view file of testtask module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     testtask
  * @version     $Id: browse.html.php 1914 2011-06-24 10:11:25Z yidong@cnezsoft.com $
@@ -44,7 +44,7 @@
     <td><?php echo $users[$task->owner];?></td>
     <td><?php echo $task->begin?></td>
     <td><?php echo $task->end?></td>
-    <td><?php echo $lang->testtask->statusList[$task->status];?></td>
+    <td class='status-<?php echo $task->status?>'><?php echo $lang->testtask->statusList[$task->status];?></td>
     <td>
       <?php
       common::printIcon('testtask', 'cases',    "taskID=$task->id", '', 'list', 'smile');

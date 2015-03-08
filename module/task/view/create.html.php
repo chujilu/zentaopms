@@ -2,8 +2,8 @@
 /**
  * The create view of task module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     task
  * @version     $Id: create.html.php 5090 2013-07-10 05:49:24Z zhujinyonging@gmail.com $
@@ -14,8 +14,7 @@
 <?php include '../../common/view/form.html.php';?>
 <?php include '../../common/view/datepicker.html.php';?>
 <?php include '../../common/view/kindeditor.html.php';?>
-<?php js::set('holders', $lang->task->placeholder);?>
-<div class='container'>
+<div class='container mw-1400px'>
   <div id='titlebar'>
     <div class='heading'>
       <span class='prefix'><?php echo html::icon($lang->icons['task']);?></span>
@@ -30,7 +29,7 @@
       </tr>  
       <tr>
         <th><?php echo $lang->task->module;?></th>
-        <td id='moduleIdBox' class='w-p25-f'><?php echo html::select('module', $moduleOptionMenu, $task->module, "class='form-control' onchange='setStories(this.value,$project->id)'");?></td><td></td><td class='w-150px'></td>
+        <td id='moduleIdBox' class='w-p25-f'><?php echo html::select('module', $moduleOptionMenu, $task->module, "class='form-control chosen' onchange='setStories(this.value,$project->id)'");?></td><td></td><td class='w-150px'></td>
       </tr>
       <tr>
         <th><?php echo $lang->task->assignedTo;?></th>
@@ -44,7 +43,7 @@
         <th><?php echo $lang->task->story;?></th>
         <td colspan='2'>
           <div class='input-group'>
-            <?php echo html::select('story', $stories, $task->story, "class=form-control onchange='setStoryRelated();'");?>
+            <?php echo html::select('story', $stories, $task->story, "class='form-control chosen' onchange='setStoryRelated();'");?>
             <span class='input-group-btn' id='preview'><a href='#' class='btn iframe'><?php echo $lang->preview;?></a></span>
           </div>
         </td>
@@ -73,7 +72,7 @@
             <?php echo html::input('estimate', $task->estimate, "class='form-control'")?>
             <span class="input-group-addon"><?php echo $lang->task->hour;?></span>
           </div>
-        </td><td></td>
+        </td><td><div class='help-block'><?php echo $lang->task->estimateTip?></div></td>
       </tr>
       <tr>
         <th><?php echo $lang->task->estStarted;?></th>
@@ -86,7 +85,7 @@
       <tr>
         <th><?php echo $lang->task->mailto;?></th>
         <td colspan='2'><?php echo html::select('mailto[]', $project->acl == 'private' ? $members : $users, str_replace(' ', '', $task->mailto), "multiple class='form-control'");?></td>
-        <td class='text-top'><?php if($contactLists) echo html::select('', $contactLists, '', "class='form-control' onchange=\"setMailto('mailto', this.value)\"");?></td>
+        <td class='text-top'><?php if($contactLists) echo html::select('', $contactLists, '', "class='form-control chosen' onchange=\"setMailto('mailto', this.value)\"");?></td>
       </tr>
       <tr>
         <th><?php echo $lang->files;?></th>

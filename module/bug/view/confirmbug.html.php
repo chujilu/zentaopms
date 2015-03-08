@@ -2,8 +2,8 @@
 /**
  * The confirm file of bug module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     bug
  * @version     $Id: resolve.html.php 1914 2011-06-24 10:11:25Z yidong@cnezsoft.com $
@@ -13,7 +13,6 @@
 <?php
 include '../../common/view/header.html.php';
 include '../../common/view/kindeditor.html.php';
-include '../../common/view/chosen.html.php';
 js::set('holders', $lang->bug->placeholder);
 js::set('page', 'confirmbug');
 ?>
@@ -45,7 +44,7 @@ js::set('page', 'confirmbug');
       <td colspan='2'><?php echo html::textarea('comment', '', "rows='6' class='w-p94'");?></td>
     </tr>
     <tr>
-      <td colspan='3' class='text-center'><?php echo html::submitButton() . html::linkButton($lang->goback, $this->server->http_referer);?></td>
+      <th></th><td colspan='2'><?php echo html::submitButton() . html::linkButton($lang->goback, $this->server->http_referer);?></td>
     </tr>
   </table>
 </form>

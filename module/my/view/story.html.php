@@ -2,8 +2,8 @@
 /**
  * The story view file of dashboard module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     dashboard
  * @version     $Id: story.html.php 5116 2013-07-12 06:37:48Z chencongzhi520@gmail.com $
@@ -22,7 +22,7 @@
   </nav>
 </div>
 <form method='post' id='myStoryForm'>
-<table class='table table-condensed table-hover table-striped tablesorter'>
+<table class='table table-condensed table-hover table-striped tablesorter table-fixed'>
   <?php $vars = "type=$type&orderBy=%s&recTotal=$recTotal&recPerPage=$recPerPage&pageID=$pageID"; ?>
   <thead>
     <tr class='text-center'>
@@ -52,19 +52,19 @@
         <?php endif;?>
         <?php echo html::a($storyLink, sprintf('%03d', $story->id));?>
       </td>
-      <td><span class='<?php echo 'pri' . $story->pri;?>'><?php echo $story->pri?></span></td>
+      <td><span class='<?php echo 'pri' . zget($lang->story->priList, $story->pri, $story->pri);?>'><?php echo zget($lang->story->priList, $story->pri, $story->pri);?></span></td>
       <td><?php echo $story->productTitle;?></td>
       <td class='text-left nobr'><?php echo html::a($storyLink, $story->title);?></td>
       <td><?php echo $story->planTitle;?></td>
       <td><?php echo $users[$story->openedBy];?></td>
       <td><?php echo $story->estimate;?></td>
-      <td class='<?php echo $story->status;?>'><?php echo $lang->story->statusList[$story->status];?></td>
+      <td class='story-<?php echo $story->status;?>'><?php echo $lang->story->statusList[$story->status];?></td>
       <td><?php echo $lang->story->stageList[$story->stage];?></td>
       <td class='text-right'>
         <?php
         common::printIcon('story', 'change',     "storyID=$story->id", $story, 'list', 'random');
         common::printIcon('story', 'review',     "storyID=$story->id", $story, 'list', 'search');
-        common::printIcon('story', 'close',      "storyID=$story->id", $story, 'list', 'off', 'text-danger');
+        common::printIcon('story', 'close',      "storyID=$story->id", $story, 'list', 'off', '', 'text-danger');
         common::printIcon('story', 'edit',       "storyID=$story->id", $story, 'list', 'pencil');
         common::printIcon('story', 'createCase', "productID=$story->product&moduleID=0&from=&param=0&storyID=$story->id", '', 'list', 'sitemap');
         ?>
@@ -84,12 +84,12 @@
           if($canBatchEdit)
           {
               $actionLink = $this->createLink('story', 'batchEdit');
-              echo html::commonButton("<i class='icon-edit'></i> " . $lang->edit, "onclick=\"setFormAction('$actionLink')\"");
+              echo html::commonButton($lang->edit, "onclick=\"setFormAction('$actionLink')\"");
           }
           if($canBatchClose)
           {
               $actionLink = $this->createLink('story', 'batchClose');
-              echo html::commonButton("<i class='icon-off'></i> " . $lang->close, "onclick=\"setFormAction('$actionLink')\"");
+              echo html::commonButton($lang->close, "onclick=\"setFormAction('$actionLink')\"");
           }
       }
       ?>

@@ -2,8 +2,8 @@
 /**
  * The group module zh-cn file of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     group
  * @version     $Id: zh-cn.php 4719 2013-05-03 02:20:28Z chencongzhi520@gmail.com $
@@ -43,6 +43,10 @@ $lang->group->copyOptions['copyPriv'] = '复制权限';
 $lang->group->copyOptions['copyUser'] = '复制用户';
 
 $lang->group->versions['']          = '修改历史';
+$lang->group->versions['6_4']       = '禅道6.4';
+$lang->group->versions['6_3']       = '禅道6.3';
+$lang->group->versions['6_2']       = '禅道6.2';
+$lang->group->versions['6_1']       = '禅道6.1';
 $lang->group->versions['5_3']       = '禅道5.3';
 $lang->group->versions['5_1']       = '禅道5.1';
 $lang->group->versions['5_0_beta2'] = '禅道5.0.beta2';

@@ -2,8 +2,8 @@
 /**
  * The model file of test task module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     testtask
  * @version     $Id: model.php 5114 2013-07-12 06:02:59Z chencongzhi520@gmail.com $
@@ -41,9 +41,7 @@ class testtaskModel extends model
      */
     function create()
     {
-        $task = fixer::input('post')
-            ->stripTags('name')
-            ->get();
+        $task = fixer::input('post')->stripTags($this->config->testtask->editor->create['id'], $this->config->allowedTags)->get();
         $this->dao->insert(TABLE_TESTTASK)->data($task)
             ->autoCheck($skipFields = 'begin,end')
             ->batchcheck($this->config->testtask->create->requiredFields, 'notempty')
@@ -63,7 +61,7 @@ class testtaskModel extends model
      * @access public
      * @return array
      */
-    public function getProductTasks($productID, $orderBy = 'id_desc', $pager = null)
+    public function getProductTasks($productID, $orderBy = 'id_desc', $pager = null, $type = '')
     {
         return $this->dao->select('t1.*, t2.name AS productName, t3.name AS projectName, t4.name AS buildName')
             ->from(TABLE_TESTTASK)->alias('t1')
@@ -72,6 +70,8 @@ class testtaskModel extends model
             ->leftJoin(TABLE_BUILD)->alias('t4')->on('t1.build = t4.id')
             ->where('t1.product')->eq((int)$productID)
             ->andWhere('t1.deleted')->eq(0)
+            ->beginIF($type == 'wait')->andWhere('t1.status')->ne('done')->fi()
+            ->beginIF($type == 'done')->andWhere('t1.status')->eq('done')->fi()
             ->orderBy($orderBy)
             ->page($pager)
             ->fetchAll();
@@ -119,13 +119,26 @@ class testtaskModel extends model
     }
 
     /**
+     * Get taskrun by case id.
+     * 
+     * @param  int    $taskID 
+     * @param  int    $caseID 
+     * @access public
+     * @return void
+     */
+    public function getRunByCase($taskID, $caseID)
+    {
+        return $this->dao->select('*')->from(TABLE_TESTRUN)->where('task')->eq($taskID)->andWhere('`case`')->eq($caseID)->fetch();
+    }
+
+    /**
      * Get test tasks by user.
      * 
      * @param   string $account 
      * @access  public
      * @return  array
      */
-    public function getByUser($account, $pager = null, $orderBy = 'id_desc')
+    public function getByUser($account, $pager = null, $orderBy = 'id_desc', $type = '')
     {
         return $this->dao->select('t1.*, t2.name AS projectName, t3.name AS buildName')
             ->from(TABLE_TESTTASK)->alias('t1')
@@ -133,6 +146,8 @@ class testtaskModel extends model
             ->leftJoin(TABLE_BUILD)->alias('t3')->on('t1.build = t3.id')
             ->where('t1.deleted')->eq(0)
             ->andWhere('t1.owner')->eq($account)
+            ->beginIF($type == 'wait')->andWhere('t1.status')->ne('done')->fi()
+            ->beginIF($type == 'done')->andWhere('t1.status')->eq('done')->fi()
             ->orderBy($orderBy)
             ->page($pager)
             ->fetchAll();
@@ -148,7 +163,7 @@ class testtaskModel extends model
     public function update($taskID)
     {
         $oldTask = $this->getById($taskID);
-        $task = fixer::input('post')->stripTags('name')->get();
+        $task = fixer::input('post')->stripTags($this->config->testtask->editor->edit['id'], $this->config->allowedTags)->get();
         $this->dao->update(TABLE_TESTTASK)->data($task)
             ->autoCheck()
             ->batchcheck($this->config->testtask->edit->requiredFields, 'notempty')
@@ -191,6 +206,7 @@ class testtaskModel extends model
         $oldTesttask = $this->getById($taskID);
         $testtask = fixer::input('post')
             ->setDefault('status', 'done')
+            ->stripTags($this->config->testtask->editor->close['id'], $this->config->allowedTags)
             ->remove('comment')->get();
 
         $this->dao->update(TABLE_TESTTASK)->data($testtask)
@@ -236,8 +252,9 @@ class testtaskModel extends model
     {
         $orderBy = strpos($orderBy, 'assignedTo') !== false ? ('t1.' . $orderBy) : ('t2.' . $orderBy);
 
-        return $this->dao->select('t2.*,t1.*,t2.version as caseVersion')->from(TABLE_TESTRUN)->alias('t1')
+        return $this->dao->select('t2.*,t1.*,t2.version as caseVersion,t3.title as storyTitle')->from(TABLE_TESTRUN)->alias('t1')
             ->leftJoin(TABLE_CASE)->alias('t2')->on('t1.case = t2.id')
+            ->leftJoin(TABLE_STORY)->alias('t3')->on('t2.story = t3.id')
             ->where('t1.task')->eq((int)$taskID)
             ->beginIF($moduleID)->andWhere('t2.module')->in($moduleID)->fi()
             ->orderBy($orderBy)
@@ -298,17 +315,14 @@ class testtaskModel extends model
          * 
          * */
         $caseResult = $this->post->result ? $this->post->result : 'pass';
-        if(isset($_POST['passall']) and $this->post->passall == false)
+        if($this->post->steps)
         {
-            if($this->post->steps)
+            foreach($this->post->steps as $stepID => $stepResult)
             {
-                foreach($this->post->steps as $stepID => $stepResult)
+                if($stepResult != 'pass' and $stepResult != 'n/a')
                 {
-                    if($stepResult != 'pass' and $stepResult != 'n/a')
-                    {
-                        $caseResult = $stepResult;
-                        break;
-                    }
+                    $caseResult = $stepResult;
+                    break;
                 }
             }
         }
@@ -318,7 +332,7 @@ class testtaskModel extends model
         {
             foreach($this->post->steps as $stepID =>$stepResult)
             {
-                $step['result'] = $this->post->passall ? 'pass' : $stepResult;
+                $step['result'] = $stepResult;
                 $step['real']   = $this->post->reals[$stepID];
                 $stepResults[$stepID] = $step;
             }
@@ -336,7 +350,8 @@ class testtaskModel extends model
             ->setForce('stepResults', serialize($stepResults))
             ->add('lastRunner', $this->app->user->account)
             ->add('date', $now)
-            ->remove('steps,reals,passall,result')
+            ->skipSpecial('stepResults')
+            ->remove('steps,reals,result')
             ->get();
         $this->dao->insert(TABLE_TESTRESULT)->data($result)->autoCheck()->exec();
         $this->dao->update(TABLE_CASE)->set('lastRunner')->eq($this->app->user->account)->set('lastRunDate')->eq($now)->set('lastRunResult')->eq($caseResult)->where('id')->eq($this->post->case)->exec();
@@ -446,23 +461,29 @@ class testtaskModel extends model
         if(!$results) return array();
 
         $relatedVersions = array();
+        $runIdList       = array();
         foreach($results as $result)
         {
-            $relatedVersions[] = $result->version;
-            $runCaseID         = $result->case;
+            $runIdList[$result->run] = $result->run;
+            $relatedVersions[]       = $result->version;
+            $runCaseID               = $result->case;
         }
         $relatedVersions = array_unique($relatedVersions);
 
-        $relatedSteps =  $this->dao->select('*')->from(TABLE_CASESTEP)
-            ->beginIF($caseID)->where('`case`')->eq($caseID)->fi()
-            ->beginIF($runID)->where('`case`')->eq($runCaseID)->fi()
+        $relatedSteps = $this->dao->select('*')->from(TABLE_CASESTEP)
+            ->where('`case`')->eq($runCaseID)
             ->andWhere('version')->in($relatedVersions)
             ->fetchAll();
+        $runs = $this->dao->select('t1.id,t2.build')->from(TABLE_TESTRUN)->alias('t1')
+            ->leftJoin(TABLE_TESTTASK)->alias('t2')->on('t1.task=t2.id')
+            ->where('t1.id')->in($runIdList)
+            ->fetchPairs();
 
         foreach($results as $resultID => $result)
         {
             $result->stepResults = unserialize($result->stepResults);
-            $results[$resultID] = $result;
+            $result->build       = $result->run ? zget($runs, $result->run, 0) : 0;
+            $results[$resultID]  = $result;
 
             foreach($relatedSteps as $key => $step)
             {

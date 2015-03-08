@@ -2,8 +2,8 @@
 /**
  * The team view file of project module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     project
  * @version     $Id: team.html.php 4143 2013-01-18 07:01:06Z wyd621@gmail.com $
@@ -13,7 +13,7 @@
 <?php include '../../common/view/header.html.php';?>
 <?php include '../../common/view/tablesorter.html.php';?>
 <?php js::set('confirmUnlinkMember', $lang->project->confirmUnlinkMember)?>
-<div class='container mw-700px'>
+<div>
   <div id='titlebar'>
     <div class='heading'>
       <?php echo html::icon($lang->icons['team']);?> <?php echo $lang->project->team;?>
@@ -22,7 +22,7 @@
       <?php common::printLink('project', 'managemembers', "projectID=$project->id", $lang->project->manageMembers, '', "class='btn btn-primary'");?>
     </div>
   </div>
-  <table class='table tablesorter bd-0' id='memberList'>
+  <table class='table tablesorter' id='memberList'>
     <thead>
       <tr>
         <th><?php echo $lang->team->account;?></th>

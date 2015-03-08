@@ -2,8 +2,8 @@
 /**
  * The model file of editor module of ZenTaoCMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 闈掑矝鏄撹蒋澶╁垱缃戠粶绉戞妧鏈夐檺鍏徃(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Yidong Wang <yidong@cnezsoft.com>
  * @package     editor
  * @version     $Id$
@@ -60,7 +60,11 @@ class editorModel extends model
             elseif(is_dir($moduleFullFile)) 
             {
                 $ext = ($moduleFile == 'js' or $moduleFile == 'css') ? $moduleFile : 'php';
-                foreach(glob($moduleFullFile . $this->pathFix . "*.$ext") as $fileName) $allModules[$moduleFullDir][$moduleFullFile][$fileName] = basename($fileName);
+                $extFiles = glob($moduleFullFile . $this->pathFix . "*.$ext");
+                if(!empty($extFiles))
+                {
+                    foreach($extFiles as $fileName) $allModules[$moduleFullDir][$moduleFullFile][$fileName] = basename($fileName);
+                }
             }
             else
             {

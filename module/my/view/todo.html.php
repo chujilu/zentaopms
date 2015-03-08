@@ -2,8 +2,8 @@
 /**
  * The todo view file of dashboard module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     dashboard
  * @version     $Id: todo.html.php 4735 2013-05-03 08:30:02Z chencongzhi520@gmail.com $
@@ -25,7 +25,7 @@
       }
       echo "<li id='byDate' class='datepicker-wrapper datepicker-date'>" . html::input('date', $date,"class='form-control form-date' onchange='changeDate(this.value)'") . '</li>';
 
-      if($type == 'bydate') 
+      if(is_numeric($type)) 
       {
           if($date == date('Y-m-d'))
           {
@@ -45,7 +45,7 @@
       <?php echo html::a(helper::createLink('todo', 'create', "date=" . str_replace('-', '', $date)), "<i class='icon-plus'></i> " . $lang->todo->create, '', "class='btn'") ?>
     </div>
   </div>
-  <table class='table table-condensed table-hover table-striped tablesorter' id='todoList'>
+  <table class='table table-condensed table-hover table-striped tablesorter table-fixed' id='todoList'>
     <?php $vars = "type=$type&account=$account&status=$status&orderBy=%s&recTotal=$recTotal&recPerPage=$recPerPage&pageID=$pageID"; ?>
     <thead>
       <tr class='text-center'>
@@ -71,7 +71,7 @@
       </td>
       <td><?php echo $todo->date == '2030-01-01' ? $lang->todo->periods['future'] : $todo->date;?></td>
       <td><?php echo $lang->todo->typeList[$todo->type];?></td>
-      <td><span class='<?php echo 'pri' . $todo->pri;?>'><?php echo $todo->pri?></span></td>
+      <td><span class='<?php echo 'pri' . zget($lang->todo->priList, $todo->pri, $todo->pri);?>'><?php echo zget($lang->todo->priList, $todo->pri, $todo->pri)?></span></td>
       <td class='text-left'><?php echo html::a($this->createLink('todo', 'view', "id=$todo->id&from=my", '', true), $todo->name, '', "data-toggle='modal' data-type='iframe' data-title='" . $lang->todo->view . "' data-icon='check'");?></td>
       <td><?php echo $todo->begin;?></td>
       <td><?php echo $todo->end;?></td>

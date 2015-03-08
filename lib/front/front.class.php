@@ -371,25 +371,29 @@ EOT;
      * @param  string $scope  the scope of select reverse.
      * @return string
      */
-    static public function selectButton($scope = "")
+     static public function selectButton($scope = "")
     {
                 $string = <<<EOT
 <script>
-function selectAll(scope)
-{ 
-    if(scope) $('#' + scope + ' input').each(function() { $(this).attr("checked", true);});
-    else $('input:checkbox').each(function() { $(this).attr("checked", true);});
-}
-function selectReverse(scope)
-{ 
-    if(scope) $('#' + scope + ' input').each(function() { $(this).attr("checked", !$(this).attr("checked"));});
-    else $('input:checkbox').each(function(){ $(this).attr("checked", !$(this).attr("checked"));});
-}
+$(function()
+{
+    if($('body').data('bindSelectBtn')) return;
+    $('body').data('bindSelectBtn', true);
+    $(document).on('click', '.check-all, .check-inverse', function()
+    {
+        var e = $(this);
+        if(e.closest('.datatable').length) return;
+        scope = e.data('scope');
+        scope = scope ? $('#' + scope) : e.closest('.table');
+        if(!scope.length) scope = e.closest('form');
+        scope.find('input:checkbox').each(e.hasClass('check-inverse') ? function() { $(this).attr("checked", !$(this).attr("checked"));} : function() { $(this).attr("checked", true);});
+    });
+});
 </script>
 EOT;
         global $lang;
-        $string .= "<a id='allchecker' class='btn btn-select-all' href='javascript:selectAll(\"$scope\")' >{$lang->selectAll}</a>";
-        $string .= "<a id='reversechecker' class='btn btn-select-reverse' href='javascript:selectReverse(\"$scope\")'>{$lang->selectReverse}</a>";
+        $string .= "<a class='btn btn-select-all check-all' data-scope='$scope' href='javascript:;' >{$lang->selectAll}</a>";
+        $string .= "<a class='btn btn-select-reverse check-inverse' data-scope='$scope' href='javascript:;'>{$lang->selectReverse}</a>";
         return  $string;
     }
 
@@ -815,7 +819,7 @@ EOT;
      * @access public
      * @return void
      */
-    static public function closeModal($window = 'self', $location = '')
+    static public function closeModal($window = 'self', $location = 'this')
     {
         $js  = self::start();
         $js .= "if($window.location.href == self.location.href){ $window.window.close();}";
@@ -859,13 +863,17 @@ EOT;
         $jsConfig->currentMethod  = $methodName;
         $jsConfig->clientLang     = $clientLang;
         $jsConfig->requiredFields = $requiredFields;
-        $jsConfig->submitting     = $lang->submitting;
-        $jsConfig->save           = $lang->save;
         $jsConfig->router         = $app->server->PHP_SELF;
-        $jsConfig->timeout        = $lang->timeout;
+        $jsConfig->timeout        = $config->timeout;
+
+        $jsLang = new stdclass();
+        $jsLang->submitting = $lang->submitting;
+        $jsLang->save       = $lang->save;
+        $jsLang->timeout    = $lang->timeout;
 
         $js  = self::start(false);
-        $js .= 'var config=' . json_encode($jsConfig);
+        $js .= 'var config=' . json_encode($jsConfig) . ";\n";
+        $js .= 'var lang=' . json_encode($jsLang) . ";\n";
         $js .= self::end();
         echo $js;
     }

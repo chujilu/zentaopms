@@ -2,8 +2,8 @@
 /**
  * The view file of case module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     case
  * @version     $Id: view.html.php 594 2010-03-27 13:44:07Z wwccss $
@@ -12,34 +12,12 @@
 ?>
 <?php include '../../common/view/header.html.php';?>
 <?php include '../../common/view/treeview.html.php';?>
-<?php include '../../common/view/colorize.html.php';?>
+<?php include './caseheader.html.php';?>
 <?php js::set('confirmUnlink', $lang->testtask->confirmUnlinkCase)?>
 <script language="Javascript">
 var browseType = '<?php echo $browseType;?>';
 var moduleID   = '<?php echo $moduleID;?>';
 </script>
-<div id='featurebar'>
-  <div class='heading'><?php echo html::icon($lang->icons['usecase']);?></div>
-  <nav class='nav'>
-    <?php
-    echo "<li id='allTab'>" . html::a($this->inlink('cases', "taskID=$taskID&browseType=all&param=0"), $lang->testtask->allCases) . "</li>";
-    echo "<li id='assignedtomeTab'>" . html::a($this->inlink('cases', "taskID=$taskID&browseType=assignedtome&param=0"), $lang->testtask->assignedToMe) . "</li>";
-    echo "<li id='bysearchTab'><a href='#'><i class='icon-search icon'></i>&nbsp;{$lang->testcase->bySearch}</a></li> ";
-    ?>
-  </nav>
-  <div class='actions'>
-    <?php
-    echo "<div class='btn-group'>";
-    common::printIcon('testtask', 'linkCase', "taskID=$task->id", '', 'button', 'link');
-    common::printIcon('testcase', 'export', "productID=$productID&orderBy=`case`_desc&taskID=$task->id", '', 'button', '', '', 'iframe');
-    echo '</div>';
-    echo "<div class='btn-group'>";
-    common::printRPN($this->session->testtaskList, '');
-    echo '</div>';
-    ?>
-  </div>
-  <div id='querybox' class='<?php if($browseType =='bysearch') echo 'show';?>'></div>
-</div>
 <div class='side' id='casesbox'>
   <a class='side-handle' data-id='testtaskTree'><i class='icon-caret-left'></i></a>
   <div class='side-body'>
@@ -83,8 +61,8 @@ var moduleID   = '<?php echo $moduleID;?>';
             <?php endif;?>
             <?php printf('%03d', $run->case);?>
           </td>
-          <td><span class='<?php echo 'pri' . $run->pri?>'><?php echo $run->pri?></span></td>
-          <td class='text-left nobr'><?php echo html::a($this->createLink('testcase', 'view', "caseID=$run->case&version=$run->version&from=testtask"), $run->title, '_blank');?>
+          <td><span class='<?php echo 'pri' . zget($lang->testcase->priList, $run->pri, $run->pri)?>'><?php echo zget($lang->testcase->priList, $run->pri, $run->pri)?></span></td>
+          <td class='text-left nobr'><?php echo html::a($this->createLink('testcase', 'view', "caseID=$run->case&version=$run->version&from=testtask&taskID=$run->task"), $run->title, '_blank');?>
           </td>
           <td><?php echo $lang->testcase->typeList[$run->type];?></td>
           <td><?php $assignedTo = $users[$run->assignedTo]; echo substr($assignedTo, strpos($assignedTo, ':') + 1);?></td>
@@ -103,7 +81,7 @@ var moduleID   = '<?php echo $moduleID;?>';
                 echo html::a("javascript:ajaxDelete(\"$unlinkURL\",\"caseList\",confirmUnlink)", '<i class="icon-unlink"></i>', '', "title='{$lang->testtask->unlinkCase}' class='btn-icon'");
             }
 
-            common::printIcon('testcase', 'createBug', "product=$productID&extra=projectID=$task->project,buildID=$task->build,caseID=$run->case,runID=$run->id", $run, 'list', 'bug');
+            common::printIcon('testcase', 'createBug', "product=$productID&extra=projectID=$task->project,buildID=$task->build,caseID=$run->case,version=$run->version,runID=$run->id,testtask=$taskID", $run, 'list', 'bug', '', 'iframe');
             ?>
           </td>
         </tr>
@@ -126,9 +104,9 @@ var moduleID   = '<?php echo $moduleID;?>';
             {
                 $actionLink = inLink('batchAssign', "taskID=$task->id");
                 echo "<div class='input-group w-200px'>";
-                echo html::select('assignedTo', $users, '', 'class="form-control"');
-                echo "<span class='input-group-btn'>";
-                echo html::commonButton($lang->testtask->assign, "onclick=\"setFormAction('$actionLink')\" style='border-left:none'");
+                echo html::select('assignedTo', $users, '', 'class="form-control chosen"');
+                echo "<span class='input-group-addon'>";
+                echo html::a("javascript:setFormAction(\"$actionLink\")", $lang->testtask->assign);
                 echo '</span></div>';
             }
             if($canBatchRun)

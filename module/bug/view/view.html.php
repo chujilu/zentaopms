@@ -2,8 +2,8 @@
 /**
  * The view file of bug module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     bug
  * @version     $Id: view.html.php 4728 2013-05-03 06:14:34Z chencongzhi520@gmail.com $
@@ -33,8 +33,8 @@
         common::printIcon('bug', 'confirmBug', $params, $bug, 'button', 'search', '', 'iframe', true);
         common::printIcon('bug', 'assignTo',   $params, '',   'button', '', '', 'iframe', true);
         common::printIcon('bug', 'resolve',    $params, $bug, 'button', '', '', 'iframe showinonlybody', true);
-        common::printIcon('bug', 'close',      $params, $bug, 'button', '', '', 'text-danger iframe', true);
-        common::printIcon('bug', 'activate',   $params, $bug, 'button', '', '', 'text-success iframe', true);
+        common::printIcon('bug', 'close',      $params, $bug, 'button', '', '', 'text-danger iframe showinonlybody', true);
+        common::printIcon('bug', 'activate',   $params, $bug, 'button', '', '', 'text-success iframe showinonlybody', true);
 
         common::printIcon('bug', 'toStory', "product=$bug->product&module=0&story=0&project=0&bugID=$bug->id", $bug, 'button', $lang->icons['story']);
         common::printIcon('bug', 'createCase', $convertParams, '', 'button', 'sitemap');
@@ -125,7 +125,7 @@
               </tr>
               <tr>
                 <th><?php echo $lang->bug->severity;?></th>
-                <td><strong><?php echo $lang->bug->severityList[$bug->severity];?></strong></td>
+                <td><strong><?php echo zget($lang->bug->severityList, $bug->severity, $bug->severity);?></strong></td>
               </tr>
               <tr>
                 <th><?php echo $lang->bug->pri;?></th>
@@ -133,7 +133,7 @@
               </tr>
               <tr>
                 <th><?php echo $lang->bug->status;?></th>
-                <td><strong><?php echo $lang->bug->statusList[$bug->status];?></strong></td>
+                <td class='bug-<?php echo $bug->status?>'><strong><?php echo $lang->bug->statusList[$bug->status];?></strong></td>
               </tr>
               <tr>
                 <th><?php echo $lang->bug->activatedCount;?></th>
@@ -244,7 +244,7 @@
               </tr>
               <tr>
                 <th><?php echo $lang->bug->lblLastEdited;?></th>
-                <td><?php if($bug->lastEditedBy) echo $users[$bug->lastEditedBy] . $lang->at . $bug->lastEditedDate?></td>
+                <td><?php if($bug->lastEditedBy) echo zget($users, $bug->lastEditedBy, $bug->lastEditedBy) . $lang->at . $bug->lastEditedDate?></td>
               </tr>
             </table>
           </div>

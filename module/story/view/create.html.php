@@ -2,8 +2,8 @@
 /**
  * The create view of story module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     story
  * @version     $Id: create.html.php 4902 2013-06-26 05:25:58Z wyd621@gmail.com $
@@ -13,7 +13,7 @@
 <?php include './header.html.php';?>
 <?php include '../../common/view/form.html.php';?>
 <?php js::set('holders', $lang->story->placeholder); ?>
-<div class='container'>
+<div class='container mw-1400px'>
   <div id='titlebar'>
     <div class='heading'>
       <span class='prefix'><?php echo html::icon($lang->icons['story']);?></span>
@@ -25,12 +25,12 @@
       <tr>
         <th class='w-80px'><?php echo $lang->story->product;?></th>
         <td class='w-p25-f'>
-          <?php echo html::select('product', $products, $productID, "onchange='loadProduct(this.value);' class='form-control'");?>
+          <?php echo html::select('product', $products, $productID, "onchange='loadProduct(this.value);' class='form-control chosen'");?>
         </td>
         <td class='w-p15-f'>
           <div class='input-group' id='moduleIdBox'>
           <?php 
-          echo html::select('module', $moduleOptionMenu, $moduleID, "class='form-control'");
+          echo html::select('module', $moduleOptionMenu, $moduleID, "class='form-control chosen'");
           if(count($moduleOptionMenu) == 1)
           {
               echo "<span class='input-group-addon'>";
@@ -48,7 +48,7 @@
         <td>
           <div class='input-group' id='planIdBox'>
           <?php 
-          echo html::select('plan', $plans, $planID, "class='form-control'");
+          echo html::select('plan', $plans, $planID, "class='form-control chosen'");
           if(count($plans) == 1) 
           {
               echo "<span class='input-group-addon'>";
@@ -93,7 +93,7 @@
       <tr>
         <th><?php echo $lang->story->reviewedBy;?></th>
         <td><?php echo html::select('assignedTo', $users, '', "class='form-control chosen'");?></td>
-        <td><?php echo html::checkbox('needNotReview', $lang->story->needNotReview, '', "id='needNotReview'");?></td>
+        <td><?php echo html::checkbox('needNotReview', $lang->story->needNotReview, '', "id='needNotReview' {$needReview}");?></td>
       </tr>  
        <tr>
         <th><nobr><?php echo $lang->story->mailto;?></nobr></th>

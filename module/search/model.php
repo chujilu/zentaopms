@@ -2,8 +2,8 @@
 /**
  * The model file of search module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     search
  * @version     $Id: model.php 5082 2013-07-10 01:14:45Z wyd621@gmail.com $
@@ -93,7 +93,7 @@ class searchModel extends model
                 if($this->post->$fieldName == 'module')
                 {
                     $allModules = $this->loadModel('tree')->getAllChildId($value);
-                    $where .= helper::dbIN($allModules);
+                    if($allModules) $where .= helper::dbIN($allModules);
                 }
                 elseif($this->post->$fieldName == 'dept')
                 {
@@ -112,6 +112,7 @@ class searchModel extends model
         }
 
         $where .=" ))";
+        $where  = $this->replaceDynamic($where);
 
         /* Save to session. */
         $querySessionName = $this->post->module . 'Query';
@@ -221,6 +222,11 @@ class searchModel extends model
     {
         $query = $this->dao->findByID($queryID)->from(TABLE_USERQUERY)->fetch();
         if(!$query) return false;
+
+        /* Decode html encode. */
+        $query->form = htmlspecialchars_decode($query->form, ENT_QUOTES);
+        $query->sql  = htmlspecialchars_decode($query->sql, ENT_QUOTES);
+
         $query->form = unserialize($query->form);
         $query->sql  = $this->replaceDynamic($query->sql);
         return $query;
@@ -240,7 +246,6 @@ class searchModel extends model
         if(!$sql) $sql = ' 1 = 1 ';
 
         $query = fixer::input('post')
-            ->specialChars('title')
             ->add('account', $this->app->user->account)
             ->add('form', serialize($this->session->$formVar))
             ->add('sql',  $sql)

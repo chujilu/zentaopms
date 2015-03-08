@@ -2,8 +2,8 @@
 /**
  * The control file of user module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     user
  * @version     $Id: control.php 5005 2013-07-03 08:39:11Z chencongzhi520@gmail.com $
@@ -64,15 +64,17 @@ class user extends control
         $this->app->loadClass('pager', $static = true);
         $pager = pager::init($recTotal, $recPerPage, $pageID);
 
+        /* Append id for secend sort. */
+        $sort = $this->loadModel('common')->appendOrder($orderBy);
+
         /* Get user, totos. */
         $user    = $this->user->getById($account);
         $account = $user->account;
-        $todos   = $this->todo->getList($type, $account, $status, 0, $pager, $orderBy);
+        $todos   = $this->todo->getList($type, $account, $status, 0, $pager, $sort);
         $date    = (int)$type == 0 ? helper::today() : $type;
 
         /* set menus. */
         $this->lang->set('menugroup.user', 'company');
-        $this->user->setMenu($this->user->getPairs('noempty|noclosed|nodeleted'), $account);
         $this->view->userList = $this->user->setUserList($this->user->getPairs('noempty|noclosed|nodeleted'), $account);
 
         $this->view->title      = $this->lang->user->common . $this->lang->colon . $this->lang->user->todo;
@@ -112,7 +114,6 @@ class user extends control
 
         /* Set menu. */
         $this->lang->set('menugroup.user', 'company');
-        $this->user->setMenu($this->user->getPairs('noempty|noclosed|nodeleted'), $account);
         $this->view->userList = $this->user->setUserList($this->user->getPairs('noempty|noclosed|nodeleted'), $account);
 
         /* Assign. */
@@ -149,7 +150,6 @@ class user extends control
 
         /* Set the menu. */
         $this->lang->set('menugroup.user', 'company');
-        $this->user->setMenu($this->user->getPairs('noempty|noclosed|nodeleted'), $account);
         $this->view->userList = $this->user->setUserList($this->user->getPairs('noempty|noclosed|nodeleted'), $account);
 
         /* Assign. */
@@ -188,7 +188,6 @@ class user extends control
 
         /* Set menu. */
         $this->lang->set('menugroup.user', 'company');
-        $this->user->setMenu($this->user->getPairs('noempty|noclosed|nodeleted'), $account);
         $this->view->userList = $this->user->setUserList($this->user->getPairs('noempty|noclosed|nodeleted'), $account);
 
         /* Load the lang of bug module. */
@@ -226,7 +225,6 @@ class user extends control
 
         /* Set menu. */
         $this->lang->set('menugroup.user', 'company');
-        $this->user->setMenu($this->user->getPairs('noempty|noclosed|nodeleted'), $account);
         $this->view->userList = $this->user->setUserList($this->user->getPairs('noempty|noclosed|nodeleted'), $account);
 
         /* Save session. */
@@ -234,9 +232,12 @@ class user extends control
 
         $this->app->loadLang('testcase');
 
+        /* Append id for secend sort. */
+        $sort = $this->loadModel('common')->appendOrder($orderBy);
+
         $this->view->title      = $this->lang->user->common . $this->lang->colon . $this->lang->user->testTask;
         $this->view->position[] = $this->lang->user->testTask;
-        $this->view->tasks      = $this->loadModel('testtask')->getByUser($account, $pager, $orderBy);
+        $this->view->tasks      = $this->loadModel('testtask')->getByUser($account, $pager, $sort);
         $this->view->users      = $this->user->getPairs('noletter');
         $this->view->account    = $account;
         $this->view->recTotal   = $recTotal;
@@ -269,9 +270,11 @@ class user extends control
         $this->app->loadClass('pager', $static = true);
         $pager = pager::init($recTotal, $recPerPage, $pageID);
 
+        /* Append id for secend sort. */
+        $sort = $this->loadModel('common')->appendOrder($orderBy);
+
          /* Set menu. */
         $this->lang->set('menugroup.user', 'company');
-        $this->user->setMenu($this->user->getPairs('noempty|noclosed|nodeleted'), $account);
         $this->view->userList = $this->user->setUserList($this->user->getPairs('noempty|noclosed|nodeleted'), $account);
        
         $cases = array();
@@ -283,13 +286,13 @@ class user extends control
                 ->Where('t1.assignedTo')->eq($account)
                 ->andWhere('t1.status')->ne('done')
                 ->andWhere('t3.status')->ne('done')
-                ->orderBy($orderBy)->page($pager)->fetchAll();
+                ->orderBy($sort)->page($pager)->fetchAll();
         }
         elseif($type == 'caseByHim')
         {
             $cases = $this->dao->findByOpenedBy($account)->from(TABLE_CASE)
                 ->andWhere('deleted')->eq(0)
-                ->orderBy($orderBy)->page($pager)->fetchAll();
+                ->orderBy($sort)->page($pager)->fetchAll();
         }
         $this->loadModel('common')->saveQueryCondition($this->dao->get(), 'testcase', $type == 'assigntome' ? false : true);
         
@@ -322,7 +325,6 @@ class user extends control
         /* Set the menus. */
         $this->loadModel('project');
         $this->lang->set('menugroup.user', 'company');
-        $this->user->setMenu($this->user->getPairs('noempty|noclosed|nodeleted'), $account);
         $this->view->userList = $this->user->setUserList($this->user->getPairs('noempty|noclose|nodeleted'), $account);
 
         $this->view->title      = $this->lang->user->common . $this->lang->colon . $this->lang->user->project;
@@ -345,7 +347,6 @@ class user extends control
     public function profile($account)
     {
         /* Set menu. */
-        $this->user->setMenu($this->user->getPairs('noempty|noclosed|nodeleted'), $account);
         $this->view->userList = $this->user->setUserList($this->user->getPairs('noempty|noclose|nodeleted'), $account);
 
         $user = $this->user->getById($account);
@@ -596,9 +597,22 @@ class user extends control
         $loginLink = $this->createLink('user', 'login');
         $denyLink  = $this->createLink('user', 'deny');
 
+        /* Reload lang by lang of get when viewType is json. */
+        if($this->app->getViewType() == 'json' and $this->get->lang and $this->get->lang != $this->app->getClientLang())
+        {
+            $this->app->setClientLang($this->get->lang);
+            $this->app->loadLang('user');
+        }
+
         /* If user is logon, back to the rerferer. */
         if($this->user->isLogon())
         {
+            if($this->app->getViewType() == 'json')
+            {
+                $data = $this->user->getDataInJSON($this->app->user);
+                die(helper::removeUTF8Bom(json_encode(array('status' => 'success') + $data)));
+            }
+
             if(strpos($this->referer, $loginLink) === false and 
                strpos($this->referer, $denyLink)  === false 
             )
@@ -621,7 +635,12 @@ class user extends control
             if($this->post->password) $password = $this->post->password;
             if($this->get->password)  $password = $this->get->password;
 
-            if($this->user->checkLocked($account)) die(js::error(sprintf($this->lang->user->loginLocked, $this->config->user->lockMinutes)));
+            if($this->user->checkLocked($account))
+            {
+                $failReason = sprintf($this->lang->user->loginLocked, $this->config->user->lockMinutes);
+                if($this->app->getViewType() == 'json') die(helper::removeUTF8Bom(json_encode(array('status' => 'failed', 'reason' => $failReason))));
+                die(js::error($failReason));
+            }
             
             $user = $this->user->identify($account, $password);
 
@@ -644,7 +663,11 @@ class user extends control
                    strpos($this->post->referer, $denyLink)  === false 
                 )
                 {
-                    if($this->app->getViewType() == 'json') die(json_encode(array('status' => 'success')));
+                    if($this->app->getViewType() == 'json')
+                    {
+                        $data = $this->user->getDataInJSON($user);
+                        die(helper::removeUTF8Bom(json_encode(array('status' => 'success') + $data)));
+                    }
 
                     /* Get the module and method of the referer. */
                     if($this->config->requestType == 'PATH_INFO')
@@ -674,14 +697,18 @@ class user extends control
                 }
                 else
                 {
-                    if($this->app->getViewType() == 'json') die(json_encode(array('status' => 'success')));
+                    if($this->app->getViewType() == 'json')
+                    {
+                        $data = $this->user->getDataInJSON($user);
+                        die(helper::removeUTF8Bom(json_encode(array('status' => 'success') + $data)));
+                    }
                     die(js::locate($this->createLink($this->config->default->module), 'parent'));
                 }
             }
             else
             {
-                if($this->app->getViewType() == 'json') die(json_encode(array('status' => 'failed')));
-                $fails       = $this->user->failPlus($account);
+                $fails = $this->user->failPlus($account);
+                if($this->app->getViewType() == 'json') die(helper::removeUTF8Bom(json_encode(array('status' => 'failed', 'reason' => $this->lang->user->loginFailed))));
                 $remainTimes = $this->config->user->failTimes - $fails;
                 if($remainTimes <= 0)
                 {
@@ -747,6 +774,8 @@ class user extends control
         session_destroy();
         setcookie('za', false);
         setcookie('zp', false);
+
+        if($this->app->getViewType() == 'json') die(json_encode(array('status' => 'success')));
         $vars = !empty($referer) ? "referer=$referer" : '';
         $this->locate($this->createLink('user', 'login', $vars));
     }
@@ -767,7 +796,6 @@ class user extends control
     {
         /* set menus. */
         $this->lang->set('menugroup.user', 'company');
-        $this->user->setMenu($this->user->getPairs('noempty|noclosed|nodeleted'), $account);
         $this->view->userList = $this->user->setUserList($this->user->getPairs('noempty|noclosed|nodeleted'), $account);
 
         /* Save session. */

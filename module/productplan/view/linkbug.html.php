@@ -2,8 +2,8 @@
 /**
  * The link bug view of productplan module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     productplan
  * @version     $Id: linkbug.html.php 5096 2013-07-11 07:02:43Z chencongzhi520@gmail.com $
@@ -16,12 +16,12 @@
 <div id='titlebar'>
   <div class='heading'>
     <span class='prefix'><?php echo html::icon($lang->icons['plan']);?> <strong><?php echo $plan->id;?></strong></span>
-    <strong><?php echo html::a($this->createLink('productplan', 'view', 'planID=' . $plan->id), $plan->title, '_blank');?></strong>
+    <strong><?php echo html::a($this->createLink('productplan', 'view', 'planID=' . $plan->id), $plan->title);?></strong>
     <small class='text-muted'> <?php echo $lang->productplan->linkBug;?> <?php echo html::icon($lang->icons['link']);?></small>
   </div>
-  <div id='querybox' class='show'></div>
+  <div class='actions'><?php echo html::a(inlink('view', "planID=$plan->id"), '<i class="icon-level-up icon-large icon-rotate-270"></i> ' . $lang->goback, '', "class='btn'")?></div>
 </div>
-<div id='querybox'></div>
+<div id='querybox' class='show'></div>
 <div id='bugList'>
   <form method='post' id='unlinkedBugsForm'>
     <table class='table table-condensed table-hover table-striped tablesorter table-fixed'> 
@@ -47,11 +47,11 @@
           <input class='ml-10px' type='checkbox' name='bugs[]'  value='<?php echo $bug->id;?>'/> 
           <?php echo html::a($this->createLink('bug', 'view', "bugID=$bug->id"), $bug->id);?>
         </td>
-        <td><span class='<?php echo 'pri' . $bug->pri;?>'><?php echo $bug->pri?></span></td>
+        <td><span class='<?php echo 'pri' . zget($lang->bug->priList, $bug->pri, $bug->pri);?>'><?php echo zget($lang->bug->priList, $bug->pri, $bug->pri)?></span></td>
         <td class='text-left nobr'><?php echo html::a($this->createLink('bug', 'view', "bugID=$bug->id"), $bug->title);?></td>
         <td><?php echo $users[$bug->openedBy];?></td>
         <td><?php echo $users[$bug->assignedTo];?></td>
-        <td><?php echo $lang->bug->statusList[$bug->status];?></td>
+        <td class='bug-<?php echo $bug->status?>'><?php echo $lang->bug->statusList[$bug->status];?></td>
       </tr>
       <?php endforeach;?>
       </tbody>
@@ -89,11 +89,11 @@
           <?php endif;?>
           <?php echo html::a($this->createLink('bug', 'view', "bugID=$bug->id"), sprintf("%03d", $bug->id));?>
         </td>
-        <td><span class='<?php echo 'pri' . $bug->pri;?>'><?php echo $bug->pri?></span></td>
+        <td><span class='<?php echo 'pri' . zget($lang->bug->priList, $bug->pri, $bug->pri);?>'><?php echo zget($lang->bug->priList, $bug->pri, $bug->pri);?></span></td>
         <td class='text-left nobr'><?php echo html::a($this->createLink('bug', 'view', "bugID=$bug->id"), $bug->title);?></td>
         <td><?php echo $users[$bug->openedBy];?></td>
         <td><?php echo $users[$bug->assignedTo];?></td>
-        <td><?php echo $lang->bug->statusList[$bug->status];?></td>
+        <td class='bug-<?php echo $bug->status?>'><?php echo $lang->bug->statusList[$bug->status];?></td>
         <td class='text-center'>
           <?php
           if(common::hasPriv('productplan', 'unlinkBug'))
@@ -110,7 +110,7 @@
       <tr>
         <td colspan='7' class='text-left'>
         <?php 
-        echo  "<div class='table-actions clearfix'><div class='btn-group'>" . html::selectButton('linkedBugsForm') . '</div>';
+        echo  "<div class='table-actions clearfix'><div class='btn-group'>" . html::selectAll('linkedBugsForm') . html::selectReverse('linkedBugsForm') . '</div>';
         echo html::submitButton($lang->productplan->batchUnlink) . '</div>';
         ?>
         </td>

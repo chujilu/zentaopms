@@ -2,8 +2,8 @@
 /**
  * The create view of group module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     group
  * @version     $Id: create.html.php 4129 2013-01-18 01:58:14Z wwccss $
@@ -28,7 +28,7 @@
         <th><?php echo $lang->group->desc;?></th>
         <td><?php echo html::textarea('desc', '', "rows=5 class=form-control");?></td>
       </tr>  
-      <tr><td colspan='2' class='text-center'><?php echo html::submitButton();?></td></tr>
+      <tr><th></th><td><?php echo html::submitButton();?></td></tr>
     </table>
   </form>
 </div>

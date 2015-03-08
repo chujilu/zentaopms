@@ -1,6 +1,8 @@
 config/my.php
 www/data/
+tools/*
 release/*
+tmp/*
 tmp/extensions/*
 tmp/log/*
 tmp/model/*

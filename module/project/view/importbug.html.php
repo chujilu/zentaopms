@@ -2,8 +2,8 @@
 /**
  * The import view file of task module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Yangyang Shi <shiyangyang@cnezsoft.com>
  * @package     task
  * @version     $Id$
@@ -11,7 +11,6 @@
  */
 ?>
 <?php include '../../common/view/header.html.php';?>
-<?php include '../../common/view/colorize.html.php';?>
 <?php include '../../common/view/tablesorter.html.php';?>
 <script language='Javascript'>
 $(function(){
@@ -47,12 +46,12 @@ var browseType = '<?php echo $browseType;?>';
         <?php echo html::checkbox("import[$bug->id]", '');?> 
         <?php echo sprintf('%03d', $bug->id) . html::hidden("id[$bug->id]", $bug->id);?>
       </td>
-      <td><span class='<?php echo 'severity' . $lang->bug->severityList[$bug->severity]?>'><?php echo $lang->bug->severityList[$bug->severity]?></span></td>
-      <td><span class='<?php echo 'pri' . $lang->bug->priList[$bug->pri]?>'><?php echo $lang->bug->priList[$bug->pri]?></span></td>
+      <td><span class='<?php echo 'severity' . zget($lang->bug->severityList, $bug->severity, $bug->severity)?>'><?php echo zget($lang->bug->severityList, $bug->severity, $bug->severity)?></span></td>
+      <td><span class='<?php echo 'pri' . zget($lang->bug->priList, $bug->pri, $bug->pri)?>'><?php echo zget($lang->bug->priList, $bug->pri, $bug->pri)?></span></td>
       <td class='text-left nobr'><?php common::printLink('bug', 'view', "bugID=$bug->id", $bug->title, '', "class='preview'", true, true);?></td>
-      <td><?php echo $lang->bug->statusList[$bug->status];?></td>
+      <td class='bug-<?php echo $bug->status?>'><?php echo $lang->bug->statusList[$bug->status];?></td>
       <td><?php echo html::select("pri[$bug->id]", $lang->task->priList, 3, "class='input-sm form-control'");?></td>
-      <td><?php echo html::select("assignedTo[$bug->id]", $users, zget($users, $bug->assignedTo, '', $bug->assignedTo), "class='input-sm form-control'");?></td>
+      <td class='text-left' style='overflow:visible'><?php echo html::select("assignedTo[$bug->id]", $users, zget($users, $bug->assignedTo, '', $bug->assignedTo), "class='input-sm form-control chosen'");?></td>
       <td><?php echo html::input("estimate[$bug->id]", '', 'size=4 class="input-sm form-control"');?></td>
     </tr>
     <?php endforeach;?>

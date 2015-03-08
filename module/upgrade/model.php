@@ -2,8 +2,8 @@
 /**
  * The model file of upgrade module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     upgrade
  * @version     $Id: model.php 5019 2013-07-05 02:02:31Z wyd621@gmail.com $
@@ -107,6 +107,13 @@ class upgradeModel extends model
                 $this->toLowerTable();
                 $this->fixBugOSInfo();
                 $this->fixTaskFinishedBy();
+            case '6_0':
+                $this->execSQL($this->getUpgradeFile('6.0'));
+                $this->fixDataIndex();
+            case '6_1':
+                $this->execSQL($this->getUpgradeFile('6.1'));
+            case '6_2':
+            case '6_3':
 
             default: if(!$this->isError()) $this->setting->updateVersion($this->config->version);
         }
@@ -167,6 +174,10 @@ class upgradeModel extends model
         case '5_2_1':     $confirmContent .= file_get_contents($this->getUpgradeFile('5.2.1'));
         case '5_3':
         case '6_0_beta1': $confirmContent .= file_get_contents($this->getUpgradeFile('6.0.beta1'));
+        case '6_0':       $confirmContent .= file_get_contents($this->getUpgradeFile('6.0'));
+        case '6_1':       $confirmContent .= file_get_contents($this->getUpgradeFile('6.1'));
+        case '6_2':
+        case '6_3':
         }
         return str_replace('zt_', $this->config->db->prefix, $confirmContent);
     }
@@ -615,6 +626,7 @@ class upgradeModel extends model
     public function execSQL($sqlFile)
     {
         $mysqlVersion = $this->loadModel('install')->getMysqlVersion();
+        $ignoreCode   = '|1050|1060|1062|1091|1169|';
 
         /* Read the sql file to lines, remove the comment lines, then join theme by ';'. */
         $sqls = explode("\n", file_get_contents($sqlFile));
@@ -645,7 +657,9 @@ class upgradeModel extends model
             }
             catch (PDOException $e) 
             {
-                self::$errors[] = $e->getMessage() . "<p>The sql is: $sql</p>";
+                $errorInfo = $e->errorInfo;
+                $errorCode = $errorInfo[1];
+                if(strpos($ignoreCode, "|$errorCode|") === false) self::$errors[] = $e->getMessage() . "<p>The sql is: $sql</p>";
             }
         }
     }
@@ -719,6 +733,13 @@ class upgradeModel extends model
         return true;
     }
 
+    /**
+     * To lower table.
+     * 
+     * @param  string $build 
+     * @access public
+     * @return bool
+     */
     public function toLowerTable($build = 'basic')
     {
         $results    = $this->dbh->query("show Variables like '%table_names'")->fetchAll();
@@ -870,6 +891,22 @@ class upgradeModel extends model
                 ->where('id')->eq($taskID)
                 ->exec();
         }
+    }
+
+    /**
+     * Touch index.html for upload when has not it.
+     * 
+     * @access public
+     * @return bool
+     */
+    public function fixDataIndex()
+    {
+        $savePath = $this->loadModel('file')->savePath;
+        foreach(glob($savePath . '*') as $childDir)
+        {
+            if(is_dir($childDir) and !is_file($childDir . '/index.html')) @touch($childDir . '/index.html');
+        }
+        return true;
     }
 
     /**

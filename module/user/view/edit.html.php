@@ -2,8 +2,8 @@
 /**
  * The edit view of user module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     user
  * @version     $Id: edit.html.php 4728 2013-05-03 06:14:34Z chencongzhi520@gmail.com $
@@ -29,7 +29,7 @@
       </tr>
       <tr>
         <th class='w-90px'><?php echo $lang->user->dept;?></th>
-        <td class='w-p40'><?php echo html::select('dept', $depts, $user->dept, "class='form-control'");?></td>
+        <td class='w-p40'><?php echo html::select('dept', $depts, $user->dept, "class='form-control chosen'");?></td>
         <th><?php echo $lang->user->role;?></th>
         <td><?php echo html::select('role', $lang->user->roleList, $user->role, "class='form-control'");?></td>
       </tr>

@@ -23,10 +23,12 @@ $config->task->editor->edit     = array('id' => 'desc,comment', 'tools' => 'simp
 $config->task->editor->view     = array('id' => 'comment,lastComment', 'tools' => 'simpleTools');
 $config->task->editor->assignto = array('id' => 'comment', 'tools' => 'simpleTools');
 $config->task->editor->start    = array('id' => 'comment', 'tools' => 'simpleTools');
+$config->task->editor->restart  = array('id' => 'comment', 'tools' => 'simpleTools');
 $config->task->editor->finish   = array('id' => 'comment', 'tools' => 'simpleTools');
 $config->task->editor->close    = array('id' => 'comment', 'tools' => 'simpleTools');
 $config->task->editor->activate = array('id' => 'comment', 'tools' => 'simpleTools');
 $config->task->editor->cancel   = array('id' => 'comment', 'tools' => 'simpleTools');
+$config->task->editor->pause    = array('id' => 'comment', 'tools' => 'simpleTools');
 
 $config->task->exportFields = '
     id, project, module, story,

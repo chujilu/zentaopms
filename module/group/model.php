@@ -2,8 +2,8 @@
 /**
  * The model file of group module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     group
  * @version     $Id: model.php 4976 2013-07-02 08:15:31Z wyd621@gmail.com $
@@ -21,7 +21,7 @@ class groupModel extends model
      */
     public function create()
     {
-        $group = fixer::input('post')->specialChars('name, desc')->get();
+        $group = fixer::input('post')->get();
         return $this->dao->insert(TABLE_GROUP)->data($group)->batchCheck($this->config->group->create->requiredFields, 'notempty')->exec();
     }
 
@@ -34,7 +34,7 @@ class groupModel extends model
      */
     public function update($groupID)
     {
-        $group = fixer::input('post')->specialChars('name, desc')->get();
+        $group = fixer::input('post')->get();
         return $this->dao->update(TABLE_GROUP)->data($group)->batchCheck($this->config->group->edit->requiredFields, 'notempty')->where('id')->eq($groupID)->exec();
     }
 
@@ -47,7 +47,7 @@ class groupModel extends model
      */
     public function copy($groupID)
     {
-        $group = fixer::input('post')->specialChars('name, desc')->remove('options')->get();
+        $group = fixer::input('post')->remove('options')->get();
         $this->dao->insert(TABLE_GROUP)->data($group)->check('name', 'unique')->check('name', 'notempty')->exec();
         if($this->post->options == false) return;
         if(!dao::isError())

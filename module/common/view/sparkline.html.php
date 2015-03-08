@@ -9,9 +9,13 @@ js::import($jsRoot . 'chartjs/excanvas.min.js');
 <![endif]-->
 <?php js::import($jsRoot . 'chartjs/chart.line.min.js');?>
 <script>
+var isIE = window.browser.isIE();
 jQuery.fn.projectLine = function(setting)
 {
-    $(this).each(function()
+    var $lines = $(this);
+    if(isIE && window.browser.ie < 9 && $lines.length > 10) return;
+    
+    $lines.each(function()
     {
         var $e = $(this);
         var options = $.extend({values: $e.attr('values')}, $e.data(), setting),
@@ -43,7 +47,7 @@ jQuery.fn.projectLine = function(setting)
                 pointStrokeColor : "#fff",
                 data : values
             }]
-        }));
+        }, {animation: !isIE}));
     });
 }
 

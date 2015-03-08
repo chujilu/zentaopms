@@ -18,7 +18,7 @@ var editor = <?php echo json_encode($editor);?>;
 var bugTools =
 [ 'formatblock', 'fontname', 'fontsize', '|', 'forecolor', 'hilitecolor', 'bold', 'italic','underline', '|', 
 'justifyleft', 'justifycenter', 'justifyright', 'insertorderedlist', 'insertunorderedlist', '|',
-'emoticons', 'image', 'code', 'link', '|', 'removeformat','undo', 'redo', 'fullscreen', 'source', 'savetemplate', 'about'];
+'emoticons', 'image', 'code', 'link', '|', 'removeformat','undo', 'redo', 'fullscreen', 'source', 'about'];
 
 var simpleTools = 
 [ 'formatblock', 'fontname', 'fontsize', '|', 'forecolor', 'hilitecolor', 'bold', 'italic','underline', '|', 
@@ -38,6 +38,7 @@ var fullTools =
 $(document).ready(initKindeditor);
 function initKindeditor(afterInit)
 {
+    var nextFormControl = 'input:not([type="hidden"]), textarea:not(.ke-edit-textarea), button[type="submit"], select';
     $.each(editor.id, function(key, editorID)
     {
         editorTool = simpleTools;
@@ -63,6 +64,27 @@ function initKindeditor(afterInit)
             {
                 var doc = this.edit.doc; 
                 var cmd = this.edit.cmd; 
+                if(!K.WEBKIT && !K.GECKO)
+                {
+                    var pasted = false;
+                    $(doc.body).bind('paste', function(ev)
+                    {
+                        pasted = true;
+                        return true;
+                    });
+                    setTimeout(function()
+                    {
+                        $(doc.body).bind('keyup', function(ev)
+                        {
+                            if(pasted)
+                            {
+                                pasted = false;
+                                return true;
+                            }
+                            if(ev.keyCode == 86 && ev.ctrlKey) alert('<?php echo $this->lang->error->pasteImg;?>');
+                        })
+                    }, 10);
+                }
                 /* Paste in chrome.*/
                 /* Code reference from http://www.foliotek.com/devblog/copy-images-from-clipboard-in-javascript/. */
                 if(K.WEBKIT)
@@ -88,9 +110,8 @@ function initKindeditor(afterInit)
                         reader.readAsDataURL(file);
                     });
                 }
-
-                /* Paste in firfox.*/
-                if(K.GECKO)
+                /* Paste in firfox and other firfox.*/
+                else
                 {
                     K(doc.body).bind('paste', function(ev)
                     {
@@ -105,9 +126,25 @@ function initKindeditor(afterInit)
                     });
                 }
                 /* End */
+            },
+            afterTab: function(id)
+            {
+                var $next = $editor.next(nextFormControl);
+                if(!$next.length) $next = $editor.parent().next().find(nextFormControl);
+                if(!$next.length) $next = $editor.parent().parent().next().find(nextFormControl);
+                $next = $next.first().focus();
+                var keditor = $next.data('keditor');
+                if(keditor) keditor.focus();
+                else if($next.hasClass('chosen')) $next.trigger('chosen:activate');
             }
         };
-        try {window.editor['#'] = window.editor[editorID] = K.create('#' + editorID, options);}
+        try
+        {
+            if(!window.editor) window.editor = {};
+            var keditor = K.create('#' + editorID, options);
+            window.editor['#'] = window.editor[editorID] = keditor;
+            $editor.data('keditor', keditor);
+        }
         catch(e){}
     });
 

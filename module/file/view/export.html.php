@@ -2,8 +2,8 @@
 /**
  * The export view file of file module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Congzhi Chen <congzhi@cnezsoft.com>
  * @package     file
  * @version     $Id$
@@ -32,8 +32,14 @@ function closeWindow()
 }
 function switchEncode(fileType)
 {
-    $('#encode').toggleClass('hidden', fileType != 'csv');
+    $('#encode').removeAttr('disabled');
+    if(fileType != 'csv')
+    {
+        $('#encode').val('utf-8');
+        $('#encode').attr('disabled', 'disabled');
+    }
 }
+$(document).ready(function(){$('#fileType').change();});
 </script>
 <div id='titlebar'>
   <div class='heading'>
@@ -54,7 +60,7 @@ function switchEncode(fileType)
         <?php echo html::select('fileType',   $lang->exportFileTypeList, '', 'onchange=switchEncode(this.value) class="form-control"');?>
       </td>
       <td class='w-90px'>
-        <?php echo html::select('encode',     $config->charsets[$this->cookie->lang], 'utf-8', key($lang->exportFileTypeList) == 'csv' ? "class='form-control'" : "class='form-control hidden'");?>
+        <?php echo html::select('encode',     $config->charsets[$this->cookie->lang], 'utf-8', key($lang->exportFileTypeList) == 'csv' ? "class='form-control'" : "class='form-control'");?>
       </td>
       <td class='w-100px'>
         <?php echo html::select('exportType', $lang->exportTypeList, ($this->cookie->checkedItem) ? 'selected' : 'all', "class='form-control'");?>

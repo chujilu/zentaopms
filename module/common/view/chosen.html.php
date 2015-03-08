@@ -9,10 +9,17 @@ if($config->debug)
 <script> 
 noResultsMatch       = '<?php echo $lang->noResultsMatch;?>';
 chooseUsersToMail    = '<?php echo $lang->chooseUsersToMail;?>';
-defaultChosenOptions = {no_results_text: noResultsMatch, allow_single_deselect: true, disable_search_threshold: 1, width: '100%', placeholder_text_single: ' ', placeholder_text_multiple: ' ', search_contains: true};
+defaultChosenOptions = {no_results_text: noResultsMatch, width:'100%', allow_single_deselect: true, disable_search_threshold: 1, placeholder_text_single: ' ', placeholder_text_multiple: ' ', search_contains: true};
 $(document).ready(function()
 {
     $("#mailto").attr('data-placeholder', chooseUsersToMail);
-    $(".chosen, #productID").chosen(defaultChosenOptions);
+    $("#mailto, .chosen, #productID").each(function()
+    {
+        var $this = $(this);
+        if($this.offset().top + 240 > $(document.body).height())
+        {
+            $this.attr('data-css-class', 'chosen-up');
+        }
+    }).chosen(defaultChosenOptions);
 });
 </script>

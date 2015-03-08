@@ -2,8 +2,8 @@
 /**
  * The test view file of dashboard module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     dashboard
  * @version     $Id: test.html.php 1191 2010-11-13 07:30:35Z jajacn@126.com $
@@ -44,14 +44,14 @@
     <?php foreach($cases as $case):?>
     <tr class='text-center'>
       <td><?php echo html::a($this->createLink('testcase', 'view', "testcaseID=$case->id"), sprintf('%03d', $case->id));?></td>
-      <td><span class='<?php echo 'pri' . $case->pri?>'><?php echo $case->pri?></span</td>
+      <td><span class='<?php echo 'pri' . zget($lang->testcase->priList, $case->pri, $case->pri)?>'><?php echo zget($lang->testcase->priList, $case->pri, $case->pri)?></span</td>
       <td class='text-left'><?php echo html::a($this->createLink('testcase', 'view', "testcaseID=$case->id"), $case->title);?></td>
       <td><?php echo $lang->testcase->typeList[$case->type];?></td>
       <td><?php echo $users[$case->openedBy];?></td>
       <td><?php echo $users[$case->lastRunner];?></td>
       <td><?php if(!helper::isZeroDate($case->lastRunDate)) echo date(DT_MONTHTIME1, strtotime($case->lastRunDate));?></td>
       <td class='<?php echo $case->lastRunResult;?>'><?php if($case->lastRunResult) echo $lang->testcase->resultList[$case->lastRunResult];?></td>
-      <td class='<?php echo $run->status;?>'><?php echo $lang->testcase->statusList[$case->status];?></td>
+      <td class='<?php echo $case->status;?>'><?php echo $lang->testcase->statusList[$case->status];?></td>
     </tr>
     <?php endforeach;?>
   </tbody> 

@@ -2,8 +2,8 @@
 /**
  * The resolve file of bug module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     bug
  * @version     $Id: resolve.html.php 4129 2013-01-18 01:58:14Z wwccss $
@@ -21,7 +21,7 @@
   </div>
 </div>
 
-<form class='form-condensed' method='post' target='hiddenwin'>
+<form class='form-condensed' method='post' enctype='multipart/form-data' target='hiddenwin'>
   <table class='table table-form'>
     <tr>
       <th class='w-80px'><?php echo $lang->bug->resolution;?></th>
@@ -33,7 +33,7 @@
     </tr>
     <tr>
       <th><?php echo $lang->bug->resolvedBuild;?></th>
-      <td><?php echo html::select('resolvedBuild', $builds, '', "class='form-control'");?></td>
+      <td><?php echo html::select('resolvedBuild', $builds, '', "class='form-control chosen'");?></td>
     </tr>
     <tr>
       <th><?php echo $lang->bug->resolvedDate;?></th>
@@ -44,11 +44,15 @@
       <td><?php echo html::select('assignedTo', $users, $bug->openedBy, "class='form-control chosen'");?></td>
     </tr>
     <tr>
+      <th><?php echo $lang->bug->files;?></th>
+      <td colspan='2'><?php echo $this->fetch('file', 'buildform', 'fileCount=2&percent=0.85');?></td>
+    </tr>
+    <tr>
       <th><?php echo $lang->comment;?></th>
       <td colspan='2'><?php echo html::textarea('comment', '', "rows='6' class='form-control'");?></td>
     </tr>
     <tr>
-      <td colspan='3' class='text-center'><?php echo html::submitButton() . html::linkButton($lang->goback, $this->session->bugList);?></td>
+      <th></th><td colspan='2'><?php echo html::submitButton() . html::linkButton($lang->goback, $this->session->bugList);?></td>
     </tr>
   </table>
 </form>

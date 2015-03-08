@@ -15,15 +15,15 @@ $(function()
         return $(this).each(function()
         {
             var $this = $(this);
-            if($this.val() != '' && !$this.hasClass('form-time'))
+            if($this.offset().top + 200 > $(document.body).height())
             {
-                var date = new Date($this.val());
-                if(!date.valueOf()) date = new Date();
-
-                if($this.hasClass('form-datetime')) $this.val(date.format('yyyy-MM-dd hh:mm'));
-                else $this.val(date.format('yyyy-MM-dd'));
+                $this.attr('data-picker-position', 'top-right');
             }
-            return $this;
+
+            if($this.val() == '0000-00-00')
+            {
+                $this.focus(function(){if($this.val() == '0000-00-00') $this.val('').datetimepicker('update');}).blur(function(){if($this.val() == '') $this.val('0000-00-00')});
+            }
         });
     };
 
@@ -37,7 +37,8 @@ $(function()
         startView: 2,
         forceParse: 0,
         showMeridian: 1,
-        format: 'yyyy-mm-dd hh:ii'
+        format: 'yyyy-mm-dd hh:ii',
+        startDate: '1970-1-1'
     }
 
     $('.form-datetime').fixedDate().datetimepicker(options);

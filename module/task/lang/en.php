@@ -2,8 +2,8 @@
 /**
  * The task module English file of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     task
  * @version     $Id: en.php 5040 2013-07-06 06:22:18Z zhujinyonging@gmail.com $
@@ -21,7 +21,9 @@ $lang->task->view               = "Info";
 $lang->task->logEfforts         = "Log working hours";
 $lang->task->record             = "Estimate";
 $lang->task->start              = "Start";
+$lang->task->restart            = "Continue";
 $lang->task->finish             = "Finish";
+$lang->task->pause              = "Pause";
 $lang->task->close              = "Close";
 $lang->task->batchClose         = "Batch close";
 $lang->task->cancel             = "Cancel";
@@ -36,6 +38,7 @@ $lang->task->id                = 'ID';
 $lang->task->project           = 'Project';
 $lang->task->module            = 'Module';
 $lang->task->story             = 'Story';
+$lang->task->storySpec         = 'Story desc';
 $lang->task->storyVersion      = 'Version';
 $lang->task->name              = 'Name';
 $lang->task->type              = 'Type';
@@ -59,6 +62,7 @@ $lang->task->status            = 'Status';
 $lang->task->desc              = 'Desc';
 $lang->task->assign            = 'Assign';
 $lang->task->assignTo          = $lang->task->assign;
+$lang->task->batchAssignTo     = 'Batch assign';
 $lang->task->assignedTo        = 'Assigned To';
 $lang->task->assignedToAB      = 'Assign';
 $lang->task->assignedDate      = 'Assigned Date';
@@ -88,6 +92,7 @@ $lang->task->statusList['']        = '';
 $lang->task->statusList['wait']    = 'Pending';
 $lang->task->statusList['doing']   = 'Doing';
 $lang->task->statusList['done']    = 'Done';
+$lang->task->statusList['pause']   = 'Paused';
 $lang->task->statusList['cancel']  = 'Canceled';
 $lang->task->statusList['closed']  = 'Closed';
 
@@ -249,5 +254,4 @@ $lang->task->report->finishedTasksPerDay->height             = 400;
 $lang->task->report->finishedTasksPerDay->graph->xAxisName   = 'Date';
 $lang->task->report->finishedTasksPerDay->graph->rotateNames = '1';
 
-$lang->task->placeholder = new stdclass();
-$lang->task->placeholder->estimate = 'The estimated time for this task';
+$lang->task->estimateTip = 'The estimated time for this task';

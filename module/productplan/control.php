@@ -2,8 +2,8 @@
 /**
  * The control file of productplan module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     productplan
  * @version     $Id: control.php 4659 2013-04-17 06:45:08Z chencongzhi520@gmail.com $
@@ -57,6 +57,8 @@ class productplan extends control
         $this->view->begin = $lastPlan ? $begin : '';
 
         $this->view->title = $this->view->product->name . $this->lang->colon . $this->lang->productplan->create;
+        $this->view->position[] = $this->lang->productplan->common;
+        $this->view->position[] = $this->lang->productplan->create;
         $this->display();
     }
 
@@ -144,6 +146,9 @@ class productplan extends control
         $this->app->loadClass('pager', $static = true);
         $pager = new pager($recTotal, $recPerPage, $pageID);
 
+        /* Append id for secend sort. */
+        $sort = $this->loadModel('common')->appendOrder($orderBy);
+
         $this->session->set('productPlanList', $this->app->getURI(true));
         $this->commonAction($productID);
         $products               = $this->product->getPairs();
@@ -151,7 +156,7 @@ class productplan extends control
         $this->view->position[] = $this->lang->productplan->browse;
         $this->view->productID  = $productID;
         $this->view->orderBy    = $orderBy;
-        $this->view->plans      = $this->productplan->getList($productID, $pager, $orderBy);
+        $this->view->plans      = $this->productplan->getList($productID, $pager, $sort);
         $this->view->pager      = $pager;
         $this->display();
     }
@@ -160,12 +165,17 @@ class productplan extends control
      * View plan.
      * 
      * @param  int    $planID 
+     * @param  string $type 
+     * @param  string $orderBy 
      * @access public
      * @return void
      */
-    public function view($planID = 0)
+    public function view($planID = 0, $type = 'story', $orderBy = 'id_desc')
     {
         $this->session->set('storyList', $this->app->getURI(true));
+
+        /* Append id for secend sort. */
+        $sort = $this->loadModel('common')->appendOrder($orderBy);
 
         $plan = $this->productplan->getByID($planID, true);
         if(!$plan) die(js::error($this->lang->notFound) . js::locate('back'));
@@ -173,13 +183,15 @@ class productplan extends control
         $products                = $this->product->getPairs();
         $this->view->title       = "PLAN #$plan->id $plan->title/" . $products[$plan->product];
         $this->view->position[]  = $this->lang->productplan->view;
-        $this->view->planStories = $this->loadModel('story')->getPlanStories($planID);
-        $this->view->planBugs    = $this->loadModel('bug')->getPlanBugs($planID);
+        $this->view->planStories = $this->loadModel('story')->getPlanStories($planID, 'all', $type == 'story' ? $sort : 'id_desc');
+        $this->view->planBugs    = $this->loadModel('bug')->getPlanBugs($planID, 'all', $type == 'bug' ? $sort : 'id_desc');
         $this->view->products    = $products;
         $this->view->summary     = $this->product->summary($this->view->planStories);
         $this->view->plan        = $plan;
         $this->view->actions     = $this->loadModel('action')->getList('productplan', $planID);
         $this->view->users       = $this->loadModel('user')->getPairs('noletter');
+        $this->view->type        = $type;
+        $this->view->orderBy     = $orderBy;
         $this->display();
     }
 
@@ -210,20 +222,22 @@ class productplan extends control
         if(!empty($_POST['stories'])) $this->productplan->linkStory($planID);
 
         $this->loadModel('story');
+        $this->loadModel('tree');
         $plan = $this->productplan->getByID($planID);
         $this->commonAction($plan->product);
         $products = $this->product->getPairs();
 
         /* Build search form. */
         $queryID = ($browseType == 'bySearch') ? (int)$param : 0;
-        unset($this->config->product->search['fields']['module']);
         unset($this->config->product->search['fields']['product']);
         $this->config->product->search['actionURL'] = $this->createLink('productplan', 'linkStory', "planID=$planID&browseType=bySearch&queryID=myQueryID");   
         $this->config->product->search['queryID']   = $queryID;
         $this->config->product->search['params']['product']['values'] = $products + array('all' => $this->lang->product->allProductsOfProject);
         $this->config->product->search['params']['plan']['values'] = $this->loadModel('productplan')->getForProducts($products);
-        unset($this->lang->story->statusList['closed']);
-        $this->config->product->search['params']['status'] = array('operator' => '=',       'control' => 'select', 'values' => $this->lang->story->statusList);
+        $this->config->product->search['params']['module']['values']  = $this->tree->getOptionMenu($plan->product, $viewType = 'story', $startModuleID = 0);
+        $storyStatusList = $this->lang->story->statusList;
+        unset($storyStatusList['closed']);
+        $this->config->product->search['params']['status'] = array('operator' => '=', 'control' => 'select', 'values' => $storyStatusList);
         $this->loadModel('search')->setSearchParams($this->config->product->search);
 
         if($browseType == 'bySearch')

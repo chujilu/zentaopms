@@ -2,8 +2,8 @@
 /**
  * The admin module zh-tw file of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青島易軟天創網絡科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青島易軟天創網絡科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     admin
  * @version     $Id: zh-tw.php 4767 2013-05-05 06:10:13Z wwccss $
@@ -18,16 +18,6 @@ $lang->admin->group   = '分組管理';
 $lang->admin->welcome = '歡迎使用禪道管理軟件後台管理系統';
 
 $lang->admin->browseCompany = '瀏覽公司';
-
-$lang->admin->clearData             = '重置禪道';
-$lang->admin->pleaseInputYes        = '確認重置禪道數據請輸入yes：';
-$lang->admin->confirmClearData      = '您確認要重置禪道數據嗎?';
-$lang->admin->clearDataFailed       = '禪道重置失敗！';
-$lang->admin->clearDataSuccessfully = '禪道重置成功！';
-$lang->admin->clearDataDesc    = <<<EOT
-當您測試禪道完畢之後，可以使用重置功能清除測試數據。該操作會保留公司、部門、用戶和權限分組的數據，其他的數據會被清空。<br />
-<strong class='text-danger f-14px'>該功能存在極大的風險，執行之前務必三思!</strong>
-EOT;
 
 $lang->admin->info = new stdclass();
 $lang->admin->info->caption = '禪道系統信息';

@@ -2,8 +2,8 @@
 /**
  * The model file of doc module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     doc
  * @version     $Id: model.php 881 2010-06-22 06:50:32Z chencongzhi520 $
@@ -74,7 +74,7 @@ class docModel extends model
      */
     public function createLib()
     {
-        $lib = fixer::input('post')->stripTags('name')->get();
+        $lib = fixer::input('post')->get();
         $this->dao->insert(TABLE_DOCLIB)
             ->data($lib)
             ->autoCheck()
@@ -95,7 +95,7 @@ class docModel extends model
     {
         $libID  = (int)$libID;
         $oldLib = $this->getLibById($libID);
-        $lib = fixer::input('post')->stripTags('name')->get();
+        $lib = fixer::input('post')->get();
         $this->dao->update(TABLE_DOCLIB)
             ->data($lib)
             ->autoCheck()
@@ -183,12 +183,16 @@ class docModel extends model
             ->add('addedBy', $this->app->user->account)
             ->add('addedDate', $now)
             ->setDefault('product, project, module', 0)
-            ->specialChars('title, digest, keywords')
+            ->stripTags($this->config->doc->editor->create['id'], $this->config->allowedTags)
             ->encodeURL('url')
             ->cleanInt('product, project, module')
             ->remove('files, labels')
             ->get();
         $condition = "lib = '$doc->lib' AND module = $doc->module";
+
+        $result = $this->loadModel('common')->removeDuplicate('doc', $doc, $condition);
+        if($result['stop']) return array('status' => 'exists', 'id' => $result['duplicate']);
+
         $this->dao->insert(TABLE_DOC)
             ->data($doc)
             ->autoCheck()
@@ -199,7 +203,7 @@ class docModel extends model
         {
             $docID = $this->dao->lastInsertID();
             $this->loadModel('file')->saveUpload('doc', $docID);
-            return $docID;
+            return array('status' => 'new', 'id' => $docID);
         }
         return false;
     }
@@ -218,11 +222,14 @@ class docModel extends model
         $doc = fixer::input('post')
             ->cleanInt('module')
             ->setDefault('module', 0)
-            ->specialChars('title, digest, keywords')
+            ->setIF($this->post->lib == 'product', 'project', 0)
+            ->setIF(($this->post->lib != 'product' and $this->post->lib != 'project'), 'project', 0)
+            ->setIF(($this->post->lib != 'product' and $this->post->lib != 'project'), 'product', 0)
+            ->stripTags($this->config->doc->editor->edit['id'], $this->config->allowedTags)
             ->encodeURL('url')
-            ->remove('comment,files, labels')
             ->add('editedBy',   $this->app->user->account)
             ->add('editedDate', $now)
+            ->remove('comment,files, labels')
             ->get();
 
         $condition = "lib = '$doc->lib' AND module = $doc->module AND id != $docID";

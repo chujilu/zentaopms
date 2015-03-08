@@ -2,8 +2,8 @@
 /**
  * The create view of doc module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Jia Fu <fujia@cnezsoft.com>
  * @package     doc
  * @version     $Id: create.html.php 975 2010-07-29 03:30:25Z jajacn@126.com $
@@ -13,7 +13,7 @@
 <?php include '../../common/view/header.html.php';?>
 <?php include '../../common/view/kindeditor.html.php';?>
 <?php js::set('holders ', $lang->doc->placeholder);?>
-<div class='container'>
+<div class='container mw-1400px'>
   <div id='titlebar'>
     <div class='heading'>
       <span class='prefix'><?php echo html::icon($lang->icons['doc']);?></span>
@@ -25,21 +25,21 @@
       <?php if($libID == 'product'):?>
       <tr>
         <th class='w-80px'><?php echo $lang->doc->product;?></th>
-        <td class='w-p25-f'><?php echo html::select('product', $products, $productID, "class='form-control'");?></td><td></td>
+        <td class='w-p25-f'><?php echo html::select('product', $products, $productID, "class='form-control chosen'");?></td><td></td>
       </tr>  
       <?php elseif($libID == 'project'):?>
       <tr>
         <th class='w-80px'><?php echo $lang->doc->project;?></th>
-        <td class='w-p25-f'><?php echo html::select('project', $projects, $projectID, "class='form-control' onchange=loadProducts(this.value);");?></td><td></td>
+        <td class='w-p25-f'><?php echo html::select('project', $projects, $projectID, "class='form-control chosen' onchange=loadProducts(this.value)");?></td><td></td>
       </tr>  
       <tr>
         <th><?php echo $lang->doc->product;?></th>
-        <td class='w-p25-f'><span id='productBox'><?php echo html::select('product', $products, '', "class='form-control'");?></span></td><td></td>
+        <td class='w-p25-f'><span id='productBox'><?php echo html::select('product', $products, '', "class='form-control chosen'");?></span></td><td></td>
       </tr>  
       <?php endif;?>
       <tr>
         <th class='w-80px'><?php echo $lang->doc->module;?></th>
-        <td><?php echo html::select('module', $moduleOptionMenu, $moduleID, "class='form-control'");?></td>
+        <td><?php echo html::select('module', $moduleOptionMenu, $moduleID, "class='form-control chosen'");?></td>
       </tr>  
       <tr>
         <th><?php echo $lang->doc->type;?></th>

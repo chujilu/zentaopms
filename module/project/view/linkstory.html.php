@@ -2,8 +2,8 @@
 /**
  * The link story view of project module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     project
  * @version     $Id: linkstory.html.php 4129 2013-01-18 01:58:14Z wwccss $
@@ -17,6 +17,7 @@
     <span class='prefix'><?php echo html::icon($lang->icons['story']);?></span>
     <strong><small><?php echo html::icon($lang->icons['link']);?></small> <?php echo $lang->project->linkStory;?></strong>
   </div>
+  <div class='actions'><?php echo html::a($this->server->http_referer, '<i class="icon-goback icon-level-up icon-large icon-rotate-270"></i> ' . $lang->goback, '', "class='btn'")?></div>
   <div id='querybox' class='show'></div>
 </div>
 <form method='post' class='form-condensed'>
@@ -43,7 +44,7 @@
         <input type='hidden'   name='products[]' value='<?php echo $story->product;?>' />
         <?php echo html::a($storyLink, $story->id);?>
       </td>
-      <td><span class='<?php echo 'pri' . $lang->story->priList[$story->pri]?>'><?php echo $lang->story->priList[$story->pri];?></span></td>
+      <td><span class='<?php echo 'pri' . zget($lang->story->priList, $story->pri, $story->pri)?>'><?php echo zget($lang->story->priList, $story->pri, $story->pri);?></span></td>
       <td><?php echo html::a($this->createLink('product', 'browse', "productID=$story->product"), $products[$story->product], '_blank');?></td>
       <td class='text-left nobr' title="<?php echo $story->title?>"><?php echo html::a($storyLink, $story->title);?></td>
       <td><?php echo $story->planTitle;?></td>

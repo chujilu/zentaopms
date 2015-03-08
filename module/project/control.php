@@ -2,7 +2,7 @@
 /**
  * The control file of project module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     project
  * @version     $Id: control.php 5094 2013-07-10 08:46:15Z chencongzhi520@gmail.com $
@@ -18,9 +18,9 @@ class project extends control
      * @access public
      * @return void
      */
-    public function __construct()
+    public function __construct($moduleName = '', $methodName = '')
     {
-        parent::__construct();
+        parent::__construct($moduleName, $methodName);
         if($this->methodName != 'computeburn')
         {
             $this->projects = $this->project->getPairs('nocode');
@@ -37,18 +37,26 @@ class project extends control
      * @access public
      * @return void
      */
-    public function index($locate = 'yes', $status = 'all', $projectID = 0)
+    public function index($locate = 'yes', $status = 'undone', $projectID = 0, $orderBy = 'code_asc', $recTotal = 0, $recPerPage = 10, $pageID = 1)
     {
         if($locate == 'yes') $this->locate($this->createLink('project', 'task'));
 
         if($this->projects) $this->commonAction($projectID);
         $this->session->set('projectList', $this->app->getURI(true));
 
+        /* Load pager and get tasks. */
+        $this->app->loadClass('pager', $static = true);
+        $pager = new pager($recTotal, $recPerPage, $pageID);
+
         $this->app->loadLang('my');
         $this->view->title         = $this->lang->project->allProject;
         $this->view->position[]    = $this->lang->project->allProject;
-        $this->view->projectStats  = $this->project->getProjectStats($status);
+        $this->view->projectStats  = $this->project->getProjectStats($status, 0, 30, $orderBy, $pager);
         $this->view->projectID     = $projectID;
+        $this->view->pager         = $pager;
+        $this->view->recTotal      = $pager->recTotal;
+        $this->view->recPerPage    = $pager->recPerPage;
+        $this->view->orderBy       = $orderBy;
         $this->view->users         = $this->loadModel('user')->getPairs('noletter');
         $this->view->status        = $status;
 
@@ -112,7 +120,7 @@ class project extends control
      * @access public
      * @return void
      */
-    public function task($projectID = 0, $status = 'all', $param = 0, $orderBy = '', $recTotal = 0, $recPerPage = 100, $pageID = 1)
+    public function task($projectID = 0, $status = 'unclosed', $param = 0, $orderBy = '', $recTotal = 0, $recPerPage = 100, $pageID = 1)
     {
         $this->loadModel('tree');
         $this->loadModel('search');
@@ -135,6 +143,9 @@ class project extends control
         if(!$orderBy) $orderBy = $this->cookie->projectTaskOrder ? $this->cookie->projectTaskOrder : 'status,id_desc';
         setcookie('projectTaskOrder', $orderBy, $this->config->cookieLife, $this->config->webRoot);
 
+        /* Append id for secend sort. */
+        $sort = $this->loadModel('common')->appendOrder($orderBy);
+
         /* Header and position. */
         $this->view->title      = $project->name . $this->lang->colon . $this->lang->project->task;
         $this->view->position[] = html::a($this->createLink('project', 'browse', "projectID=$projectID"), $project->name);
@@ -149,16 +160,22 @@ class project extends control
         if($status == 'byProduct')
         {
             $modules = $this->tree->getProjectModule($projectID, $productID);
-            $tasks   = $this->loadModel('task')->getTasksByModule($projectID, $modules, $orderBy, $pager);
+            $tasks   = $this->loadModel('task')->getTasksByModule($projectID, $modules, $sort, $pager);
         }
         elseif($status == 'byModule') 
         {
-            $tasks = $this->loadModel('task')->getTasksByModule($projectID, $this->tree->getAllChildID($moduleID), $orderBy, $pager);
+            $tasks = $this->loadModel('task')->getTasksByModule($projectID, $this->tree->getAllChildID($moduleID), $sort, $pager);
         }
         elseif($browseType != "bysearch")
         {
-            $status = $status == 'byProject' ? 'all' : $status;
-            $tasks = $this->loadModel('task')->getProjectTasks($projectID, $status, $orderBy, $pager); 
+            $qureyStatus = $status == 'byProject' ? 'all' : $status;
+            if($qureyStatus == 'unclosed')
+            {
+                $qureyStatus = $this->lang->task->statusList;
+                unset($qureyStatus['closed']);
+                $qureyStatus = array_keys($qureyStatus);
+            }
+            $tasks = $this->loadModel('task')->getProjectTasks($projectID, $qureyStatus, $sort, $pager); 
         }
         else
         {   
@@ -186,12 +203,11 @@ class project extends control
 
             $projectQuery = "`project`" . helper::dbIN(array_keys($this->projects));  
             $taskQuery    = str_replace("`project` = 'all'", $projectQuery, $this->session->taskQuery); // Search all project.
-            $taskQuery    = $this->search->replaceDynamic($taskQuery);
             $this->session->set('taskQueryCondition', $taskQuery);
             $this->session->set('taskOnlyCondition', true);
-            $this->session->set('taskOrderBy', $orderBy);
+            $this->session->set('taskOrderBy', $sort);
 
-            $tasks = $this->project->getSearchTasks($taskQuery, $pager, $orderBy);
+            $tasks = $this->project->getSearchTasks($taskQuery, $pager, $sort);
         }
 
        /* Build the search form. */
@@ -200,6 +216,13 @@ class project extends control
         $this->config->project->search['params']['project']['values'] = array(''=>'', $projectID => $this->projects[$projectID], 'all' => $this->lang->project->allProject);
         $this->config->project->search['params']['module']['values']  = $this->tree->getTaskOptionMenu($projectID, $startModuleID = 0);
         $this->search->setSearchParams($this->config->project->search);
+
+        /* team member pairs. */
+        $memberPairs = array();
+        foreach($this->view->teamMembers as $key => $member)
+        {
+            $memberPairs[$key] = $member->realname;
+        }
 
         /* Assign. */
         $this->view->tasks       = $tasks;
@@ -219,6 +242,7 @@ class project extends control
         $this->view->moduleID    = $moduleID;
         $this->view->moduleTree  = $this->tree->getTaskTreeMenu($projectID, $productID = 0, $startModuleID = 0, array('treeModel', 'createTaskLink'));
         $this->view->projectTree = $this->project->tree();
+        $this->view->memberPairs = $memberPairs;
 
         $this->display();
     }
@@ -321,7 +345,7 @@ class project extends control
         if(!empty($_POST))
         {
             $this->project->importTask($toProject,$fromProject);
-            die(js::locate(inlink('task', "projectID=$toProject"), 'parent'));
+            die(js::locate(inlink('importTask', "toProject=$toProject&fromProject=$fromProject"), 'parent'));
         }
 
         $project   = $this->commonAction($toProject);
@@ -417,7 +441,7 @@ class project extends control
         $bugs = array();
         if($browseType != "bysearch")
         {
-            $bugs = $this->bug->getActiveBugs(array_keys($products), $projectID, $pager);
+            $bugs = $this->bug->getActiveAndPostponedBugs(array_keys($products), $projectID, $pager);
         }
         else
         {
@@ -517,6 +541,9 @@ class project extends control
         if(!$orderBy) $orderBy = $this->cookie->projectStoryOrder ? $this->cookie->projectStoryOrder : 'pri';
         setcookie('projectStoryOrder', $orderBy, $this->config->cookieLife, $this->config->webRoot);
 
+        /* Append id for secend sort. */
+        $sort = $this->loadModel('common')->appendOrder($orderBy);
+
         $project = $this->commonAction($projectID);
 
         /* Header and position. */
@@ -525,7 +552,7 @@ class project extends control
         $position[] = $this->lang->project->story;
 
         /* The pager. */
-        $stories    = $this->story->getProjectStories($projectID, $orderBy);
+        $stories    = $this->story->getProjectStories($projectID, $sort);
         $this->loadModel('common')->saveQueryCondition($this->dao->get(), 'story', false);
         $storyTasks = $this->task->getStoryTaskCounts(array_keys($stories), $projectID);
         $users      = $this->user->getPairs('noletter');
@@ -586,20 +613,30 @@ class project extends control
         /* Load pager and get bugs, user. */
         $this->app->loadClass('pager', $static = true);
         $pager = new pager($recTotal, $recPerPage, $pageID);
-        $bugs  = $this->bug->getProjectBugs($projectID, $orderBy, $pager, $build);
+        $sort  = $this->loadModel('common')->appendOrder($orderBy);
+        $bugs  = $this->bug->getProjectBugs($projectID, $sort, $pager, $build);
         $users = $this->user->getPairs('noletter');
 
+        /* team member pairs. */
+        $memberPairs = array();
+        $memberPairs[] = ""; 
+        foreach($this->view->teamMembers as $key => $member)
+        {
+            $memberPairs[$key] = $member->realname;
+        }
+
         /* Assign. */
-        $this->view->title     = $title;
-        $this->view->position  = $position;
-        $this->view->bugs      = $bugs;
-        $this->view->tabID     = 'bug';
-        $this->view->build     = $this->loadModel('build')->getById($build);
-        $this->view->buildID   = $this->view->build ? $this->view->build->id : 0;
-        $this->view->pager     = $pager;
-        $this->view->orderBy   = $orderBy;
-        $this->view->users     = $users;
-        $this->view->productID = $productID;
+        $this->view->title       = $title;
+        $this->view->position    = $position;
+        $this->view->bugs        = $bugs;
+        $this->view->tabID       = 'bug';
+        $this->view->build       = $this->loadModel('build')->getById($build);
+        $this->view->buildID     = $this->view->build ? $this->view->build->id : 0;
+        $this->view->pager       = $pager;
+        $this->view->orderBy     = $orderBy;
+        $this->view->users       = $users;
+        $this->view->productID   = $productID;
+        $this->view->memberPairs = $memberPairs;
 
         $this->display();
     }
@@ -752,7 +789,7 @@ class project extends control
     {
         $this->view->burns = $this->project->computeBurn();
         if($reload == 'yes') die(js::reload('parent'));
-        die($this->display());
+        $this->display();
     }
 
     /**
@@ -785,6 +822,9 @@ class project extends control
      */
     public function doc($projectID)
     {
+        /* use first project if projectID does not exist. */
+        if(!isset($this->projects[$projectID])) $projectID = key($this->projects);
+
         $this->project->setMenu($this->projects, $projectID);
         $this->session->set('docList', $this->app->getURI(true));
 
@@ -809,6 +849,7 @@ class project extends control
     {
         if($projectID)
         {
+            $this->view->title     = $this->lang->project->tips;
             $this->view->tips      = $this->fetch('project', 'tips', "projectID=$projectID");
             $this->view->projectID = $projectID;
             $this->display();
@@ -849,7 +890,7 @@ class project extends control
         $this->view->position[]    = $this->view->title;
         $this->view->projects      = array('' => '') + $this->projects;
         $this->view->groups        = $this->loadModel('group')->getPairs();
-        $this->view->allProducts   = $this->loadModel('product')->getPairs();
+        $this->view->allProducts   = $this->loadModel('product')->getPairs('noclosed|nocode');
         $this->view->name          = $name;
         $this->view->code          = $code;
         $this->view->team          = $team;
@@ -897,7 +938,9 @@ class project extends control
         $position[] = html::a($browseProjectLink, $project->name);
         $position[] = $this->lang->project->edit;
 
+        $allProducts    = $this->loadModel('product')->getPairs('noclosed|nocode');
         $linkedProducts = $this->project->getProducts($project->id);
+        $allProducts   += $linkedProducts;
         $linkedProducts = join(',', array_keys($linkedProducts));
         
         $this->view->title          = $title;
@@ -909,7 +952,7 @@ class project extends control
         $this->view->qdUsers        = $this->user->getPairs('noclosed,nodeleted,qdfirst',  $project->QD);
         $this->view->rdUsers        = $this->user->getPairs('noclosed,nodeleted,devfirst', $project->RD);
         $this->view->groups         = $this->loadModel('group')->getPairs();
-        $this->view->allProducts    = $this->loadModel('product')->getPairs();
+        $this->view->allProducts    = $allProducts;
         $this->view->linkedProducts = $linkedProducts;
 
         $this->display();
@@ -931,11 +974,10 @@ class project extends control
             {
                 foreach($allChanges as $projectID => $changes)
                 {
-                    if(!empty($changes))
-                    {
-                        $actionID = $this->loadModel('action')->create('project', $projectID, 'Edited');
-                        $this->action->logHistory($actionID, $changes);
-                    }
+                    if(empty($changes)) continue;
+
+                    $actionID = $this->loadModel('action')->create('project', $projectID, 'Edited');
+                    $this->action->logHistory($actionID, $changes);
                 }
             }
             die(js::locate($this->session->projectList, 'parent'));
@@ -975,7 +1017,7 @@ class project extends control
                 $actionID = $this->action->create('project', $projectID, 'Started', $this->post->comment);
                 $this->action->logHistory($actionID, $changes);
             }
-            die(js::locate($this->createLink('project', 'view', "projectID=$projectID"), 'parent'));
+            die(js::reload('parent.parent'));
         }
 
         $this->view->title      = $this->view->project->name . $this->lang->colon .$this->lang->project->start;
@@ -1007,7 +1049,7 @@ class project extends control
                 $actionID = $this->action->create('project', $projectID, 'Delayed', $this->post->comment);
                 $this->action->logHistory($actionID, $changes);
             }
-            die(js::locate($this->createLink('project', 'view', "projectID=$projectID"), 'parent'));
+            die(js::reload('parent.parent'));
         }
 
         $this->view->title      = $this->view->project->name . $this->lang->colon .$this->lang->project->putoff;
@@ -1039,7 +1081,7 @@ class project extends control
                 $actionID = $this->action->create('project', $projectID, 'Suspended', $this->post->comment);
                 $this->action->logHistory($actionID, $changes);
             }
-            die(js::locate($this->createLink('project', 'view', "projectID=$projectID"), 'parent'));
+            die(js::reload('parent.parent'));
         }
 
         $this->view->title      = $this->view->project->name . $this->lang->colon .$this->lang->project->suspend;
@@ -1071,7 +1113,7 @@ class project extends control
                 $actionID = $this->action->create('project', $projectID, 'Activated', $this->post->comment);
                 $this->action->logHistory($actionID, $changes);
             }
-            die(js::locate($this->createLink('project', 'view', "projectID=$projectID"), 'parent'));
+            die(js::reload('parent.parent'));
         }
 
         $this->view->title      = $this->view->project->name . $this->lang->colon .$this->lang->project->activate;
@@ -1103,7 +1145,7 @@ class project extends control
                 $actionID = $this->action->create('project', $projectID, 'Closed', $this->post->comment);
                 $this->action->logHistory($actionID, $changes);
             }
-            die(js::locate($this->createLink('project', 'view', "projectID=$projectID"), 'parent'));
+            die(js::reload('parent.parent'));
         }
 
         $this->view->title      = $this->view->project->name . $this->lang->colon .$this->lang->project->close;
@@ -1228,6 +1270,9 @@ class project extends control
      */
     public function manageProducts($projectID)
     {
+        /* use first project if projectID does not exist. */
+        if(!isset($this->projects[$projectID])) $projectID = key($this->projects);
+
         $browseProjectLink = $this->createLink('project', 'browse', "projectID=$projectID");
         if(!empty($_POST))
         {
@@ -1247,8 +1292,10 @@ class project extends control
         $position[] = html::a($browseProjectLink, $project->name);
         $position[] = $this->lang->project->manageProducts;
 
-        $allProducts     = $this->product->getPairs();
+        $allProducts     = $this->product->getPairs('noclosed|nocode');
         $linkedProducts  = $this->project->getProducts($project->id);
+        // Merge allProducts and linkedProducts for closed product.
+        $allProducts    += $linkedProducts;
         $linkedProducts  = join(',', array_keys($linkedProducts));
 
         /* Assign. */
@@ -1419,7 +1466,7 @@ class project extends control
         if(!empty($_POST))
         {
             $this->project->linkStory($projectID);
-            die(js::locate($browseLink, 'parent'));
+            die(js::locate($browseLink));
         }
 
         $queryID = ($browseType == 'bySearch') ? (int)$param : 0;
@@ -1500,6 +1547,25 @@ class project extends control
     }
 
     /**
+     * batch unlink story.
+     * 
+     * @param  int    $projectID 
+     * @access public
+     * @return void
+     */
+    public function batchUnlinkStory($projectID)
+    {
+        if(isset($_POST['storyIDList']))
+        {
+            foreach($this->post->storyIDList as $storyID)
+            {
+                $this->project->unlinkStory($projectID, $storyID);
+            }
+        }
+        die(js::locate($this->createLink('project', 'story', "projectID=$projectID")));
+    }
+
+    /**
      * Project dynamic.
      * 
      * @param  string $type 
@@ -1525,6 +1591,12 @@ class project extends control
         $this->session->set('caseList',        $uri);
         $this->session->set('testtaskList',    $uri);
 
+        /* use first project if projectID does not exist. */
+        if(!isset($this->projects[$projectID])) $projectID = key($this->projects);
+
+        /* Append id for secend sort. */
+        $sort = $this->loadModel('common')->appendOrder($orderBy);
+
         /* Set the menu. If the projectID = 0, use the indexMenu instead. */
         $this->project->setMenu($this->projects, $projectID);
         if($projectID == 0)
@@ -1538,8 +1610,6 @@ class project extends control
         /* Set the pager. */
         $this->app->loadClass('pager', $static = true);
         $pager = pager::init($recTotal, $recPerPage, $pageID);
-        $this->view->orderBy = $orderBy;
-        $this->view->pager   = $pager;
 
         /* Set the user and type. */
         $account = $type == 'account' ? $param : 'all';
@@ -1556,7 +1626,10 @@ class project extends control
         $this->view->type      = $type;
         $this->view->users     = $this->loadModel('user')->getPairs('nodeleted|noletter');
         $this->view->account   = $account;
-        $this->view->actions   = $this->loadModel('action')->getDynamic($account, $period, $orderBy, $pager, 'all', $projectID);
+        $this->view->orderBy   = $orderBy;
+        $this->view->pager     = $pager;
+        $this->view->param     = $param;
+        $this->view->actions   = $this->loadModel('action')->getDynamic($account, $period, $sort, $pager, 'all', $projectID);
         $this->display();
     }
 

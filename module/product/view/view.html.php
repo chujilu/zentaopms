@@ -2,8 +2,8 @@
 /**
  * The view view of product module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     product
  * @version     $Id: view.html.php 4129 2013-01-18 01:58:14Z wwccss $
@@ -26,7 +26,7 @@
     if(!$product->deleted)
     {
         ob_start();
-        common::printIcon('product', 'close', "productID=$product->id", $product, 'button', '', '', 'text-danger');
+        common::printIcon('product', 'close', "productID=$product->id", $product, 'button', '', '', 'iframe text-danger', true);
 
         echo "<div class='btn-group'>";
         common::printIcon('product', 'edit', $params);
@@ -83,7 +83,7 @@
           </tr>  
           <tr>
             <th><?php echo $lang->product->status;?></th>
-            <td><?php echo $lang->product->statusList[$product->status];?></td>
+            <td class='product-<?php echo $product->status?>'><?php echo $lang->product->statusList[$product->status];?></td>
           </tr>  
           <tr>
             <th><?php echo $lang->product->acl;?></th>

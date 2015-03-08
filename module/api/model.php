@@ -2,8 +2,8 @@
 /**
  * The model file of api module of ZenTaoCMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     api
  * @version     $Id$
@@ -82,5 +82,41 @@ class apiModel extends model
         session_start();
 
         return array('url' => $url, 'content' => $content);
+    }
+
+    /**
+     * Query sql. 
+     * 
+     * @param  string    $sql 
+     * @param  string    $keyField 
+     * @access public
+     * @return array
+     */
+    public function sql($sql, $keyField = '')
+    {
+        $sql  = trim($sql);
+        if(strpos($sql, ';') !== false) $sql = substr($sql, 0, strpos($sql, ';'));
+        a($sql);
+        if(empty($sql)) return '';
+
+        if(stripos($sql, 'select ') !== 0)
+        {
+            return $this->lang->api->error->onlySelect;
+        }
+        else
+        {
+            try
+            {
+                $stmt = $this->dao->query($sql);
+                if(empty($keyField)) return $stmt->fetchAll();
+                $rows = array();
+                while($row = $stmt->fetch()) $rows[$row->$keyField] = $row;
+                return $rows;
+            }
+            catch(PDOException $e)
+            {
+                return $e->getMessage();
+            }
+        }
     }
 }

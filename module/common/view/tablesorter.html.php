@@ -11,18 +11,17 @@ $(function() { sortTable(); } );
 function sortTable()
 {
     $('.tablesorter').tablesorter(
-        {
-            widgets: ['zebra'], 
-            widgetZebra: {css: ['odd', 'even'] }
-        }
-    ); 
+    {
+        saveSort: true,
+        widgets: ['zebra', 'saveSort'], 
+        widgetZebra: {css: ['odd', 'even'] }
+    });
+
     $('.tablesorter tbody tr').hover(
         function(){$(this).addClass('hoover')},
         function(){$(this).removeClass('hoover')}
     );
 
-    /* IE6下面click事件和colorbox冲突。暂时去除该功能。*/
-    if($.browser.msie && Math.floor(parseInt($.browser.version)) == 6) return; 
     $('.tablesorter tbody tr').click(
         function()
         {

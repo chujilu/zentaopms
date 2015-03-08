@@ -2,8 +2,8 @@
 /**
  * The browse view file of bug module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     bug
  * @version     $Id: browse.html.php 5102 2013-07-12 00:59:54Z chencongzhi520@gmail.com $
@@ -19,13 +19,14 @@ js::set('moduleID', $moduleID);
 <div id='featurebar'>
   <ul class='nav'>
     <?php
+    echo "<li id='unclosedTab'>"      . html::a($this->createLink('bug', 'browse', "productid=$productID&browseType=unclosed&param=0"),      $lang->bug->unclosed)      . "</li>";
     echo "<li id='allTab'>"           . html::a($this->createLink('bug', 'browse', "productid=$productID&browseType=all&param=0&orderBy=$orderBy&recTotal=0&recPerPage=200"), $lang->bug->allBugs) . "</li>";
     echo "<li id='assigntomeTab'>"    . html::a($this->createLink('bug', 'browse', "productid=$productID&browseType=assignToMe&param=0"),    $lang->bug->assignToMe)    . "</li>";
     echo "<li id='openedbymeTab'>"    . html::a($this->createLink('bug', 'browse', "productid=$productID&browseType=openedByMe&param=0"),    $lang->bug->openedByMe)    . "</li>";
     echo "<li id='resolvedbymeTab'>"  . html::a($this->createLink('bug', 'browse', "productid=$productID&browseType=resolvedByMe&param=0"),  $lang->bug->resolvedByMe)  . "</li>";
+    echo "<li id='unconfirmedTab'>"   . html::a($this->createLink('bug', 'browse', "productid=$productID&browseType=unconfirmed&param=0"),   $lang->bug->confirmedList[0])  . "</li>";
     echo "<li id='assigntonullTab'>"  . html::a($this->createLink('bug', 'browse', "productid=$productID&browseType=assignToNull&param=0"),  $lang->bug->assignToNull)  . "</li>";
     echo "<li id='unresolvedTab'>"    . html::a($this->createLink('bug', 'browse', "productid=$productID&browseType=unResolved&param=0"),    $lang->bug->unResolved)    . "</li>";
-    echo "<li id='unclosedTab'>"      . html::a($this->createLink('bug', 'browse', "productid=$productID&browseType=unclosed&param=0"),      $lang->bug->unclosed)      . "</li>";
     echo "<li id='longlifebugsTab'>"  . html::a($this->createLink('bug', 'browse', "productid=$productID&browseType=longLifeBugs&param=0"),  $lang->bug->longLifeBugs)  . "</li>";
     echo "<li id='postponedbugsTab'>" . html::a($this->createLink('bug', 'browse', "productid=$productID&browseType=postponedBugs&param=0"), $lang->bug->postponedBugs) . "</li>";
     echo "<li id='needconfirmTab'>"   . html::a($this->createLink('bug', 'browse', "productid=$productID&browseType=needconfirm&param=0"), $lang->bug->needConfirm) . "</li>";
@@ -123,14 +124,14 @@ js::set('moduleID', $moduleID);
           <input type='checkbox' name='bugIDList[]'  value='<?php echo $bug->id;?>'/> 
           <?php echo html::a($bugLink, sprintf('%03d', $bug->id));?>
         </td>
-        <td><span class='<?php echo 'severity' . $bug->severity;?>'><?php echo $bug->severity;?></span></td>
-        <td><span class='<?php echo 'pri' . $lang->bug->priList[$bug->pri];?>'><?php echo $lang->bug->priList[$bug->pri];?></span></td>
+        <td><span class='<?php echo 'severity' . zget($lang->bug->severityList, $bug->severity, $bug->severity);?>'><?php echo zget($lang->bug->severityList, $bug->severity, $bug->severity);?></span></td>
+        <td><span class='<?php echo 'pri' . zget($lang->bug->priList, $bug->pri, $bug->pri);?>'><?php echo zget($lang->bug->priList, $bug->pri, $bug->pri);?></span></td>
 
         <?php $class = 'confirm' . $bug->confirmed;?>
         <td class='text-left' title="<?php echo $bug->title?>"><?php echo "<span class='$class'>[{$lang->bug->confirmedList[$bug->confirmed]}] </span>" . html::a($bugLink, $bug->title);?></td>
 
         <?php if($this->cookie->windowWidth >= $this->config->wideSize):?>
-        <td><?php echo $lang->bug->statusList[$bug->status];?></td>
+        <td class='bug-<?php echo $bug->status?>'><?php echo $lang->bug->statusList[$bug->status];?></td>
         <?php endif;?>
 
         <?php if($browseType == 'needconfirm'):?>
@@ -184,53 +185,76 @@ js::set('moduleID', $moduleID);
                 $misc       = common::hasPriv('bug', 'batchEdit') ? "onclick=\"setFormAction('$actionLink')\"" : "disabled='disabled'";
                 echo html::commonButton($lang->edit, $misc);
                 ?>
+                <?php $dropdown = (common::hasPriv('bug', 'batchConfirm') and common::hasPriv('bug', 'batchClose') and common::hasPriv('bug', 'batchResolve') and common::hasPriv('bug', 'batchAssignTo'));?>
+                <?php if($dropdown):?>
                 <button type='button' class='btn dropdown-toggle' data-toggle='dropdown'><span class='caret'></span></button>
                 <ul class='dropdown-menu'>
                   <?php 
-                  $class = "class='disabled'";
-
                   $actionLink = $this->createLink('bug', 'batchConfirm');
-                  $misc = common::hasPriv('bug', 'batchConfirm') ? "onclick=\"setFormAction('$actionLink','hiddenwin')\"" : "class='disabled'";
-                  echo "<li>" . html::a('#', $lang->bug->confirmBug, '', $misc) . "</li>";
+                  $misc = common::hasPriv('bug', 'batchConfirm') ? "onclick=\"setFormAction('$actionLink','hiddenwin')\"" : "";
+                  if($misc) echo "<li>" . html::a('#', $lang->bug->confirmBug, '', $misc) . "</li>";
 
                   $actionLink = $this->createLink('bug', 'batchClose');
-                  $misc = common::hasPriv('bug', 'batchClose') ? "onclick=\"setFormAction('$actionLink','hiddenwin')\"" : "class='disabled'";
-                  echo "<li>" . html::a('#', $lang->bug->close, '', $misc) . "</li>";
+                  $misc = common::hasPriv('bug', 'batchClose') ? "onclick=\"setFormAction('$actionLink','hiddenwin')\"" : "";
+                  if($misc) echo "<li>" . html::a('#', $lang->bug->close, '', $misc) . "</li>";
 
-                  $misc = common::hasPriv('bug', 'batchResolve') ? "id='resolveItem'" : $class;
-                  echo "<li class='dropdown-submenu'>" . html::a('#', $lang->bug->resolve,  '', $misc);
-                  echo "<ul class='dropdown-menu'>";
-                  unset($lang->bug->resolutionList['']);
-                  unset($lang->bug->resolutionList['duplicate']);
-                  foreach($lang->bug->resolutionList as $key => $resolution)
+                  $misc = common::hasPriv('bug', 'batchResolve') ? "id='resolveItem'" : '';
+                  if($misc)
                   {
-                      $actionLink = $this->createLink('bug', 'batchResolve', "resolution=$key");
-                      if($key == 'fixed')
+                      echo "<li class='dropdown-submenu'>" . html::a('#', $lang->bug->resolve,  '', $misc);
+                      echo "<ul class='dropdown-menu'>";
+                      unset($lang->bug->resolutionList['']);
+                      unset($lang->bug->resolutionList['duplicate']);
+                      unset($lang->bug->resolutionList['tostory']);
+                      foreach($lang->bug->resolutionList as $key => $resolution)
                       {
-                          echo "<li class='dropdown-submenu'>";
-                          echo html::a('#', $resolution, '', "id='fixedItem'");
-                          echo "<ul class='dropdown-menu'>";
-                          unset($builds['']);
-                          foreach($builds as $key => $build)
+                          $actionLink = $this->createLink('bug', 'batchResolve', "resolution=$key");
+                          if($key == 'fixed')
                           {
-                              $actionLink = $this->createLink('bug', 'batchResolve', "resolution=fixed&resolvedBuild=$key");
-                              echo "<li>";
-                              echo html::a('#', $build, '', "onclick=\"setFormAction('$actionLink','hiddenwin')\"");
-                              echo "</li>";
+                              echo "<li class='dropdown-submenu'>";
+                              echo html::a('#', $resolution, '', "id='fixedItem'");
+                              echo "<ul class='dropdown-menu'>";
+                              unset($builds['']);
+                              foreach($builds as $key => $build)
+                              {
+                                  $actionLink = $this->createLink('bug', 'batchResolve', "resolution=fixed&resolvedBuild=$key");
+                                  echo "<li>";
+                                  echo html::a('#', $build, '', "onclick=\"setFormAction('$actionLink','hiddenwin')\"");
+                                  echo "</li>";
+                              }
+                              echo '</ul></li>';
                           }
-                          echo '</ul></li>';
+                          else
+                          {
+                              echo '<li>' . html::a('#', $resolution, '', "onclick=\"setFormAction('$actionLink','hiddenwin')\"") . '</li>';
+                          }
                       }
-                      else
-                      {
-                        echo '<li>' . html::a('#', $resolution, '', "onclick=\"setFormAction('$actionLink','hiddenwin')\"") . '</li>';
-                      }
+                      echo '</ul></li>';
                   }
-                  echo '</ul></li>';
+                  $canBatchAssignTo = common::hasPriv('bug', 'batchAssignTo');
+                  if($canBatchAssignTo && count($bugs))
+                  {   
+                      $withSearch = count($memberPairs) > 10;
+                      $actionLink = $this->createLink('bug', 'batchAssignTo', "productID={$productID}&type=product");
+                      echo html::select('assignedTo', $memberPairs, '', 'class="hidden"');
+                      echo "<li class='dropdown-submenu'>";
+                      echo html::a('javascript::', $lang->bug->assignedTo, 'id="assignItem"');
+                      echo "<ul class='dropdown-menu assign-menu" . ($withSearch ? ' with-search':'') . "'>";
+                      foreach ($memberPairs as $key => $value)
+                      {
+                          if(empty($key)) continue;
+                          echo "<li class='option' data-key='$key'>" . html::a("javascript:$(\"#assignedTo\").val(\"$key\");setFormAction(\"$actionLink\")", $value, '', '') . '</li>';
+                      }
+                      if($withSearch) echo "<li class='assign-search'><div class='input-group input-group-sm'><input type='text' class='form-control' placeholder=''><span class='input-group-addon'><i class='icon-search'></i></span></div></li>";
+                      echo "</ul>";
+                      echo "</li>";
+                  }
                   ?>
                 </ul>
+                <?php endif;?>
               </div>
             </div>
-            <?php endif?>
+            <?php endif;?>
             <div class='text-right'><?php $pager->show();?></div>
           </td>
         </tr>

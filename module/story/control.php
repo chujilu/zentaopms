@@ -2,8 +2,8 @@
 /**
  * The control file of story module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     story
  * @version     $Id: control.php 5145 2013-07-15 06:47:26Z chencongzhi520@gmail.com $
@@ -42,13 +42,29 @@ class story extends control
             $response['result']  = 'success';
             $response['message'] = '';
 
-            $storyID = $this->story->create($projectID, $bugID);
-            if(dao::isError())
+            $storyResult = $this->story->create($projectID, $bugID);
+            if(!$storyResult or dao::isError())
             {
                 $response['result']  = 'fail';
                 $response['message'] = dao::getError();
                 $this->send($response);
             }
+
+            $storyID = $storyResult['id'];
+            if($storyResult['status'] == 'exists')
+            {
+                $response['message'] = sprintf($this->lang->duplicate, $this->lang->story->common);
+                if($projectID == 0)
+                {
+                    $response['locate'] = $this->createLink('story', 'view', "storyID={$storyID}");
+                }
+                else
+                {
+                    $response['locate'] = $this->createLink('project', 'story', "projectID=$projectID");
+                }
+                $this->send($response);
+            }
+
             if($bugID == 0)
             {
                 $actionID = $this->action->create('story', $storyID, 'Opened', '');
@@ -157,12 +173,14 @@ class story extends control
         $this->view->source           = $source;
         $this->view->pri              = $pri;
         $this->view->productID        = $productID;
+        $this->view->projectID        = $projectID;
         $this->view->estimate         = $estimate;
         $this->view->storyTitle       = $title;
         $this->view->spec             = $spec;
         $this->view->verify           = $verify;
         $this->view->keywords         = $keywords;
         $this->view->mailto           = $mailto;
+        $this->view->needReview       = ($projectID > 0 || $this->config->story->needReview == 0) ? "checked='checked'" : "";
 
         $this->display();
     }
@@ -204,9 +222,29 @@ class story extends control
         $title      = '';
         $spec       = '';
 
+        /* Process upload images. */
+        if($this->session->storyImagesFile)
+        {
+            $extractPath = $this->session->storyImagesFile;
+            if(is_dir($extractPath))
+            {
+                $titles = array();
+                $files  = glob($extractPath . '/*');
+                sort($files);
+                foreach($files as $fileName)
+                {
+                    $fileName = basename($fileName);
+                    $titles[$fileName] = preg_replace('/^\d+_/', '', pathinfo($fileName, PATHINFO_FILENAME));
+                }
+                $this->view->titles = $titles;
+            }
+        }
+
         $moduleOptionMenu['same'] = $this->lang->story->same;
         $plans = $this->loadModel('productplan')->getPairs($productID, 'unexpired');
-        $plans['same'] = $this->lang->story->same;
+        $plans['same']   = $this->lang->story->same;
+        $priList         = (array)$this->lang->story->priList;
+        $priList['same'] = $this->lang->story->same;
 
         $this->view->title            = $product->name . $this->lang->colon . $this->lang->story->batchCreate;
         $this->view->productName      = $product->name;
@@ -217,6 +255,7 @@ class story extends control
         $this->view->moduleID         = $moduleID;
         $this->view->moduleOptionMenu = $moduleOptionMenu;
         $this->view->plans            = $plans; 
+        $this->view->priList          = $priList;
         $this->view->planID           = $planID;
         $this->view->pri              = $pri;
         $this->view->productID        = $productID;
@@ -308,6 +347,8 @@ class story extends control
             {
                 foreach($allChanges as $storyID => $changes)
                 {
+                    if(empty($changes)) continue;
+
                     $actionID = $this->action->create('story', $storyID, 'Edited');
                     $this->action->logHistory($actionID, $changes);
                     $this->sendmail($storyID, $actionID);
@@ -419,6 +460,7 @@ class story extends control
         $this->view->title      = $this->lang->story->change . "STORY" . $this->lang->colon . $this->view->story->title;
         $this->view->users      = $this->user->getPairs('nodeleted|pofirst', $this->view->story->assignedTo);
         $this->view->position[] = $this->lang->story->change;
+        $this->view->needReview = $this->config->story->needReview == 0 ? "checked='checked'" : "";
         $this->display();
     }
 
@@ -758,6 +800,28 @@ class story extends control
     }
 
     /**
+     * Batch assign to.
+     * 
+     * @access public
+     * @return void
+     */
+    public function batchAssignTo()
+    {
+        if(!empty($_POST) && isset($_POST['storyIDList']))
+        {
+            $allChanges  = $this->story->batchAssignTo();
+            if(dao::isError()) die(js::error(dao::getError()));
+            foreach($allChanges as $storyID => $changes)
+            {
+                $actionID = $this->action->create('story', $storyID, 'Edited');
+                $this->action->logHistory($actionID, $changes);
+                $this->sendmail($storyID, $actionID);
+            }
+        }
+        die(js::locate($this->session->storyList));
+    }
+
+    /**
      * Tasks of a story.
      * 
      * @param  int    $storyID 
@@ -769,6 +833,39 @@ class story extends control
     {
         $this->loadModel('task');
         $this->view->tasks = $this->task->getStoryTaskPairs($storyID, $projectID);
+        $this->display();
+    }
+
+    /**
+     * Show zero case story.
+     * 
+     * @param  int    $productID 
+     * @param  string $orderBy 
+     * @access public
+     * @return void
+     */
+    public function zeroCase($productID, $orderBy = 'id_desc')
+    {
+        $this->session->set('productList', $this->app->getURI(true));
+        $products = $this->loadModel('product')->getPairs();
+
+        $this->lang->set('menugroup.story', 'qa');
+        $this->lang->story->menu      = $this->lang->testcase->menu;
+        $this->lang->story->menuOrder = $this->lang->testcase->menuOrder;
+        $this->lang->story->menu->testcase['subModule'] = 'story';
+        $this->loadModel('testcase')->setMenu($products, $productID);
+
+        /* Append id for secend sort. */
+        $sort = $this->loadModel('common')->appendOrder($orderBy);
+
+        $this->view->title      = $this->lang->story->zeroCase;
+        $this->view->position[] = html::a($this->createLink('testcase', 'browse', "productID=$productID"), $products[$productID]);
+        $this->view->position[] = $this->lang->story->zeroCase;
+
+        $this->view->stories   = $this->story->getZeroCase($productID, $sort);
+        $this->view->users     = $this->user->getPairs('noletter');
+        $this->view->productID = $productID;
+        $this->view->orderBy   = $orderBy;
         $this->display();
     }
 
@@ -790,8 +887,9 @@ class story extends control
             $moduleID = $this->loadModel('tree')->getStoryModule($moduleID);
             $moduleID = $this->tree->getAllChildID($moduleID);
         }
-        $stories = $this->story->getProjectStoryPairs($projectID, $productID, $moduleID, $type);
-        die(html::select('story' . $number, $stories, $storyID, 'class=select-1 onchange=setStoryRelated(' . $number . ');'));
+        $stories   = $this->story->getProjectStoryPairs($projectID, $productID, $moduleID, $type);
+        $storyName = $number === '' ? 'story' : "story[$number]";
+        die(html::select($storyName, $stories, $storyID, 'class=form-control onchange=setStoryRelated(' . $number . ');'));
     }
 
     /**
@@ -801,22 +899,81 @@ class story extends control
      * @param  int    $moduleID 
      * @param  int    $storyID 
      * @param  string $onlyOption 
+     * @param  string $status 
+     * @param  int    $limit 
      * @access public
      * @return void
      */
-    public function ajaxGetProductStories($productID, $moduleID = 0, $storyID = 0, $onlyOption = 'false')
+    public function ajaxGetProductStories($productID, $moduleID = 0, $storyID = 0, $onlyOption = 'false', $status = '', $limit = 0)
     {
         if($moduleID)
         {
             $moduleID = $this->loadModel('tree')->getStoryModule($moduleID);
             $moduleID = $this->tree->getAllChildID($moduleID);
         }
-        $stories = $this->story->getProductStoryPairs($productID, $moduleID);
+
+        $storyStatus = '';
+        if($status == 'noclosed')
+        {
+            $storyStatus = $this->lang->story->statusList;
+            unset($storyStatus['closed']);
+            $storyStatus = array_keys($storyStatus);
+        }
+
+        $stories = $this->story->getProductStoryPairs($productID, $moduleID, $storyStatus, 'id_desc', $limit);
         $select  = html::select('story', $stories, $storyID, "class='form-control'");
 
         /* If only need options, remove select wrap. */
         if($onlyOption == 'true') die(substr($select, strpos($select, '>') + 1, -10));
         die($select);
+    }
+
+    /**
+     * AJAX: search stories of a product as json
+     * 
+     * @param  string $key 
+     * @param  int    $productID 
+     * @param  int    $moduleID 
+     * @param  int    $storyID 
+     * @param  string $status 
+     * @param  int    $limit 
+     * @access public
+     * @return void
+     */
+    public function ajaxSearchProductStories($key, $productID, $moduleID = 0, $storyID = 0, $status = 'noclosed', $limit = 50)
+    {
+        if($moduleID)
+        {
+            $moduleID = $this->loadModel('tree')->getStoryModule($moduleID);
+            $moduleID = $this->tree->getAllChildID($moduleID);
+        }
+
+        $storyStatus = '';
+        if($status == 'noclosed')
+        {
+            $storyStatus = $this->lang->story->statusList;
+            unset($storyStatus['closed']);
+            $storyStatus = array_keys($storyStatus);
+        }
+
+        $stories = $this->story->getProductStoryPairs($productID, $moduleID, $storyStatus, 'id_desc');
+        $result = array();
+        $i = 0;
+        foreach ($stories as $id => $story)
+        {
+            if($limit > 0 && $i > $limit) break;
+            if(('#' . $id) === $key || stripos($story,  $key) !== false)
+            {
+                $result[$id] = $story;
+                $i++;
+            }
+        }
+        if($i < 1)
+        {
+            $result['info'] = $this->lang->noResultsMatch;
+        }
+
+        die(json_encode($result));
     }
 
     /**
@@ -1097,6 +1254,7 @@ class story extends control
                 }
 
                 /* Set related files. */
+                $story->files = '';
                 if(isset($relatedFiles[$story->id]))
                 {
                     foreach($relatedFiles[$story->id] as $file)

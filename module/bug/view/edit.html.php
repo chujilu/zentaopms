@@ -2,8 +2,8 @@
 /**
  * The edit file of bug module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     bug
  * @version     $Id: edit.html.php 4259 2013-01-24 05:49:40Z wyd621@gmail.com $
@@ -12,9 +12,6 @@
 ?>
 <?php
 include '../../common/view/header.html.php';
-include '../../common/view/chosen.html.php';
-include '../../common/view/chosen.html.php';
-include '../../common/view/alert.html.php';
 include '../../common/view/kindeditor.html.php';
 js::set('page'                   , 'edit');
 js::set('changeProductConfirmed' , false);
@@ -73,24 +70,35 @@ js::set('oldResolvedBuild'       , $bug->resolvedBuild);
         <legend><?php echo $lang->bug->legendBasicInfo;?></legend>
         <table class='table table-form'>
           <tr>
-            <th class='w-60px'><?php echo $lang->bug->product;?></th>
-            <td><?php echo html::select('product', $products, $productID, "onchange=loadAll(this.value); class='form-control'");?></td>
+            <th class='w-80px'><?php echo $lang->bug->product;?></th>
+            <td><?php echo html::select('product', $products, $productID, "onchange=loadAll(this.value); class='form-control chosen'");?></td>
           </tr>
           <tr>
             <th><?php echo $lang->bug->module;?></th>
             <td>
-              <span id='moduleIdBox'><?php echo html::select('module', $moduleOptionMenu, $currentModuleID, "onchange='loadModuleRelated()' class='form-control'");?></span>
+              <span id='moduleIdBox'><?php echo html::select('module', $moduleOptionMenu, $currentModuleID, "onchange='loadModuleRelated()' class='form-control chosen'");?></span>
             </td>
           </tr>
           <tr>
             <th><?php echo $lang->bug->productplan;?></th>
             <td>
-              <span id="planIdBox"><?php echo html::select('plan', $plans, $bug->plan, "class='form-control'");?></span>
+              <span id="planIdBox"><?php echo html::select('plan', $plans, $bug->plan, "class='form-control chosen'");?></span>
             </td>
           </tr>
           <tr>
             <th><?php echo $lang->bug->type;?></th>
-            <td><?php echo html::select('type', $lang->bug->typeList, $bug->type, "class='form-control'");?></td>
+            <td>
+              <?php
+              /**
+               * Remove designchange, newfeature, trackings from the typeList, because should be tracked in story or task. 
+               * These thress types if upgrade from bugfree2.x.
+               */
+              if($bug->type != 'designchange') unset($lang->bug->typeList['designchange']);
+              if($bug->type != 'newfeature')   unset($lang->bug->typeList['newfeature']);
+              if($bug->type != 'trackthings')  unset($lang->bug->typeList['trackthings']);
+              echo html::select('type', $lang->bug->typeList, $bug->type, "class='form-control'");
+              ?>
+            </td>
           </tr>
           <tr>
             <th><?php echo $lang->bug->severity;?></th>
@@ -135,17 +143,17 @@ js::set('oldResolvedBuild'       , $bug->resolvedBuild);
         <legend><?php echo $lang->bug->legendPrjStoryTask;?></legend>
         <table class='table table-form'>
           <tr>
-            <th class='w-60px'><?php echo $lang->bug->project;?></th>
-            <td><span id='projectIdBox'><?php echo html::select('project', $projects, $bug->project, 'class=form-control onchange=loadProjectRelated(this.value)');?></span></td>
+            <th class='w-80px'><?php echo $lang->bug->project;?></th>
+            <td><span id='projectIdBox'><?php echo html::select('project', $projects, $bug->project, "class='form-control chosen' onchange='loadProjectRelated(this.value)'");?></span></td>
           </tr>
           <tr>
             <th><?php echo $lang->bug->story;?></th>
-            <td><div id='storyIdBox'><?php echo html::select('story', $stories, $bug->story, "class='form-control'");?></div>
+            <td><div id='storyIdBox'><?php echo html::select('story', $stories, $bug->story, "class='form-control chosen'");?></div>
             </td>
           </tr>
           <tr>
             <th><?php echo $lang->bug->task;?></th>
-            <td><div id='taskIdBox'><?php echo html::select('task', $tasks, $bug->task, "class='form-control'");?></div></td>
+            <td><div id='taskIdBox'><?php echo html::select('task', $tasks, $bug->task, "class='form-control chosen'");?></div></td>
           </tr>
         </table>
       </fieldset>
@@ -154,7 +162,7 @@ js::set('oldResolvedBuild'       , $bug->resolvedBuild);
         <legend><?php echo $lang->bug->legendLife;?></legend>
         <table class='table table-form'>
           <tr>
-            <th class='w-60px'><?php echo $lang->bug->openedBy;?></th>
+            <th class='w-80px'><?php echo $lang->bug->openedBy;?></th>
             <td><?php echo $users[$bug->openedBy];?></td>
           </tr>
           <tr>
@@ -163,7 +171,7 @@ js::set('oldResolvedBuild'       , $bug->resolvedBuild);
           </tr>
           <tr>
             <th><?php echo $lang->bug->resolvedBy;?></th>
-            <td><?php echo html::select('resolvedBy', $users, $bug->resolvedBy, "class='form-control'");?></td>
+            <td><?php echo html::select('resolvedBy', $users, $bug->resolvedBy, "class='form-control chosen'");?></td>
           </tr>
           <tr>
             <th><?php echo $lang->bug->resolvedDate;?></th>
@@ -171,7 +179,7 @@ js::set('oldResolvedBuild'       , $bug->resolvedBuild);
           </tr>
           <tr>
             <th><?php echo $lang->bug->resolvedBuild;?></th>
-            <td><span id='resolvedBuildBox'><?php echo html::select('resolvedBuild', $resolvedBuilds, $bug->resolvedBuild, "class='form-control'");?></span></td>
+            <td><span id='resolvedBuildBox'><?php echo html::select('resolvedBuild', $resolvedBuilds, $bug->resolvedBuild, "class='form-control chosen'");?></span></td>
           </tr>
           <tr>
             <th><?php echo $lang->bug->resolution;?></th>
@@ -183,7 +191,7 @@ js::set('oldResolvedBuild'       , $bug->resolvedBuild);
           </tr>
           <tr>
             <th><?php echo $lang->bug->closedBy;?></th>
-            <td><?php echo html::select('closedBy', $users, $bug->closedBy, "class='form-control'");?></td>
+            <td><?php echo html::select('closedBy', $users, $bug->closedBy, "class='form-control chosen'");?></td>
           </tr>
           <tr>
             <th><?php echo $lang->bug->closedDate;?></th>
@@ -195,7 +203,7 @@ js::set('oldResolvedBuild'       , $bug->resolvedBuild);
         <legend><?php echo $lang->bug->legendMisc;?></legend>
         <table class='table table-form'>
           <tr>
-            <th class='w-60px'><?php echo $lang->bug->linkBug;?></th>
+            <th class='w-80px'><?php echo $lang->bug->linkBug;?></th>
             <td><?php echo html::input('linkBug', $bug->linkBug, 'class="form-control"');?></td>
           </tr>
           <tr>

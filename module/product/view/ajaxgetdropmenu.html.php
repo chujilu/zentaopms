@@ -2,7 +2,20 @@
 <?php js::set('module', $module);?>
 <?php js::set('method', $method);?>
 <?php js::set('extra', $extra);?>
-<input type='text' class='form-control' id='search' value='' onkeyup='searchItems(this.value, "product", productID, module, method, extra)' placeholder='<?php echo $this->app->loadLang('search')->search->common;?>'/>
+<input type='text' class='form-control' id='search' value='' placeholder='<?php echo $this->app->loadLang('search')->search->common;?>'/>
+<script>
+var existsVal = '';
+$('#dropMenu #search').bind('keyup', function(evt)
+{
+    var k     = evt.keyCode;
+    var value = $(this).val();
+    // backspace and delete.
+    if((k === 8 || k === 46) && existsVal == '') return;
+    if((k !== 8 && k !== 46) && existsVal == value) return;
+    existsVal = value;
+    searchItems($(this).val(), "product", productID, module, method, extra)
+});
+</script>
 
 <div id='searchResult'>
   <div id='defaultMenu'>
@@ -40,7 +53,7 @@
     </ul>
  
     <?php if($closeds):?>
-    <div class='text-right'><a class='gray' id='more' onClick='switchMore()'><?php echo $lang->product->closed . ' <i class="icon-angle-right"></i>';?></a></div>
+    <div class='text-right actions'><a id='more' href='javascript:switchMore()'><?php echo $lang->product->closed;?></a></div>
     <?php endif;?>
  
   </div>

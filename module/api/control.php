@@ -2,8 +2,8 @@
 /**
  * The control file of api of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     api
  * @version     $Id: control.php 5143 2013-07-15 06:11:59Z zhujinyonging@gmail.com $
@@ -86,5 +86,19 @@ class api extends control
         $this->view->method   = $method;
         $this->view->filePath = $filePath;
         $this->display();
+    }
+
+    /**
+     * Query sql; 
+     * 
+     * @param  string $keyField 
+     * @access public
+     * @return void
+     */
+    public function sql($keyField = '')
+    {
+        $sql = isset($_POST['sql']) ? $this->post->sql : '';
+        $this->view->results = $this->api->sql($sql, $keyField);
+        die($this->display());
     }
 }

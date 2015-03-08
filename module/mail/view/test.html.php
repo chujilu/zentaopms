@@ -2,20 +2,19 @@
 /**
  * The test view file of mail module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 QingDao Nature Easy Soft Network Technology Co,LTD (www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <wwccss@cnezsoft.com>
  * @package     mail
  * @version     $Id$
  * @link        http://www.zentao.net
  */
-if(isset($error))
-{
-    include '../../common/view/header.lite.html.php';
-    die("<br />" . nl2br(join('', $error)));
-}
 ?>
-
+<?php if(isset($error)):?>
+<?php include '../../common/view/header.lite.html.php';?>
+<div class='alert alert-warning with-icon'><i class='icon-frown'></i><div class='content'><?php echo join('', $error);?></div></div>
+<?php include '../../common/view/footer.lite.html.php';?>
+<?php else:?>
 <?php include '../../common/view/header.html.php';?>
 <div class='container mw-700px'>
   <div id='titlebar'>
@@ -29,7 +28,7 @@ if(isset($error))
   <form class='form-condensed' method='post' target='resultWin'>
     <table class='table table-form'>
       <tr>
-        <td><?php echo html::select('to', $users, $app->user->account, "class='form-control'");?></td>
+        <td><?php echo html::select('to', $users, $app->user->account, "class='form-control chosen'");?></td>
         <td class='text-left'>
           <?php 
           echo html::submitButton($lang->mail->test);
@@ -39,6 +38,7 @@ if(isset($error))
       </tr>
     </table>
   </form>
-  <table class='table table-form'><tr><td><iframe id='resultWin'></iframe></td></tr></table>
+  <table class='table table-form'><tr><td><iframe id='resultWin' name='resultWin'></iframe></td></tr></table>
 </div>
 <?php include '../../common/view/footer.html.php';?>
+<?php endif;?>

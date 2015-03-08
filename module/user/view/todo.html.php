@@ -2,8 +2,8 @@
 /**
  * The todo view file of dashboard module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     dashboard
  * @version     $Id: todo.html.php 4744 2013-05-04 02:41:05Z wyd621@gmail.com $
@@ -47,8 +47,8 @@
       <td><?php echo $todo->id;?></td>
       <td><?php echo $todo->date == '2030-01-01' ? $lang->todo->periods['future'] : $todo->date;?></td>
       <td><?php echo $lang->todo->typeList[$todo->type];?></td>
-      <td><span class='<?php echo 'pri' . $todo->pri;?>'><?php echo $todo->pri?></span></td>
-      <td class='text-left'><?php echo html::a($this->createLink('todo', 'view', "id=$todo->id", '', true), $todo->name, '', "class='colorbox'");?></td>
+      <td><span class='<?php echo 'pri' . zget($lang->todo->priList, $todo->pri, $todo->pri);?>'><?php echo zget($lang->todo->priList, $todo->pri, $todo->pri);?></span></td>
+      <td class='text-left'><?php echo html::a($this->createLink('todo', 'view', "id=$todo->id", '', true), $todo->name, '', "class='iframe'");?></td>
       <td><?php echo $todo->begin;?></td>
       <td><?php echo $todo->end;?></td>
       <td class='<?php echo $todo->status;?>'><?php echo $lang->todo->statusList[$todo->status];?></td>

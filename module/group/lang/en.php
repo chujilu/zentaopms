@@ -2,8 +2,8 @@
 /**
  * The group module English file of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     group
  * @version     $Id: en.php 4719 2013-05-03 02:20:28Z chencongzhi520@gmail.com $
@@ -43,6 +43,10 @@ $lang->group->copyOptions['copyPriv'] = 'Copy priviledge';
 $lang->group->copyOptions['copyUser'] = 'Copy user';
 
 $lang->group->versions['']          = 'History';
+$lang->group->versions['6_4']       = 'Zentao 6.4';
+$lang->group->versions['6_3']       = 'Zentao 6.3';
+$lang->group->versions['6_2']       = 'Zentao 6.2';
+$lang->group->versions['6_1']       = 'Zentao 6.1';
 $lang->group->versions['5_3']       = 'Zentao 5.3';
 $lang->group->versions['5_1']       = 'Zentao 5.1';
 $lang->group->versions['5_0_beta2'] = 'Zentao 5.0.beta2';

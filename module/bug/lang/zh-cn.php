@@ -2,8 +2,8 @@
 /**
  * The bug module zh-cn file of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     bug
  * @version     $Id: zh-cn.php 4536 2013-03-02 13:39:37Z wwccss $
@@ -78,6 +78,7 @@ $lang->bug->edit               = '编辑';
 $lang->bug->batchEdit          = '批量编辑';
 $lang->bug->batchClose         = '批量关闭';
 $lang->bug->assignTo           = '指派';
+$lang->bug->batchAssignTo      = '批量指派';
 $lang->bug->browse             = 'Bug列表';
 $lang->bug->view               = 'Bug详情';
 $lang->bug->resolve            = '解决';
@@ -113,6 +114,7 @@ $lang->bug->moduleBugs     = '按模块';
 $lang->bug->byQuery        = '搜索';
 $lang->bug->needConfirm    = '需求变动';
 $lang->bug->allProduct     = '所有产品';
+$lang->bug->ditto          = '同上';
 
 /* 页面标签。*/
 $lang->bug->lblProductAndModule         = '产品模块';
@@ -155,9 +157,10 @@ $lang->bug->buttonCreateTestcase = '转用例';
 /* 交互提示。*/
 $lang->bug->confirmChangeProduct = '修改产品会导致相应的项目、需求和任务发生变化，确定吗？';
 $lang->bug->confirmDelete        = '您确认要删除该Bug吗？';
-$lang->bug->setTemplateTitle     = '请输入bug模板标题（保存之前请先填写bug重现步骤）：';
+$lang->bug->setTemplateTitle     = '请输入bug模板标题';
 $lang->bug->remindTask           = '该Bug已经转化为任务，是否更新任务(编号:%s)状态 ?';
 $lang->bug->skipClose            = 'Bug %s 不是已解决状态，不能关闭。';
+$lang->bug->applyTemplate        = '应用模版';
 
 /* 模板。*/
 $lang->bug->tplStep   = "<p>[步骤]</p>\n";

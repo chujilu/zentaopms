@@ -2,8 +2,8 @@
 /**
  * The common simplified chinese file of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     ZenTaoPMS
  * @version     $Id: en.php 5116 2013-07-12 06:37:48Z chencongzhi520@gmail.com $
@@ -16,6 +16,7 @@ $lang->dot          = '.';
 $lang->at           = ' at ';
 $lang->downArrow    = '↓';
 $lang->null         = '空';
+$lang->ellipsis     = '...';
 
 $lang->zentaoPMS      = 'zentao';
 $lang->welcome        = "%s PMS";
@@ -27,6 +28,7 @@ $lang->aboutZenTao    = 'About';
 $lang->profile        = 'Profile';
 $lang->changePassword = 'Password';
 $lang->runInfo        = "<div class='row'><div class='u-1 a-center' id='debugbar'>Time: %s ms, Memory: %s KB, Queries: %s.  </div></div>";
+$lang->agreement      = "I Agree to the <a href='http://zpl.pub/page/zplv11.html' target='_blank'>Z PUBLIC LICENSE 1.1</a>, <span class='text-danger'>and promise to keep the logo, link of ZenTao.</span>";
 
 $lang->reset        = 'Reset';
 $lang->refresh      = 'Refresh';
@@ -59,7 +61,11 @@ $lang->switchDisplay= 'Toggle Show';
 $lang->switchHelp   = 'Toggle Help';
 $lang->addFiles     = 'Add Files';
 $lang->files        = 'Files ';
+$lang->pasteText    = 'Paste text';
+$lang->uploadImages = 'Upload images ';
 $lang->timeout      = 'Timed out, please check the network, or retry!';
+$lang->repairTable  = 'The table may be damaged, please repair by phpmyadmin or myisamchk!';
+$lang->duplicate    = '%s has the same title';
 $lang->unfold       = '+';
 $lang->fold         = '-';
 
@@ -105,7 +111,7 @@ $lang->searchObjects['user']        = 'User';
 $lang->searchObjects['build']       = 'Build';
 $lang->searchObjects['release']     = 'Release';
 $lang->searchObjects['productplan'] = 'Plan';
-$lang->searchObjects['testtask']    = 'Test Task';
+$lang->searchObjects['testtask']    = 'Test Build';
 $lang->searchObjects['doc']         = 'Doc';
 $lang->searchTips                   = 'Id here(ctrl+g)';
 
@@ -200,7 +206,7 @@ $lang->project->menu->doc       = array('link' => 'Doc|project|doc|porjectID=%s'
 $lang->project->menu->product   = array('link' => 'Product|project|manageproducts|projectID=%s', 'alias' => 'edit,start,suspend,delay,close');
 $lang->project->menu->view      = 'Info|project|view|projectID=%s';
 $lang->project->menu->create    = array('link' => '<span class="icon-add">&nbsp;</span>New|project|create', 'float' => 'right');
-$lang->project->menu->all       = array('link' => '<i class="icon-th-large"></i>&nbsp;Projects|project|index|locate=no&status=all&projectID=%s', 'float' => 'right');
+$lang->project->menu->all       = array('link' => '<i class="icon-th-large"></i>&nbsp;Projects|project|index|locate=no&status=undone&projectID=%s', 'float' => 'right');
 
 $lang->task  = new stdclass();
 $lang->build = new stdclass();
@@ -213,16 +219,16 @@ $lang->bug->menu = new stdclass();
 
 $lang->bug->menu->product  = '%s';
 $lang->bug->menu->bug      = array('link' => 'Bug|bug|browse|productID=%s', 'alias' => 'view,create,batchcreate,edit,resolve,close,activate,report,batchedit,confirmbug,assignto', 'subModule' => 'tree');
-$lang->bug->menu->testcase = array('link' => 'Test Case|testcase|browse|productID=%s', 'alias' => 'view,create,edit');
-$lang->bug->menu->testtask = array('link' => 'Test Task|testtask|browse|productID=%s');
+$lang->bug->menu->testcase = array('link' => 'Case|testcase|browse|productID=%s');
+$lang->bug->menu->testtask = array('link' => 'Build|testtask|browse|productID=%s');
 
 $lang->testcase = new stdclass();
 $lang->testcase->menu = new stdclass();
 
 $lang->testcase->menu->product  = '%s';
 $lang->testcase->menu->bug      = array('link' => 'Bug|bug|browse|productID=%s');
-$lang->testcase->menu->testcase = array('link' => 'Test Case|testcase|browse|productID=%s', 'alias' => 'view,create,batchcreate,edit,batchedit,showimport', 'subModule' => 'tree');
-$lang->testcase->menu->testtask = array('link' => 'Test Task|testtask|browse|productID=%s', 'alias' => 'view,create,edit,linkcase,cases,start,close,batchrun');
+$lang->testcase->menu->testcase = array('link' => 'Case|testcase|browse|productID=%s', 'alias' => 'view,create,batchcreate,edit,batchedit,showimport,groupcase', 'subModule' => 'tree');
+$lang->testcase->menu->testtask = array('link' => 'Build|testtask|browse|productID=%s', 'alias' => 'view,create,edit,linkcase,cases,start,close,batchrun,groupcase');
 
 $lang->testtask = new stdclass();
 $lang->testtask->menu = $lang->testcase->menu;
@@ -272,31 +278,36 @@ $lang->user->menu  = $lang->company->menu;
 $lang->admin = new stdclass();
 $lang->admin->menu = new stdclass();
 $lang->admin->menu->index     = array('link' => 'Index|admin|index');
-$lang->admin->menu->extension = array('link' => 'Extension|extension|browse', 'subModule' => 'extension,editor');
+$lang->admin->menu->extension = array('link' => 'Extension|extension|browse', 'subModule' => 'extension');
 $lang->admin->menu->custom    = array('link' => 'Custom|custom|index', 'subModule' => 'custom');
 $lang->admin->menu->mail      = array('link' => 'Email|mail|index', 'subModule' => 'mail');
-$lang->admin->menu->clearData = array('link' => 'Reset|admin|cleardata');
 $lang->admin->menu->convert   = array('link' => 'Import|convert|index', 'subModule' => 'convert');
+$lang->admin->menu->backup    = array('link' => 'Backup|backup|index', 'subModule' => 'backup');
+$lang->admin->menu->cron      = array('link' => 'Cron|cron|index', 'subModule' => 'cron');
 $lang->admin->menu->trashes   = array('link' => 'Trash|action|trash', 'subModule' => 'action');
-$lang->admin->menu->sso       = array('link' => 'SSO|sso|browse', 'subModule' => 'sso');
+$lang->admin->menu->dev       = array('link' => 'Develop|dev|api', 'alias' => 'db', 'subModule' => 'dev,editor');
 
 $lang->convert   = new stdclass();
 $lang->upgrade   = new stdclass();
 $lang->action    = new stdclass();
+$lang->backup    = new stdclass();
 $lang->extension = new stdclass();
 $lang->custom    = new stdclass();
 $lang->editor    = new stdclass();
 $lang->mail      = new stdclass();
-$lang->sso       = new stdclass();
+$lang->cron      = new stdclass();
+$lang->dev       = new stdclass();
 
 $lang->convert->menu   = $lang->admin->menu;
 $lang->upgrade->menu   = $lang->admin->menu;
 $lang->action->menu    = $lang->admin->menu;
+$lang->backup->menu    = $lang->admin->menu;
+$lang->cron->menu      = $lang->admin->menu;
 $lang->extension->menu = $lang->admin->menu;
 $lang->custom->menu    = $lang->admin->menu;
 $lang->editor->menu    = $lang->admin->menu;
 $lang->mail->menu      = $lang->admin->menu;
-$lang->sso->menu       = $lang->admin->menu;
+$lang->dev->menu       = $lang->admin->menu;
 
 /* Groups. */
 $lang->menugroup = new stdclass();
@@ -316,11 +327,13 @@ $lang->menugroup->people      = 'company';
 $lang->menugroup->dept        = 'company';
 $lang->menugroup->todo        = 'my';
 $lang->menugroup->action      = 'admin';
+$lang->menugroup->backup      = 'admin';
+$lang->menugroup->cron        = 'admin';
 $lang->menugroup->extension   = 'admin';
 $lang->menugroup->custom      = 'admin';
 $lang->menugroup->editor      = 'admin';
 $lang->menugroup->mail        = 'admin';
-$lang->menugroup->sso         = 'admin';
+$lang->menugroup->dev         = 'admin';
 
 /* Error info. */
 $lang->error = new stdclass();
@@ -341,6 +354,7 @@ $lang->error->account         = "『%s』should be a valid account.";
 $lang->error->passwordsame    = "Two passwords must be the same";
 $lang->error->passwordrule    = "Password should more than six letters.";
 $lang->error->accessDenied    = 'No purview';
+$lang->error->pasteImg        = 'Your browser does not support the paste image!';
 $lang->error->noData          = 'No data';
 
 /* Pager. */
@@ -358,12 +372,14 @@ $lang->zentaoSite     = "Official Site";
 $lang->chinaScrum     = "<a href='http://api.zentao.net/goto.php?item=chinascrum' target='_blank'>Scrum community</a> ";
 $lang->agileTraining  = "<a href='http://api.zentao.net/goto.php?item=agiletrain' target='_blank'>Training</a> ";
 $lang->donate         = "<a href='http://api.zentao.net/goto.php?item=donate' target='_blank'>Donate</a> ";
-$lang->proVersion     = "<a href='http://api.zentao.net/goto.php?item=proversion&from=footer' target='_blank' class='text-important'><i class='text-danger icon-reply icon-rotate-90'></i> zentaoPRO!</a> &nbsp; ";
+$lang->proVersion     = "<a href='http://api.zentao.net/goto.php?item=proversion&from=footer' target='_blank' class='text-important'><i class='text-danger icon-reply icon-rotate-90'></i> PRO</a> &nbsp; ";
 $lang->downNotify     = "Down notify";
 
-$lang->suhosinInfo = "Warming:data is too large! Please enlarge the setting of <font color=red>sohusin.post.max_vars</font> and <font color=red>sohusin.request.max_vars</font> in php.ini. Otherwise partial data can't be saved.";
+$lang->suhosinInfo   = "Warming:data is too large! Please enlarge the setting of <font color=red>sohusin.post.max_vars</font> and <font color=red>sohusin.request.max_vars</font> in php.ini. Otherwise partial data can't be saved.";
+$lang->pasteTextInfo = "Paste the text into a text field, each line of text as a data header.";
 
 $lang->noResultsMatch    = "No results match";
+$lang->searchMore        = "Search more results with the key:";
 $lang->selectAnOption    = "Select an option";
 $lang->selectSomeOptions = "Select some options";
 $lang->chooseUsersToMail = "Choose users to mail...";
@@ -449,6 +465,7 @@ $lang->icons['import']         = 'upload-alt';
 $lang->icons['finish']         = 'ok-sign';
 $lang->icons['resolve']        = 'ok-sign';
 $lang->icons['start']          = 'play';
+$lang->icons['restart']        = 'play';
 $lang->icons['run']            = 'play';
 $lang->icons['runCase']        = 'play';
 $lang->icons['batchRun']       = 'play-sign';
@@ -462,10 +479,12 @@ $lang->icons['review']         = 'search';
 $lang->icons['confirm']        = 'search';
 $lang->icons['putoff']         = 'calendar';
 $lang->icons['suspend']        = 'pause';
+$lang->icons['pause']          = 'pause';
 $lang->icons['cancel']         = 'ban-circle';
 $lang->icons['recordEstimate'] = 'time';
 $lang->icons['customFields']   = 'cogs';
 $lang->icons['manage']         = 'cog';
-
+$lang->icons['unlock']         = 'unlock-alt';
+$lang->icons['confirmStoryChange'] = 'search';
 
 include (dirname(__FILE__) . '/menuOrder.php');

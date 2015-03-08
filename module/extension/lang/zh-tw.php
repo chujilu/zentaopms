@@ -2,8 +2,8 @@
 /**
  * The extension module zh-tw file of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青島易軟天創網絡科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青島易軟天創網絡科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     extension
  * @version     $Id$
@@ -93,11 +93,11 @@ $lang->extension->errorGetModules              = '從www.zentao.net獲得插件�
 $lang->extension->errorGetExtensions           = '從www.zentao.net獲得插件失敗。可能是因為網絡方面的原因，您可以到 <a href="http://www.zentao.net/extension/" target="_blank" class="alert-link">www.zentao.net</a> 手工下載插件，然後上傳安裝。';
 $lang->extension->errorDownloadPathNotFound    = '插件下載存儲路徑<strong>%s</strong>不存在。<br />linux下面請執行命令：<strong>mkdir -p %s</strong>來修正。';
 $lang->extension->errorDownloadPathNotWritable = '插件下載存儲路徑<strong>%s</strong>不可寫。<br />linux下面請執行命令：<strong>sudo chmod 777 %s</strong>來修正。';
-$lang->extension->errorPackageFileExists       = '下載路徑已經有一個名為的<strong>%s</strong>附件。<h3>重新%s，<a href="%s" class="alert-link">請點擊此連結</a></h3>';
+$lang->extension->errorPackageFileExists       = '下載路徑已經有一個名為的<strong>%s</strong>附件。<h5>重新%s，<a href="%s" class="alert-link">請點擊此連結</a></h5>';
 $lang->extension->errorDownloadFailed          = '下載失敗，請重新下載。如果多次重試還不行，請嘗試手工下載，然後通過上傳功能上傳。';
 $lang->extension->errorMd5Checking             = '下載檔案不完整，請重新下載。如果多次重試還不行，請嘗試手工下載，然後通過上傳功能上傳。';
 $lang->extension->errorExtracted               = '包檔案<strong> %s </strong>解壓縮失敗，可能不是一個有效的zip檔案。錯誤信息如下：<br />%s';
-$lang->extension->errorCheckIncompatible       = '該插件與禪道版本不兼容，%s後可能無法使用。。<h3>您可以選擇 <a href="%s">強制%s</a> 或者 <a href="#" onclick=parent.location.href="%s">取消</a></h3>';
+$lang->extension->errorCheckIncompatible       = '該插件與禪道版本不兼容，%s後可能無法使用。<h3>您可以選擇 <a href="%s">強制%s</a> 或者 <a href="#" onclick=parent.location.href="%s">取消</a></h3>';
 $lang->extension->errorFileConflicted          = '有以下檔案衝突：<br />%s <h3>您可以選擇 <a href="%s">覆蓋</a> 或者 <a href="#" onclick=parent.location.href="%s">取消</a></h3>';
 $lang->extension->errorPackageNotFound         = '包檔案 <strong>%s </strong>沒有找到，可能是因為自動下載失敗。您可以嘗試再次下載。';
 $lang->extension->errorTargetPathNotWritable   = '目標路徑 <strong>%s </strong>不可寫。';

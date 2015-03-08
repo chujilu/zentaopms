@@ -2,8 +2,8 @@
 /**
  * The create view of release module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     release
  * @version     $Id: create.html.php 4728 2013-05-03 06:14:34Z chencongzhi520@gmail.com $
@@ -13,7 +13,7 @@
 <?php include '../../common/view/header.html.php';?>
 <?php include '../../common/view/datepicker.html.php';?>
 <?php include '../../common/view/kindeditor.html.php';?>
-<div class='container'>
+<div class='container mw-1400px'>
   <div id='titlebar'>
     <div class='heading'>
       <span class='prefix'><?php echo html::icon($lang->icons['release']);?></span>
@@ -33,19 +33,13 @@
       </tr>
       <tr>
         <th><?php echo $lang->release->build;?></th>
-        <td>
-        <?php  
-            echo html::select('build', $builds, '', "class='form-control' onchange=loadStoriesAndBugs(this.value,$productID)");
-        ?>
-        </td>
+        <td><?php echo html::select('build', $builds, '', "class='form-control chosen'");?></td>
         <td><?php if(empty($builds)) echo $lang->build->notice; ?></td>
       </tr>  
       <tr>
         <th><?php echo $lang->release->date;?></th>
         <td><?php echo html::input('date', helper::today(), "class='form-control form-date'");?></td><td></td>
       </tr>  
-      <tr id='linkStoriesAndBugs'>
-      </tr>
       <tr>
         <th><?php echo $lang->release->desc;?></th>
         <td colspan='2'><?php echo html::textarea('desc', '', "rows='10' class='form-control'");?></td>
@@ -58,5 +52,4 @@
     </table>
   </form>  
 </div>
-
 <?php include '../../common/view/footer.html.php';?>

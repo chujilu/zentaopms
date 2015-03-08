@@ -2,8 +2,8 @@
 /**
  * The control file of extension module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     extension
  * @version     $Id$
@@ -11,11 +11,6 @@
  */
 class extension extends control
 {
-    public function __construct()
-    {
-        parent::__construct();
-        $this->app->loadLang('editor');
-    }
     /**
      * Browse extensions.
      *
@@ -123,7 +118,7 @@ class extension extends control
         $installType       = $upgrade == 'no' ? $this->lang->extension->installExt : $this->lang->extension->upgradeExt; 
         $this->view->installType = $installType;
         $this->view->upgrade     = $upgrade;
-        $this->view->title       = $installTitle . $this->lang->colon . $extension;
+        $this->view->title       = $installTitle . $extension;
 
         /* Get the package file name. */
         $packageFile = $this->extension->getPackageFile($extension);
@@ -147,7 +142,7 @@ class extension extends control
             }
 
             /* Download the package file. */
-            $this->extension->downloadPackage($extension, helper::safe64Decode($downLink));
+            if(!file_exists($packageFile) or ($md5 != '' and md5_file($packageFile) != $md5)) $this->extension->downloadPackage($extension, helper::safe64Decode($downLink));
             if(!file_exists($packageFile))
             {
                 $this->view->error = sprintf($this->lang->extension->errorDownloadFailed, $packageFile);
@@ -429,8 +424,20 @@ class extension extends control
         {
             $tmpName   = $_FILES['file']['tmp_name'];
             $fileName  = $_FILES['file']['name'];
-            $extension = basename($fileName, '.zip');
             move_uploaded_file($tmpName, $this->app->getTmpRoot() . "/extension/$fileName");
+            $extension = basename($fileName, '.zip');
+            $return    = $this->extension->extractPackage($extension);
+            if($return->result != 'ok') die(js::alert(sprintf($this->lang->extension->errorExtracted, $packageFile, $return->error)));
+
+            $info = $this->extension->parseExtensionCFG($extension);
+            if(isset($info->code) and $info->code != $extension)
+            {
+                $classFile = $this->app->loadClass('zfile');
+                $classFile->removeDir("ext/$extension");
+                rename($this->app->getTmpRoot() . "/extension/$fileName", $this->app->getTmpRoot() . "/extension/{$info->code}.zip");
+                $extension = $info->code;
+            }
+
             $info = $this->extension->getInfoFromDB($extension);
             $type = $info->status == 'installed' ? 'upgrade' : 'install';
             $link = $type == 'install' ? inlink('install', "extension=$extension") : inlink('upgrade', "extension=$extension");

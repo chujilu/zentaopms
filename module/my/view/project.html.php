@@ -2,8 +2,8 @@
 /**
  * The project view file of dashboard module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     dashboard
  * @version     $Id: project.html.php 5095 2013-07-11 06:03:40Z chencongzhi520@gmail.com $
@@ -18,7 +18,7 @@
     <?php echo html::a(helper::createLink('project', 'create'), "<i class='icon-plus'></i> " . $lang->my->home->createProject, '', "class='btn'") ?>
   </div>
 </div>
-<table class='table table-condensed table-hover table-striped tablesorter'>
+<table class='table table-condensed table-hover table-striped tablesorter table-fixed'>
   <thead>
   <tr class='text-center'>
     <th class='w-id'><?php echo $lang->idAB;?></th>
@@ -41,7 +41,7 @@
     <td class='text-left'><?php echo html::a($projectLink, $project->name);?></td>
     <td><?php echo $project->begin;?></td>
     <td><?php echo $project->end;?></td>
-    <td><?php echo $lang->project->statusList[$project->status];?></td>
+    <td class='project-<?php echo $project->status?>'><?php echo $lang->project->statusList[$project->status];?></td>
     <td><?php echo $project->role;?></td>
     <td><?php echo $project->join;?></td>
     <td><?php echo $project->hours;?></td>

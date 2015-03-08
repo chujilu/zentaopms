@@ -2,8 +2,8 @@
 /**
  * The action module English file of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     action
  * @version     $Id: en.php 4729 2013-05-03 07:53:55Z chencongzhi520@gmail.com $
@@ -82,6 +82,7 @@ $lang->action->desc->caseconfirmed  = '$date, confirmed by <strong>$actor</stron
 $lang->action->desc->bugconfirmed   = '$date, confirmed by <strong>$actor</strong>.';
 $lang->action->desc->frombug        = '$date, from Bug by <strong>$actor</strong> BugID:<strong>$extra</strong>.';
 $lang->action->desc->started        = '$date, started by <strong>$actor</strong>.';
+$lang->action->desc->restarted      = '$date, continued by <strong>$actor</strong>' . "\n";
 $lang->action->desc->delayed        = '$date, delayed by <strong>$actor</strong>.';
 $lang->action->desc->suspended      = '$date, suspended by <strong>$actor</strong>.';
 $lang->action->desc->recordestimate = '$date, <strong>$actor</strong> recorded <strong>$extra</strong> hours.';
@@ -91,6 +92,7 @@ $lang->action->desc->canceled       = '$date, canceled by <strong>$actor</strong
 $lang->action->desc->svncommited    = '$date, <strong>$actor</strong> commited to svn，revision is <strong>#$extra</strong>.' . "\n";
 $lang->action->desc->gitcommited    = '$date, <strong>$actor</strong> commited to git，revision is <strong>#$extra</strong>.' . "\n";
 $lang->action->desc->finished       = '$date, finished by <strong>$actor</strong>.';
+$lang->action->desc->paused         = '$date, paused by <strong>$actor</strong>.';
 $lang->action->desc->diff1          = 'changed <strong><i>%s</i></strong>, old is "%s", new is "%s".<br />';
 $lang->action->desc->diff2          = 'changed <strong><i>%s</i></strong>, the diff is:' . "\n" . "<blockquote>%s</blockquote>" . "\n<div class='hidden'>%s</div>";
 $lang->action->desc->diff3          = "changed file's name %s to %s.";
@@ -113,7 +115,7 @@ $lang->action->label->commented           = 'commented';
 $lang->action->label->activated           = 'activated';
 $lang->action->label->resolved            = 'resolved';
 $lang->action->label->reviewed            = 'reviewed';
-$lang->action->label->moved               = 'moded';
+$lang->action->label->moved               = 'moved';
 $lang->action->label->confirmed           = 'confirmed,';
 $lang->action->label->bugconfirmed        = 'confirmed';
 $lang->action->label->tostory             = 'converted to story';
@@ -127,12 +129,17 @@ $lang->action->label->marked              = 'edited';
 $lang->action->label->linked2project      = 'link to project';
 $lang->action->label->unlinkedfromproject = 'unlik from project';
 $lang->action->label->started             = 'started';
+$lang->action->label->restarted           = 'continued';
 $lang->action->label->recordestimate      = 'Hours';
 $lang->action->label->editestimate        = 'edit hour';
 $lang->action->label->canceled            = 'canceled';
 $lang->action->label->finished            = 'finished';
+$lang->action->label->paused              = 'paused';
+$lang->action->label->delayed             = 'delayed';
+$lang->action->label->suspended           = 'suspended';
 $lang->action->label->login               = 'login';
 $lang->action->label->logout              = "logout";
+$lang->action->label->deleteestimate      = "delete estimate";
 
 /* Link of every action. */
 $lang->action->label->product     = 'product|product|view|productID=%s';
@@ -200,9 +207,11 @@ $lang->action->search->label['marked']              = $lang->action->label->mark
 $lang->action->search->label['linked2project']      = $lang->action->label->linked2project;
 $lang->action->search->label['unlinkedfromproject'] = $lang->action->label->unlinkedfromproject;
 $lang->action->search->label['started']             = $lang->action->label->started;
+$lang->action->search->label['restarted']           = $lang->action->label->restarted;
 $lang->action->search->label['recordestimate']      = $lang->action->label->recordestimate;
 $lang->action->search->label['editestimate']        = $lang->action->label->editestimate;
 $lang->action->search->label['canceled']            = $lang->action->label->canceled;
 $lang->action->search->label['finished']            = $lang->action->label->finished;
+$lang->action->search->label['paused']              = $lang->action->label->paused;
 $lang->action->search->label['login']               = $lang->action->label->login;
 $lang->action->search->label['logout']              = $lang->action->label->logout;

@@ -2,8 +2,8 @@
 /**
  * The manage privilege by group view of group module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     group
  * @version     $Id: managepriv.html.php 1517 2011-03-07 10:02:57Z wwccss $
@@ -12,7 +12,7 @@
 ?>
 <form class='form-condensed' method='post' target='hiddenwin'>
   <div id='featurebar'>
-    <div class='heading'><i class='icon-lock'></i></div>
+    <div class='heading'><i class='icon-lock'> <?php echo $group->name;?></i></div>
     <ul class='nav'>
       <?php $params = "type=byGroup&param=$groupID&menu=%s&version=$version";?>
       <li <?php echo empty($menu) ? "class='active'" : ""?>>
@@ -29,7 +29,7 @@
         <?php echo html::a(inlink('managePriv', sprintf($params, 'other')), $lang->group->other);?>
       </li>
 
-      <li><?php echo html::select('version', $this->lang->group->versions, $version, "onchange=showPriv(this.value) class='form-control'");?></li>
+      <li class='w-150px'><?php echo html::select('version', $this->lang->group->versions, $version, "onchange=showPriv(this.value) class='form-control chosen'");?></li>
     </ul>
   </div>
   <table class='table table-hover table-striped table-bordered table-form'> 

@@ -2,8 +2,8 @@
 /**
  * The complete file of task module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Jia Fu <fujia@cnezsoft.com>
  * @package     task
  * @version     $Id: complete.html.php 935 2010-07-06 07:49:24Z jajacn@126.com $
@@ -34,7 +34,7 @@
       <td colspan='2'><?php echo html::textarea('comment', '', "rows='6' class='form-control w-p98'");?></td>
     </tr>
     <tr>
-      <td colspan='3' class='text-center'><?php echo html::submitButton();?></td>
+      <th></th><td colspan='2'><?php echo html::submitButton();?></td>
     </tr>
   </table>
 </form>

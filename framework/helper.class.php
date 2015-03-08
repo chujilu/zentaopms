@@ -200,7 +200,7 @@ class helper
         $modelLines .= "$replaceMark\n}";
         if(!@file_put_contents($mergedModelFile, $modelLines))
         {
-            die("ERROR: $mergedModelFile not writable, please make sur the " . dirname($mergedModelFile) . ' directory exists and writable');
+            die("ERROR: $mergedModelFile not writable, please make sure the " . dirname($mergedModelFile) . ' directory exists and writable');
         }
         if(!class_exists($extTmpModelClass))include $mergedModelFile;
 
@@ -323,7 +323,7 @@ class helper
         $len  = strlen($string);
         for($i=0; $i<$len; $i++)
         {
-            $c = ord($str[$i]);
+            $c = ord($string[$i]);
             if($c > 128)
             {
                 if(($c >= 254)) return false;
@@ -337,7 +337,7 @@ class helper
                 while($bits > 1)
                 {
                     $i++;
-                    $b=ord($str[$i]);
+                    $b=ord($string[$i]);
                     if($b < 128 || $b > 191) return false;
                     $bits--;
                 }
@@ -583,7 +583,7 @@ function isLocalIP()
 function getWebRoot()
 {
     $path = $_SERVER['SCRIPT_NAME'];
-    if(defined('IN_SHELL'))
+    if(PHP_SAPI == 'cli')
     {
         $url  = parse_url($_SERVER['argv'][1]);
         $path = empty($url['path']) ? '/' : rtrim($url['path'], '/');

@@ -4,8 +4,8 @@
  *
  * Don't modify this file directly, copy the item to my.php and change it.
  *
- * @copyright   Copyright 2009-2013 QingDao Nature Easy Soft Network Technology Co,LTD (www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     config
  * @version     $Id: config.php 5068 2013-07-08 02:41:22Z wyd621@gmail.com $
@@ -17,7 +17,7 @@ if(!function_exists('getWebRoot')){function getWebRoot(){}}
 
 /* Basic settings. */
 $config = new config();
-$config->version      = '6.0';             // The version of zentaopms. Don't change it.
+$config->version      = '7.0';             // The version of zentaopms. Don't change it.
 $config->charset      = 'UTF-8';           // The charset of zentaopms.
 $config->cookieLife   = time() + 2592000;  // The cookie life time.
 $config->timezone     = 'Asia/Shanghai';   // The time zone setting, for more see http://www.php.net/manual/en/timezones.php
@@ -32,12 +32,15 @@ $config->moduleVar   = 'm';               // requestType=GET: the module var nam
 $config->methodVar   = 'f';               // requestType=GET: the method var name.
 $config->viewVar     = 't';               // requestType=GET: the view var name.
 $config->sessionVar  = 'sid';             // requestType=GET: the session var name.
+$config->allowedTags = '<p><span><h1><h2><h3><h4><h5><em><u><strong><br><ol><ul><li><img><a><b><font><hr><pre><div><table><td><th><tr><tbody><embed><style>';
 
 /* Supported views. */
 $config->views  = ',html,json,mhtml,'; 
 
-/* Set the wide window size. */
-$config->wideSize = 1400;
+/* Set the wide window size and timeout(ms) and duplicate interval time(s). */
+$config->wideSize      = 1400;
+$config->timeout       = 30000;
+$config->duplicateTime = 60;
 
 /* Supported languages. */
 $config->langs['zh-cn'] = '简体';
@@ -61,8 +64,11 @@ $config->default->method = 'index';       // Default method.
 
 /* Upload settings. */
 $config->file = new stdclass();
-$config->file->dangers = 'php,jsp,py,rb,asp,'; // Dangerous files.
+$config->file->dangers = 'php,php3,php4,phtml,php5,jsp,py,rb,asp,asa,cer,cdx,aspl'; // Dangerous files.
 $config->file->maxSize = 1024 * 1024;          // Max size.
+
+/* View type settings. */ 
+$config->viewPrefix['mhtml'] = 'm.';
 
 /* Master database settings. */
 $config->db = new stdclass();
@@ -133,8 +139,9 @@ define('TABLE_ACTION',        '`' . $config->db->prefix . 'action`');
 define('TABLE_FILE',          '`' . $config->db->prefix . 'file`');
 define('TABLE_HISTORY',       '`' . $config->db->prefix . 'history`');
 define('TABLE_EXTENSION',     '`' . $config->db->prefix . 'extension`');
-define('TABLE_WEBAPP',        '`' . $config->db->prefix . 'webapp`');
-define('TABLE_LANG',          '`' . $config->db->prefix . 'lang`');
+define('TABLE_CRON',          '`' . $config->db->prefix . 'cron`');
+define('TABLE_MAILQUEUE',     '`' . $config->db->prefix . 'mailqueue`');
+if(!defined('TABLE_LANG')) define('TABLE_LANG', '`' . $config->db->prefix . 'lang`');
 
 $config->objectTables['product']     = TABLE_PRODUCT;
 $config->objectTables['story']       = TABLE_STORY;

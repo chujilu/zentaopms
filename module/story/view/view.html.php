@@ -2,8 +2,8 @@
 /**
  * The view file of story module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     story
  * @version     $Id: view.html.php 4952 2013-07-02 01:14:58Z chencongzhi520@gmail.com $
@@ -100,7 +100,7 @@
       <div class='tabs'>
         <ul class='nav nav-tabs'>
           <li class='active'><a href='#legendBasicInfo' data-toggle='tab'><?php echo $lang->story->legendBasicInfo;?></a></li>
-          <li><a href='#legendProjectAndTask' data-toggle='tab'><?php echo $lang->story->legendProjectAndTask;?></a></li>
+          <li><a href='#legendLifeTime' data-toggle='tab'><?php echo $lang->story->legendLifeTime;?></a></li>
         </ul>
         <div class='tab-content'>
           <div class='tab-pane active' id='legendBasicInfo'>
@@ -138,7 +138,7 @@
               </tr>
               <tr>
                 <th><?php echo $lang->story->status;?></th>
-                <td><?php echo $lang->story->statusList[$story->status];?></td>
+                <td class='story-<?php echo $story->status?>'><?php echo $lang->story->statusList[$story->status];?></td>
               </tr>
               <tr>
                 <th><?php echo $lang->story->stage;?></th>
@@ -162,31 +162,7 @@
               </tr>
             </table>
           </div>
-          <div class='tab-pane' id='legendProjectAndTask'>
-            <ul class='list-unstyled'>
-            <?php
-            foreach($story->tasks as $projectTasks)
-            {
-                foreach($projectTasks as $task)
-                {
-                    if(!isset($projects[$task->project])) continue;
-                    $projectName = $projects[$task->project];
-                    echo "<li title='$task->name'>" . html::a($this->createLink('task', 'view', "taskID=$task->id"), "#$task->id $task->name");
-                    echo html::a($this->createLink('project', 'browse', "projectID=$task->project"), $projectName, '', "class='text-muted'") . '</li>';
-                }
-            }
-            ?>
-            </ul>
-          </div>
-        </div>
-      </div>
-      <div class='tabs'>
-        <ul class='nav nav-tabs'>
-          <li class='active'><a href='#legendLifeTime' data-toggle='tab'><?php echo $lang->story->legendLifeTime;?></a></li>
-          <li><a href='#legendRelated' data-toggle='tab'><?php echo $lang->story->legendRelated;?></a></li>
-        </ul>
-        <div class='tab-content'>
-          <div class='tab-pane active' id='legendLifeTime'>
+          <div class='tab-pane' id='legendLifeTime'>
             <table class='table table-data table-condensed table-borderless'>
               <tr>
                 <th class='w-70px'><?php echo $lang->story->openedBy;?></th>
@@ -225,6 +201,38 @@
                 <td><?php if($story->lastEditedBy) echo $users[$story->lastEditedBy] . $lang->at . $story->lastEditedDate;?></td>
               </tr>
             </table>
+          </div>
+
+        </div>
+      </div>
+      <div class='tabs'>
+        <ul class='nav nav-tabs'>
+          <li class='active'><a href='#legendProjectAndTask' data-toggle='tab'><?php echo $lang->story->legendProjectAndTask;?></a></li>
+          <li><a href='#legendRelated' data-toggle='tab'><?php echo $lang->story->legendRelated;?></a></li>
+        </ul>
+        <div class='tab-content'>
+          <div class='tab-pane active' id='legendProjectAndTask'>
+            <ul class='list-unstyled'>
+            <?php
+            foreach($story->tasks as $projectTasks)
+            {
+                foreach($projectTasks as $task)
+                {
+                    if(!isset($projects[$task->project])) continue;
+                    $projectName = $projects[$task->project];
+                    echo "<li title='$task->name'>" . html::a($this->createLink('task', 'view', "taskID=$task->id", '', true), "#$task->id $task->name", '', "class='iframe' data-width='80%'");
+                    echo html::a($this->createLink('project', 'browse', "projectID=$task->project"), $projectName, '', "class='text-muted'") . '</li>';
+                }
+            }
+            if(count($story->tasks) == 0)
+            {
+                foreach($story->projects as $project)
+                {
+                    echo "<li title='$project->name'>" . $project->name . '</li>';
+                }
+            }
+            ?>
+            </ul>
           </div>
           <div class='tab-pane' id='legendRelated'>
             <table class='table table-data table-condensed table-borderless'>

@@ -58,14 +58,6 @@ class router
     private $appRoot;
 
     /**
-     * The root directory of the app library($this->appRoot/lib).
-     * 
-     * @var string
-     * @access private
-     */
-    private $appLibRoot;
-
-    /**
      * The root directory of temp.
      * 
      * @var string
@@ -293,7 +285,6 @@ class router
         $this->setFrameRoot();
         $this->setCoreLibRoot();
         $this->setAppRoot($appName, $appRoot);
-        $this->setAppLibRoot();
         $this->setTmpRoot();
         $this->setCacheRoot();
         $this->setLogRoot();
@@ -409,17 +400,6 @@ class router
             $this->appRoot = realpath($appRoot) . $this->pathFix;
         }
         if(!is_dir($this->appRoot)) $this->triggerError("The app you call not found in {$this->appRoot}", __FILE__, __LINE__, $exit = true);
-    }
-
-    /**
-     * Set the app lib root.
-     * 
-     * @access protected
-     * @return void
-     */
-    protected function setAppLibRoot()
-    {
-        $this->appLibRoot = $this->appRoot . 'lib' . $this->pathFix;
     }
 
     /**
@@ -592,17 +572,6 @@ class router
     {
         return $this->appRoot;
     }
-    
-    /**
-     * Get the $appLibRoot var
-     * 
-     * @access public
-     * @return string
-     */
-    public function getAppLibRoot()
-    {
-        return $this->appLibRoot;
-    }
 
     /**
      * Get the $tmpRoot var
@@ -705,6 +674,10 @@ class router
             {
                 $this->clientLang = substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, strpos($_SERVER['HTTP_ACCEPT_LANGUAGE'], ','));
             }
+
+            /* Fix clientLang for ie >= 10. https://www.drupal.org/node/365615. */
+            if(stripos($this->clientLang, 'hans')) $this->clientLang = 'zh-cn';
+            if(stripos($this->clientLang, 'hant')) $this->clientLang = 'zh-tw';
         }
         if(!empty($this->clientLang))
         {
@@ -731,7 +704,7 @@ class router
     }
 
     /**
-     * Set the them the client user usering. The logic is same as the clientLang.
+     * Set the them client user using. The logic is same as the clientLang.
      *
      * The css and images files of an theme should saved at www/theme/$themeName
      *
@@ -1301,7 +1274,7 @@ class router
     /**
      * Load a class file.
      * 
-     * First search in $appLibRoot, then $coreLibRoot.
+     * Search in $coreLibRoot.
      *
      * @param   string $className  the class name
      * @param   bool   $static     statis class or not
@@ -1312,19 +1285,11 @@ class router
     {
         $className = strtolower($className);
 
-        /* Search in $appLibRoot. */
-        $classFile = $this->appLibRoot . $className;
+        /* Search in $coreLibRoot. */
+        $classFile = $this->coreLibRoot . $className;
         if(is_dir($classFile)) $classFile .= $this->pathFix . $className;
         $classFile .= '.class.php';
-
-        if(!helper::import($classFile))
-        {
-            /* Search in $coreLibRoot. */
-            $classFile = $this->coreLibRoot . $className;
-            if(is_dir($classFile)) $classFile .= $this->pathFix . $className;
-            $classFile .= '.class.php';
-            if(!helper::import($classFile)) $this->triggerError("class file $classFile not found", __FILE__, __LINE__, $exit = true);
-        }
+        if(!helper::import($classFile)) $this->triggerError("class file $classFile not found", __FILE__, __LINE__, $exit = true);
 
         /* If staitc, return. */
         if($static) return true;
@@ -1387,22 +1352,24 @@ class router
         }
 
         /* Merge from the db configs. */
-        if($moduleName != 'common' and isset($config->system->$moduleName))
+        foreach(array('system', 'personal') as $type)
         {
-            foreach($config->system->$moduleName as $item)
+            if($moduleName != 'common' and isset($config->$type->$moduleName))
             {
-                if($item->section)
+                foreach($config->$type->$moduleName as $item)
                 {
-                    if(!isset($config->{$moduleName}->{$item->section})) $config->{$moduleName}->{$item->section} = new stdclass();
-                    $config->{$moduleName}->{$item->section}->{$item->key} = $item->value;
-                }
-                else
-                {
-                    if(!$item->section) $config->{$moduleName}->{$item->key} = $item->value;
+                    if($item->section)
+                    {
+                        if(!isset($config->{$moduleName}->{$item->section})) $config->{$moduleName}->{$item->section} = new stdclass();
+                        $config->{$moduleName}->{$item->section}->{$item->key} = $item->value;
+                    }
+                    else
+                    {
+                        if(!$item->section) $config->{$moduleName}->{$item->key} = $item->value;
+                    }
                 }
             }
         }
-
         $this->config = $config;
 
         return $config;
@@ -1425,6 +1392,12 @@ class router
         $view->methodVar   = $this->config->methodVar;
         $view->viewVar     = $this->config->viewVar;
         $view->sessionVar  = $this->config->sessionVar;
+
+        $this->session->set('rand', mt_rand(0, 10000));
+        $view->sessionName = session_name();
+        $view->sessionID   = session_id();
+        $view->rand        = $this->session->rand;
+        $view->expiredTime = ini_get('session.gc_maxlifetime');
         echo json_encode($view);
     }
     
@@ -1597,13 +1570,15 @@ class router
         $errorLog .= "when visiting <strong>" . $this->getURI() . "</strong>\n";
 
         /* If the ip is pulic, hidden the full path of scripts. */
-        if(!defined('IN_SHELL') and !($this->server->server_addr == '127.0.0.1' or filter_var($this->server->server_addr, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE) === false))
+        if(PHP_SAPI != 'cli' and !($this->server->server_addr == '127.0.0.1' or filter_var($this->server->server_addr, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE) === false))
         {
             $errorLog  = str_replace($this->getBasePath(), '', $errorLog);
         }
 
         /* Save to log file. */
-        $errorFile = $this->getLogRoot() . 'php.' . date('Ymd') . '.log';
+        $errorFile = $this->getLogRoot() . 'php.' . date('Ymd') . '.log.php';
+        if(!is_file($errorFile)) file_put_contents($errorFile, "<?php\n die();\n?>\n");
+
         $fh = @fopen($errorFile, 'a');
         if($fh) fwrite($fh, strip_tags($errorLog)) && fclose($fh);
 
@@ -1641,7 +1616,9 @@ class router
     {
         if(!class_exists('dao')) return;
 
-        $sqlLog = $this->getLogRoot() . 'sql.' . date('Ymd') . '.log';
+        $sqlLog = $this->getLogRoot() . 'sql.' . date('Ymd') . '.log.php';
+        if(!is_file($sqlLog)) file_put_contents($sqlLog, "<?php\n die();\n?>\n");
+
         $fh = @fopen($sqlLog, 'a');
         if(!$fh) return false;
         fwrite($fh, date('Ymd H:i:s') . ": " . $this->getURI() . "\n");

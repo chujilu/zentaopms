@@ -2,8 +2,8 @@
 /**
  * The linkcase view file of testtask module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     testtask
  * @version     $Id: linkcase.html.php 4411 2013-02-22 00:56:04Z chencongzhi520@gmail.com $
@@ -57,7 +57,7 @@
       <?php echo html::a($this->createLink('testcase', 'view', "testcaseID=$case->id"), sprintf('%03d', $case->id));?>
     </td>
     <td class='text-center'><?php echo html::select("versions[$case->id]", array_combine(range($case->version, 1), range($case->version, 1)), '', 'class="form-control input-sm" style="padding: 0 5px; height: 20px"');?> </td>
-    <td><span class='<?php echo 'pri' . $case->pri?>'><?php echo $case->pri?></span></td>
+    <td><span class='<?php echo 'pri' . zget($lang->testcase->priList, $case->pri, $case->pri)?>'><?php echo zget($lang->testcase->priList, $case->pri, $case->pri)?></span></td>
     <td class='text-left'>
       <?php
       echo $case->title . ' ( ';
@@ -70,10 +70,10 @@
     </td>
     <td><?php echo $lang->testcase->typeList[$case->type];?></td>
     <td><?php echo $users[$case->openedBy];?></td>
-    <td><?php echo $lang->testcase->statusList[$case->status];?></td>
+    <td class='case-<?php echo $case->status?>'><?php echo $lang->testcase->statusList[$case->status];?></td>
   </tr>
-  </tbody>
   <?php endforeach;?>
+  </tbody>
   <tfoot> 
   <tr>
     <td colspan='7'>

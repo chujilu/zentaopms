@@ -2,8 +2,8 @@
 /**
  * The browse view file of product dept of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     product
  * @version     $Id: browse.html.php 5096 2013-07-11 07:02:43Z chencongzhi520@gmail.com $
@@ -49,7 +49,7 @@ js::set('confirmDelete', $lang->user->confirmDelete);
       <th><?php common::printOrderLink('join',     $orderBy, $vars, $lang->user->join);?></th>
       <th><?php common::printOrderLink('last',     $orderBy, $vars, $lang->user->last);?></th>
       <th><?php common::printOrderLink('visits',   $orderBy, $vars, $lang->user->visits);?></th>
-      <th class='w-60px'><?php echo $lang->actions;?></th>
+      <th class='w-80px'><?php echo $lang->actions;?></th>
     </tr>
     </thead>
     <tbody>
@@ -76,7 +76,7 @@ js::set('confirmDelete', $lang->user->confirmDelete);
       <td><?php echo $user->join;?></td>
       <td><?php if($user->last) echo date('Y-m-d', $user->last);?></td>
       <td><?php echo $user->visits;?></td>
-      <td class='a-left w-80px'>
+      <td class='text-left'>
         <?php 
         common::printIcon('user', 'edit',      "userID=$user->id&from=company", '', 'list');
         if(strpos($this->app->company->admins, ",{$user->account},") === false and common::hasPriv('user', 'delete'))
@@ -98,7 +98,7 @@ js::set('confirmDelete', $lang->user->confirmDelete);
       <td colspan='12'>
       <div class='table-actions clearfix'>
       <?php
-      if($canBatchEdit or $canManageContacts) echo "<div class='input-group'>" . html::selectButton() . '</div>';
+      if($canBatchEdit or $canManageContacts) echo "<div class='btn-group'>" . html::selectButton() . '</div>';
       if($canBatchEdit) echo html::submitButton($lang->edit, 'onclick=batchEdit()', 'btn-default');
       if($canManageContacts) echo html::submitButton($lang->user->contacts->manage, 'onclick=manageContacts()');
       ?>

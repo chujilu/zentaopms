@@ -2,8 +2,8 @@
 /**
  * The control file of testtask module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     testtask
  * @version     $Id: control.php 5114 2013-07-12 06:02:59Z chencongzhi520@gmail.com $
@@ -41,6 +41,7 @@ class testtask extends control
      * Browse test tasks. 
      * 
      * @param  int    $productID 
+     * @param  string $type 
      * @param  string $orderBy 
      * @param  int    $recTotal 
      * @param  int    $recPerPage 
@@ -48,7 +49,7 @@ class testtask extends control
      * @access public
      * @return void
      */
-    public function browse($productID = 0, $orderBy = 'id_desc', $recTotal = 0, $recPerPage = 20, $pageID = 1)
+    public function browse($productID = 0, $type = 'wait', $orderBy = 'id_desc', $recTotal = 0, $recPerPage = 20, $pageID = 1)
     {
         /* Save session. */
         $this->session->set('testtaskList', $this->app->getURI(true));
@@ -61,15 +62,19 @@ class testtask extends control
         $this->app->loadClass('pager', $static = true);
         $pager = pager::init($recTotal, $recPerPage, $pageID);
 
+        /* Append id for secend sort. */
+        $sort = $this->loadModel('common')->appendOrder($orderBy);
+
         $this->view->title       = $this->products[$productID] . $this->lang->colon . $this->lang->testtask->common;
         $this->view->position[]  = html::a($this->createLink('testtask', 'browse', "productID=$productID"), $this->products[$productID]);
         $this->view->position[]  = $this->lang->testtask->common;
         $this->view->productID   = $productID;
         $this->view->productName = $this->products[$productID];
         $this->view->orderBy     = $orderBy;
-        $this->view->tasks       = $this->testtask->getProductTasks($productID, $orderBy, $pager);
+        $this->view->tasks       = $this->testtask->getProductTasks($productID, $sort, $pager, $type);
         $this->view->users       = $this->loadModel('user')->getPairs('noclosed|noletter');
         $this->view->pager       = $pager;
+        $this->view->type        = $type;
 
         $this->display();
     }
@@ -178,6 +183,21 @@ class testtask extends control
         $task = $this->testtask->getById($taskID, true);
         if(!$task) die(js::error($this->lang->notFound) . js::locate('back'));
         $productID = $task->product;
+        $buildID   = $task->build;
+
+        $build   = $this->loadModel('build')->getByID($buildID);
+        $stories = array();
+        $bugs    = array();
+
+        if($build)
+        {
+            $stories = $this->dao->select('*')->from(TABLE_STORY)->where('id')->in($build->stories)->fetchAll();
+            $this->loadModel('common')->saveQueryCondition($this->dao->get(), 'story');
+
+            $bugs    = $this->dao->select('*')->from(TABLE_BUG)->where('id')->in($build->bugs)->fetchAll();
+            $this->loadModel('common')->saveQueryCondition($this->dao->get(), 'bug');
+        }
+
         $this->testtask->setMenu($this->products, $productID);
 
         $this->view->title      = "TASK #$task->id $task->name/" . $this->products[$productID];
@@ -189,6 +209,9 @@ class testtask extends control
         $this->view->task      = $task;
         $this->view->users     = $this->loadModel('user')->getPairs('noclosed|noletter');
         $this->view->actions   = $this->loadModel('action')->getList('testtask', $taskID);
+        $this->view->build     = $build;
+        $this->view->stories   = $stories;
+        $this->view->bugs      = $bugs;
 
         $this->display();
     }
@@ -219,6 +242,9 @@ class testtask extends control
         $moduleID  = ($browseType == 'bymodule') ? (int)$param : 0;
         $queryID   = ($browseType == 'bysearch') ? (int)$param : 0;
 
+        /* Append id for secend sort. */
+        $sort = $this->loadModel('common')->appendOrder($orderBy, 't2.id');
+
         /* Get task and product info, set menu. */
         $task = $this->testtask->getById($taskID);
         if(!$task) die(js::error($this->lang->notFound) . js::locate('back'));
@@ -228,11 +254,11 @@ class testtask extends control
         {
             $modules = '';
             if($moduleID) $modules = $this->loadModel('tree')->getAllChildID($moduleID);
-            $this->view->runs      = $this->testtask->getRuns($taskID, $modules, $orderBy, $pager);
+            $this->view->runs      = $this->testtask->getRuns($taskID, $modules, $sort, $pager);
         }
         elseif($browseType == 'assignedtome')
         {
-            $this->view->runs = $this->testtask->getUserRuns($taskID, $this->session->user->account, $orderBy, $pager);
+            $this->view->runs = $this->testtask->getUserRuns($taskID, $this->session->user->account, $sort, $pager);
         }
         /* By search. */
         elseif($browseType == 'bysearch')
@@ -266,13 +292,12 @@ class testtask extends control
                 $queryProductID = 'all';
             }
 
-            $caseQuery = $this->loadModel('search')->replaceDynamic($caseQuery);
             $caseQuery = preg_replace('/`(\w+)`/', 't2.`$1`', $caseQuery);
             $this->view->runs = $this->dao->select('t2.*,t1.*, t2.version as caseVersion')->from(TABLE_TESTRUN)->alias('t1')
                 ->leftJoin(TABLE_CASE)->alias('t2')->on('t1.case = t2.id')
                 ->where($caseQuery)
                 ->andWhere('t1.task')->eq($taskID)
-                ->orderBy(strpos($orderBy, 'assignedTo') !== false ? ('t1.' . $orderBy) : ('t2.' . $orderBy))
+                ->orderBy(strpos($sort, 'assignedTo') !== false ? ('t1.' . $sort) : ('t2.' . $sort))
                 ->page($pager)
                 ->fetchAll();
         }
@@ -308,6 +333,49 @@ class testtask extends control
         $this->view->treeClass   = $browseType == 'bymodule' ? '' : 'hidden';
         $this->view->pager       = $pager;
 
+        $this->display();
+    }
+
+    public function groupCase($taskID, $groupBy = 'story')
+    {
+        /* Save the session. */
+        $this->app->loadLang('testcase');
+        $this->session->set('caseList', $this->app->getURI(true));
+
+        /* Get task and product info, set menu. */
+        $groupBy = empty($groupBy) ? 'story' : $groupBy;
+        $task    = $this->testtask->getById($taskID);
+        if(!$task) die(js::error($this->lang->notFound) . js::locate('back'));
+        $productID = $task->product;
+        $this->testtask->setMenu($this->products, $productID);
+
+        $runs = $this->testtask->getRuns($taskID, 0, $groupBy);
+        $this->loadModel('common')->saveQueryCondition($this->dao->get(), 'testcase', false);
+
+        $groupCases  = array();
+        $groupByList = array();
+        foreach($runs as $run)
+        {
+            if($groupBy == 'story')
+            {
+                $groupCases[$run->story][] = $run;
+                $groupByList[$run->story]  = $run->storyTitle;
+            }
+        }
+
+        $this->view->title      = $this->products[$productID] . $this->lang->colon . $this->lang->testtask->cases;
+        $this->view->position[] = html::a($this->createLink('testtask', 'browse', "productID=$productID"), $this->products[$productID]);
+        $this->view->position[] = $this->lang->testtask->common;
+        $this->view->position[] = $this->lang->testtask->cases;
+
+        $this->view->users         = $this->loadModel('user')->getPairs('noletter');
+        $this->view->productID     = $productID;
+        $this->view->task          = $task;
+        $this->view->taskID        = $taskID;
+        $this->view->browseType    = 'group';
+        $this->view->groupBy       = $groupBy;
+        $this->view->groupByList   = $groupByList;
+        $this->view->cases         = $groupCases;
         $this->display();
     }
 
@@ -376,6 +444,8 @@ class testtask extends control
                 $actionID = $this->action->create('testtask', $taskID, 'Started', $this->post->comment);
                 $this->action->logHistory($actionID, $changes);
             }
+
+            if(isonlybody()) die(js::reload('parent.parent'));
             die(js::locate($this->createLink('testtask', 'view', "taskID=$taskID"), 'parent'));
         }
 
@@ -415,6 +485,8 @@ class testtask extends control
                 $actionID = $this->action->create('testtask', $taskID, 'Closed', $this->post->comment);
                 $this->action->logHistory($actionID, $changes);
             }
+
+            if(isonlybody()) die(js::reload('parent.parent'));
             die(js::locate($this->createLink('testtask', 'view', "taskID=$taskID"), 'parent'));
         }
 
@@ -529,27 +601,34 @@ class testtask extends control
         if($param == 'bystory')
         {
             $stories = $this->dao->select('stories')->from(TABLE_BUILD)->where('id')->eq($task->build)->fetch('stories');
-
-            $cases = $this->dao->select('*')->from(TABLE_CASE)->where($query)
-                ->andWhere('product')->eq($productID)
-                ->beginIF($linkedCases)->andWhere('id')->notIN($linkedCases)->fi()
-                ->andWhere('story')->in($stories)
-                ->andWhere('deleted')->eq(0)
-                ->orderBy('id desc')
-                ->page($pager)
-                ->fetchAll();
+            $cases   = array();
+            if($stories)
+            {
+                $cases = $this->dao->select('*')->from(TABLE_CASE)->where($query)
+                    ->andWhere('product')->eq($productID)
+                    ->beginIF($linkedCases)->andWhere('id')->notIN($linkedCases)->fi()
+                    ->andWhere('story')->in($stories)
+                    ->andWhere('deleted')->eq(0)
+                    ->orderBy('id desc')
+                    ->page($pager)
+                    ->fetchAll();
+            }
         }
         if($param == 'bybug')
         {
             $bugs  = $this->dao->select('bugs')->from(TABLE_BUILD)->where('id')->eq($task->build)->fetch('bugs');
-            $cases = $this->dao->select('*')->from(TABLE_CASE)->where($query)
-                ->andWhere('product')->eq($productID)
-                ->beginIF($linkedCases)->andWhere('id')->notIN($linkedCases)->fi()
-                ->andWhere('fromBug')->in($bugs)
-                ->andWhere('deleted')->eq(0)
-                ->orderBy('id desc')
-                ->page($pager)
-                ->fetchAll();
+            $cases = array();
+            if($bugs)
+            {
+                $cases = empty($bugs) ? array() : $this->dao->select('*')->from(TABLE_CASE)->where($query)
+                    ->andWhere('product')->eq($productID)
+                    ->beginIF($linkedCases)->andWhere('id')->notIN($linkedCases)->fi()
+                    ->andWhere('fromBug')->in($bugs)
+                    ->andWhere('deleted')->eq(0)
+                    ->orderBy('id desc')
+                    ->page($pager)
+                    ->fetchAll();
+            }
         }
         $this->view->users   = $this->loadModel('user')->getPairs('noletter');
         $this->view->cases   = $cases;
@@ -649,8 +728,10 @@ class testtask extends control
         $this->view->run      = $run;
         $this->view->preCase  = $preCase;
         $this->view->nextCase = $nextCase;
-        $this->view->results  = $this->testtask->getResults(0, $caseID);
+        $this->view->results  = $this->testtask->getResults($runID, $caseID);
         $this->view->users    = $this->loadModel('user')->getPairs('noclosed, noletter');
+        $this->view->caseID   = $caseID;
+        $this->view->version  = $version;
 
         die($this->display());
     }
@@ -728,12 +809,12 @@ class testtask extends control
 
             $testtaskID = $this->dao->select('task')->from(TABLE_TESTRUN)->where('id')->eq($runID)->fetch('task');
             $testtask   = $this->dao->select('build, product')->from(TABLE_TESTTASK)->where('id')->eq($testtaskID)->fetch();
-            $builds     = $this->loadModel('build')->getProductBuildPairs($testtask->product);
             $this->view->build = isset($builds[$testtask->build]) ? $builds[$testtask->build] : '';
         }
 
         $this->view->case    = $case;
         $this->view->results = $results;
+        $this->view->builds  = $this->loadModel('build')->getProductBuildPairs($case->product);
         $this->view->users   = $this->loadModel('user')->getPairs('noclosed, noletter');
 
         die($this->display());

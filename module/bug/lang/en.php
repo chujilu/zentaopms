@@ -2,8 +2,8 @@
 /**
  * The bug module English file of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     bug
  * @version     $Id: en.php 4536 2013-03-02 13:39:37Z wwccss $
@@ -78,6 +78,7 @@ $lang->bug->edit               = 'Edit Bug';
 $lang->bug->batchEdit          = 'Batch edit';
 $lang->bug->batchClose         = 'Batch close';
 $lang->bug->assignTo           = 'Assign';
+$lang->bug->batchAssignTo      = 'Batch assign';
 $lang->bug->browse             = 'Browse Bug';
 $lang->bug->view               = 'Bug Info';
 $lang->bug->resolve            = 'Resolve';
@@ -113,6 +114,7 @@ $lang->bug->moduleBugs     = 'ByModule';
 $lang->bug->byQuery        = 'Search';
 $lang->bug->needConfirm    = 'StoryChanged';
 $lang->bug->allProduct     = 'All products';
+$lang->bug->ditto          = 'Ditto';
 
 /* Labels. */
 $lang->bug->lblProductAndModule         = 'Product&Module';
@@ -158,6 +160,7 @@ $lang->bug->confirmDelete        = 'Are you sure to delete this bug?';
 $lang->bug->setTemplateTitle     = 'Please input the template title:';
 $lang->bug->remindTask           = 'This bug has been to be a task, update the task:%s or not?';
 $lang->bug->skipClose            = 'The status of bug:%s are not resolved, so can not close!';
+$lang->bug->applyTemplate        = 'Apply template';
 
 /* Templates. */
 $lang->bug->tplStep   = "<p>[Steps]</p>\n";

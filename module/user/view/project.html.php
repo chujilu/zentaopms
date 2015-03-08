@@ -2,8 +2,8 @@
 /**
  * The project view file of dashboard module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     dashboard
  * @version     $Id: project.html.php 4129 2013-01-18 01:58:14Z wwccss $
@@ -36,7 +36,7 @@
     <td><?php echo html::a($projectLink, $project->name);?></td>
     <td><?php echo $project->begin;?></td>
     <td><?php echo $project->end;?></td>
-    <td><?php echo $lang->project->statusList[$project->status];?></td>
+    <td class='project-<?php echo $project->status?>'><?php echo $lang->project->statusList[$project->status];?></td>
     <td><?php echo $project->role;?></td>
     <td><?php echo $project->join;?></td>
     <td><?php echo $project->hours;?></td>

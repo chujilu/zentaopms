@@ -2,8 +2,8 @@
 /**
  * The task view file of dashboard module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     dashboard
  * @version     $Id: task.html.php 5101 2013-07-12 00:44:27Z chencongzhi520@gmail.com $
@@ -24,7 +24,7 @@
   </ul>
 </div>
 <form method='post' id='myTaskForm'>
-  <table class='table table-condensed table-hover table-striped tablesorter' id='tasktable'>
+  <table class='table table-condensed table-hover table-striped tablesorter table-fixed' id='tasktable'>
     <?php $vars = "type=$type&orderBy=%s&recTotal=$recTotal&recPerPage=$recPerPage&pageID=$pageID"; ?>
     <thead>
     <tr class='text-center'>
@@ -50,14 +50,14 @@
         <?php if($canBatchEdit or $canBatchClose):?><input type='checkbox' name='taskIDList[]' value='<?php echo $task->id;?>' /><?php endif;?>
         <?php echo html::a($this->createLink('task', 'view', "taskID=$task->id"), sprintf('%03d', $task->id));?>
       </td>
-      <td><span class='<?php echo 'pri' . $lang->task->priList[$task->pri];?>'><?php echo isset($lang->task->priList[$task->pri]) ? $lang->task->priList[$task->pri] : $task->pri;?></span></td>
+      <td><span class='<?php echo 'pri' . zget($lang->task->priList, $task->pri, $task->pri);?>'><?php echo zget($lang->task->priList, $task->pri, $task->pri);?></span></td>
       <td class='nobr text-left'><?php echo html::a($this->createLink('project', 'browse', "projectid=$task->projectID"), $task->projectName);?></td>
       <td class='text-left nobr'><?php echo html::a($this->createLink('task', 'view', "taskID=$task->id"), $task->name);?></td>
       <td><?php echo $task->estimate;?></td>
       <td><?php echo $task->consumed;?></td>
       <td><?php echo $task->left;?></td>
       <td class='<?php if(isset($task->delay)) echo 'delayed';?>'><?php if(substr($task->deadline, 0, 4) > 0) echo $task->deadline;?></td>
-      <td class='<?php echo $task->status;?>'><?php echo $lang->task->statusList[$task->status];?></td>
+      <td class='task-<?php echo $task->status;?>'><?php echo $lang->task->statusList[$task->status];?></td>
       <td><?php echo $users[$task->openedBy];?></td>
       <td class='text-right'>
         <?php 

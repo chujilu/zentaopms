@@ -2,8 +2,8 @@
 /**
  * The product module English file of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     product
  * @version     $Id: en.php 5091 2013-07-10 06:06:46Z chencongzhi520@gmail.com $
@@ -74,7 +74,9 @@ $lang->product->closedByMe   = 'My closed';
 $lang->product->draftStory   = 'Draft';
 $lang->product->activeStory  = 'Active';
 $lang->product->changedStory = 'Changed';
+$lang->product->willClose    = 'Will close';
 $lang->product->closedStory  = 'Closed';
+$lang->product->unclosed     = 'Unclosed';
 
 $lang->product->allStory    = 'All';
 $lang->product->allProduct  = 'All products';

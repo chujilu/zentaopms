@@ -2,8 +2,8 @@
 /**
  * The action module zh-cn file of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     action
  * @version     $Id: zh-cn.php 4955 2013-07-02 01:47:21Z chencongzhi520@gmail.com $
@@ -82,6 +82,7 @@ $lang->action->desc->caseconfirmed  = '$date, 由 <strong>$actor</strong> 确认
 $lang->action->desc->bugconfirmed   = '$date, 由 <strong>$actor</strong> 确认Bug。' . "\n";
 $lang->action->desc->frombug        = '$date, 由 <strong>$actor</strong> Bug转化而来，Bug编号为 <strong>$extra</strong>。';
 $lang->action->desc->started        = '$date, 由 <strong>$actor</strong> 启动。' . "\n";
+$lang->action->desc->restarted      = '$date, 由 <strong>$actor</strong> 继续。' . "\n";
 $lang->action->desc->delayed        = '$date, 由 <strong>$actor</strong> 延期。' . "\n";
 $lang->action->desc->suspended      = '$date, 由 <strong>$actor</strong> 挂起。' . "\n";
 $lang->action->desc->recordestimate = '$date, 由 <strong>$actor</strong> 记录工时，消耗 <strong>$extra</strong> 小时。';
@@ -91,14 +92,15 @@ $lang->action->desc->canceled       = '$date, 由 <strong>$actor</strong> 取消
 $lang->action->desc->svncommited    = '$date, 由 <strong>$actor</strong> 提交代码，版本为<strong>#$extra</strong>。' . "\n";
 $lang->action->desc->gitcommited    = '$date, 由 <strong>$actor</strong> 提交代码，版本为<strong>#$extra</strong>。' . "\n";
 $lang->action->desc->finished       = '$date, 由 <strong>$actor</strong> 完成。' . "\n";
+$lang->action->desc->paused         = '$date, 由 <strong>$actor</strong> 暂停。' . "\n";
 $lang->action->desc->diff1          = '修改了 <strong><i>%s</i></strong>，旧值为 "%s"，新值为 "%s"。<br />' . "\n";
 $lang->action->desc->diff2          = '修改了 <strong><i>%s</i></strong>，区别为：' . "\n" . "<blockquote>%s</blockquote>" . "\n<div class='hidden'>%s</div>";
 $lang->action->desc->diff3          = '将文件名 %s 改为 %s 。' . "\n";
 
 /* 用来显示动态信息。*/
 $lang->action->label = new stdclass();
-$lang->action->label->created             = '创建了';
-$lang->action->label->opened              = '创建了';
+$lang->action->label->created             = '创建';
+$lang->action->label->opened              = '创建';
 $lang->action->label->changed             = '变更了';
 $lang->action->label->edited              = '编辑了';
 $lang->action->label->assigned            = '指派了';
@@ -127,12 +129,17 @@ $lang->action->label->marked              = '编辑了';
 $lang->action->label->linked2project      = '关联项目';
 $lang->action->label->unlinkedfromproject = '移除项目';
 $lang->action->label->started             = '开始了';
+$lang->action->label->restarted           = '继续了';
 $lang->action->label->recordestimate      = '记录了工时';
 $lang->action->label->editestimate        = '编辑了工时';
 $lang->action->label->canceled            = '取消了';
 $lang->action->label->finished            = '完成了';
+$lang->action->label->paused              = '暂停了';
+$lang->action->label->delayed             = '延期';
+$lang->action->label->suspended           = '挂起';
 $lang->action->label->login               = '登录系统';
 $lang->action->label->logout              = "退出登录";
+$lang->action->label->deleteestimate      = "删除了工时";
 
 /* 用来生成相应对象的链接。*/
 $lang->action->label->product     = '产品|product|view|productID=%s';
@@ -149,7 +156,7 @@ $lang->action->label->todo        = 'todo|todo|view|todoID=%s';
 $lang->action->label->doclib      = '文档库|doc|browse|libID=%s';
 $lang->action->label->doc         = '文档|doc|view|docID=%s';
 $lang->action->label->user        = '用户|user|view|account=%s';
-$lang->action->label->space       = '　';
+$lang->action->label->space       = ' ';
 
 /* Object type. */
 $lang->action->search->objectTypeList['']            = '';    
@@ -200,9 +207,11 @@ $lang->action->search->label['marked']              = $lang->action->label->mark
 $lang->action->search->label['linked2project']      = $lang->action->label->linked2project;
 $lang->action->search->label['unlinkedfromproject'] = $lang->action->label->unlinkedfromproject;
 $lang->action->search->label['started']             = $lang->action->label->started;
+$lang->action->search->label['restarted']           = $lang->action->label->restarted;
 $lang->action->search->label['recordestimate']      = $lang->action->label->recordestimate;
 $lang->action->search->label['editestimate']        = $lang->action->label->editestimate;
 $lang->action->search->label['canceled']            = $lang->action->label->canceled;
 $lang->action->search->label['finished']            = $lang->action->label->finished;
+$lang->action->search->label['paused']              = $lang->action->label->paused;
 $lang->action->search->label['login']               = $lang->action->label->login;
 $lang->action->search->label['logout']              = $lang->action->label->logout;

@@ -1,7 +1,7 @@
-<?php include $this->app->getModuleRoot() . 'common/view/dropmenu.html.php';?>
 <div id='featurebar'>
   <ul class='nav'>
   <?php
+    echo "<li id='unclosedTab'>"; common::printLink('project', 'task', "project=$projectID&type=unclosed", $lang->project->unclosed); echo '</li>' ;
     echo "<li id='allTab'>"; common::printLink('project', 'task', "project=$projectID&type=all", $lang->project->allTasks); echo '</li>' ;
     if($project->type == 'sprint' or $project->type == 'waterfall') print "<li id='burnTab'>" and common::printLink('project', 'burn', "project=$projectID", $lang->project->burn); print '</li>' ;
     echo "<li id='assignedtomeTab'>"; common::printLink('project', 'task', "project=$projectID&type=assignedtome", $lang->project->assignedToMe); echo  '</li>' ;
@@ -87,5 +87,10 @@
   </div>
   <div id='querybox' class='<?php if($browseType == 'bysearch') echo 'show';?>'></div>
 </div>
-
-<?php foreach(glob(dirname(dirname(__FILE__)) . "/ext/view/featurebar.*.html.hook.php") as $fileName) include_once $fileName; ?>
+<?php
+$headerHooks = glob(dirname(dirname(__FILE__)) . "/ext/view/featurebar.*.html.hook.php");
+if(!empty($headerHooks))
+{
+    foreach($headerHooks as $fileName) include($fileName);
+}
+?>

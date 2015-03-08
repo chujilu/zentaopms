@@ -2,8 +2,8 @@
 /**
  * The upgrade module zh-cn file of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     upgrade
  * @version     $Id: zh-cn.php 5119 2013-07-12 08:06:42Z wyd621@gmail.com $
@@ -14,15 +14,17 @@ $lang->upgrade->result  = '升级结果';
 $lang->upgrade->fail    = '升级失败';
 $lang->upgrade->success = '升级成功';
 $lang->upgrade->tohome  = '返回首页';
+$lang->upgrade->license = '禅道项目管理软件已更换授权协议至 Z PUBLIC LICENSE(ZPL) 1.1';
 $lang->upgrade->warnning= '警告';
 $lang->upgrade->warnningContent = <<<EOT
-警告！升级有危险，请先备份数据库，以防万一。<br />
-备份方法：<br />
-1. 可以通过phpMyAdmin进行备份。<br />
-2. 使用mysql命令行的工具。<br />
-   # mysqldump -u <span class='text-danger'>username</span> -p <span class='text-danger'>dbname</span> > <span class='text-danger'>filename</span> <br />
-   要将上面红色的部分分别替换成对应的用户名和禅道系统的数据库名。<br />
+<p>升级有危险，请先备份数据库，以防万一。</p>
+<pre>
+1. 可以通过phpMyAdmin进行备份。
+2. 使用mysql命令行的工具。
+   $> mysqldump -u <span class='text-danger'>username</span> -p <span class='text-danger'>dbname</span> > <span class='text-danger'>filename</span> 
+   要将上面红色的部分分别替换成对应的用户名和禅道系统的数据库名。
    比如： mysqldump -u root -p zentao >zentao.bak
+</pre>
 EOT;
 $lang->upgrade->setStatusFile = '<h4>升级之前请先执行下面的命令：</h4>
                                  <ul>
@@ -38,7 +40,7 @@ $lang->upgrade->toVersion     = '升级到';
 $lang->upgrade->confirm       = '确认要执行的SQL语句';
 $lang->upgrade->sureExecute   = '确认执行';
 $lang->upgrade->forbiddenExt  = '以下插件与新版本不兼容，已经自动禁用：';
-$lang->upgrade->checkExtension = '正在检查插件的兼容性，请稍后 ...';
+$lang->upgrade->checkExtension = '正在检查插件的兼容性，请稍候 ...';
 
 $lang->upgrade->fromVersions['0_3beta']   = '0.3 BETA';
 $lang->upgrade->fromVersions['0_4beta']   = '0.4 BETA';
@@ -81,3 +83,8 @@ $lang->upgrade->fromVersions['5_2']       = '5.2';
 $lang->upgrade->fromVersions['5_2_1']     = '5.2.1';
 $lang->upgrade->fromVersions['5_3']       = '5.3';
 $lang->upgrade->fromVersions['6_0_beta1'] = '6.0.beta1';
+$lang->upgrade->fromVersions['6_0']       = '6.0';
+$lang->upgrade->fromVersions['6_1']       = '6.1';
+$lang->upgrade->fromVersions['6_2']       = '6.2';
+$lang->upgrade->fromVersions['6_3']       = '6.3';
+$lang->upgrade->fromVersions['6_4']       = '6.4';

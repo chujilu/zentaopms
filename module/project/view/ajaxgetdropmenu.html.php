@@ -2,7 +2,20 @@
 <?php js::set('module', $module);?>
 <?php js::set('method', $method);?>
 <?php js::set('extra', $extra);?>
-<input type='text' class='form-control' id='search' value='' onkeyup='searchItems(this.value, "project", projectID, module, method, extra)' placeholder='<?php echo $this->app->loadLang('search')->search->common;?>'/>
+<input type='text' class='form-control' id='search' value='' placeholder='<?php echo $this->app->loadLang('search')->search->common;?>'/>
+<script>
+var existsVal = '';
+$('#dropMenu #search').bind('keyup', function(evt)
+{
+    var k     = evt.keyCode;
+    var value = $(this).val();
+    // backspace and delete.
+    if((k === 8 || k === 46) && existsVal == '') return;
+    if((k !== 8 && k !== 46) && existsVal == value) return;
+    existsVal = value;
+    searchItems(value, "project", projectID, module, method, extra);
+});
+</script>
 
 <div id='searchResult'>
   <div id='defaultMenu'>
@@ -39,9 +52,12 @@
     ?>
     </ul>
  
+    <div>
+    <?php echo html::a($this->createLink('project', 'index', "locate=no&status=undone&projectID=$projectID"), "<i class='icon-th-large mgr-5px'></i> " . $lang->project->allProject)?>
     <?php if($dones):?>
-      <div class='actions'><a id='more' href='javascript:switchMore()'><?php echo $lang->project->doneProjects . ' <i class="icon-angle-right"></i>';?></a></div>
+      <div class='pull-right actions'><a id='more' href='javascript:switchMore()'><?php echo $lang->project->doneProjects . ' <i class="icon-angle-right"></i>';?></a></div>
     <?php endif;?>
+    </div>
   </div>
   <div id='moreMenu'>
     <ul>

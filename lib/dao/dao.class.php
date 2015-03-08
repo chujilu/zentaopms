@@ -115,6 +115,14 @@ class dao
     public $method;
 
     /**
+     * The sql code of need repair table.
+     * 
+     * @var string
+     * @access public
+     */
+    public $repairCode = '|1034|1035|1194|1195|1459|';
+
+    /**
      * The queries executed. Every query will be saved in this array.
      * 
      * @var array
@@ -238,6 +246,44 @@ class dao
         $this->setMethod('select');
         $this->sqlobj = sql::select($fields);
         return $this;
+    }
+
+    /**
+     * The count method, call sql::select() and from().
+     * use as $this->dao->select()->from(TABLE_BUG)->where()->count();
+     *
+     * @access public
+     * @return void
+     */
+    public function count()
+    {
+        /* Get the SELECT, FROM position, thus get the fields, replace it by count(*). */
+        $sql = $this->processSQL();
+        $sql = str_replace('SELECT', 'SELECT SQL_CALC_FOUND_ROWS ', $sql);
+
+        /* Remove the part after order and limit. */
+        $subLength = strlen($sql);
+        $orderPOS  = strripos($sql, DAO::ORDERBY);
+        $limitPOS  = strripos($sql , DAO::LIMIT);
+        if($limitPOS) $subLength = $limitPOS;
+        if($orderPOS) $subLength = $orderPOS;
+        $sql = substr($sql, 0, $subLength);
+        self::$querys[] = $sql;
+
+        /* Get the records count. */
+        try
+        {
+            $row = $this->dbh->query($sql)->fetch(PDO::FETCH_OBJ);
+        }
+        catch (PDOException $e) 
+        {
+            $this->sqlError($e);
+        }
+
+        $sql  = 'SELECT FOUND_ROWS() as recTotal;';
+        $row = $this->dbh->query($sql)->fetch();
+ 
+        return $row->recTotal;
     }
 
     /**
@@ -435,14 +481,17 @@ class dao
     /**
      * Query the sql, return the statement object.
      * 
+     * @param  string $sql 
      * @access public
      * @return object   the PDOStatement object.
      */
-    public function query()
+    public function query($sql = '')
     {
         if(!empty(dao::$errors)) return new PDOStatement();   // If any error, return an empty statement object to make sure the remain method to execute.
 
+        if($sql) $this->sqlobj->sql = $sql;
         $sql = $this->processSQL();
+
         try
         {
             $method = $this->method;
@@ -459,7 +508,7 @@ class dao
         }
         catch (PDOException $e) 
         {
-            $this->app->triggerError($e->getMessage() . "<p>The sql is: $sql</p>", __FILE__, __LINE__, $exit = true);
+            $this->sqlError($e);
         }
     }
 
@@ -500,7 +549,7 @@ class dao
             }
             catch (PDOException $e) 
             {
-                $this->app->triggerError($e->getMessage() . "<p>The sql is: $sql</p>", __FILE__, __LINE__, $exit = true);
+                $this->sqlError($e);
             }
 
             $pager->setRecTotal($row->recTotal);
@@ -511,16 +560,19 @@ class dao
     }
 
     /**
-    /* Execute the sql. It's different with query(), which return the stmt object. But this not.
+     * Execute the sql. It's different with query(), which return the stmt object. But this not.
      * 
+     * @param  string $sql 
      * @access public
      * @return int the modified or deleted records.
      */
-    public function exec()
+    public function exec($sql = '')
     {
         if(!empty(dao::$errors)) return new PDOStatement();   // If any error, return an empty statement object to make sure the remain method to execute.
 
+        if($sql) $this->sqlobj->sql = $sql;
         $sql = $this->processSQL();
+
         try
         {
             $this->reset();
@@ -528,7 +580,7 @@ class dao
         }
         catch (PDOException $e) 
         {
-            $this->app->triggerError($e->getMessage() . "<p>The sql is: $sql</p>", __FILE__, __LINE__, $exit = true);
+            $this->sqlError($e);
         }
     }
 
@@ -724,7 +776,7 @@ class dao
             }
             catch (PDOException $e) 
             {
-                $this->app->triggerError($e->getMessage() . "<p>The sql is: $sql</p>", __FILE__, __LINE__, $exit = true);
+                $this->sqlError($e);
             }
         }
         else
@@ -937,7 +989,7 @@ class dao
         }
         catch (PDOException $e) 
         {
-            $this->app->triggerError($e->getMessage() . "<p>The sql is: $sql</p>", __FILE__, __LINE__, $exit = true);
+            $this->sqlError($e);
         }
 
         foreach($rawFields as $rawField)
@@ -984,6 +1036,27 @@ class dao
         }
         return $fields;
     }
+
+    /**
+     * Process SQL error by code.
+     * 
+     * @param  object    $exception 
+     * @access public
+     * @return void
+     */
+    public function sqlError($exception)
+    {
+        $errorInfo = $exception->errorInfo;
+        $errorCode = $errorInfo[1];
+        $errorMsg  = $errorInfo[2];
+        $message   = $exception->getMessage();
+        if(strpos($this->repairCode, "|$errorCode|") !== false or ($errorCode == '1016' and strpos($errorMsg, 'errno: 145') !== false))
+        {
+            $message .=  ' ' . $this->lang->repairTable;
+        }
+        $sql = $this->sqlobj->get();
+        $this->app->triggerError($message . "<p>The sql is: $sql</p>", __FILE__, __LINE__, $exit = true);
+    }
 }
 
 /**
@@ -1003,9 +1076,9 @@ class sql
      * The sql string.
      * 
      * @var string
-     * @access private
+     * @access public
      */
-    private $sql = '';
+    public $sql = '';
 
     /**
      * The global $dbh.
@@ -1159,9 +1232,20 @@ class sql
      */
     public function data($data)
     {
+        $data = (object) $data;
+
+        foreach($data as $field => $value)
+        {    
+            if(!preg_match('|^\w+$|', $field)) 
+            {    
+                unset($data->$field);
+                continue;
+            }    
+            $this->sql .= "`$field` = " . $this->quote($value) . ','; 
+        }
+
         $this->data = $data;
-        foreach($data as $field => $value) $this->sql .= "`$field` = " . $this->quote($value) . ',';
-        $this->sql = rtrim($this->sql, ',');    // Remove the last ','.
+        $this->sql  = rtrim($this->sql, ',');    // Remove the last ','.
         return $this;
     }
 

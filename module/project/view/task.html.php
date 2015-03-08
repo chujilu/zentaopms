@@ -2,8 +2,8 @@
 /**
  * The task view file of project module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     project
  * @version     $Id: task.html.php 4894 2013-06-25 01:28:39Z wyd621@gmail.com $
@@ -50,7 +50,7 @@
           <th class='w-70px'>  <?php common::printOrderLink('deadline',     $orderBy, $vars, $lang->task->deadlineAB);?></th>
 
           <?php if($this->cookie->windowWidth > $this->config->wideSize):?>
-          <th class='w-id'>    <?php common::printOrderLink('openedDate',   $orderBy, $vars, $lang->task->openedDateAB);?></th>
+          <th class='w-id'>   <?php common::printOrderLink('openedDate',   $orderBy, $vars, $lang->task->openedDateAB);?></th>
           <?php endif;?>
 
           <th class='w-user'>  <?php common::printOrderLink('assignedTo',   $orderBy, $vars, $lang->task->assignedToAB);?></th>
@@ -64,7 +64,7 @@
           <th class='w-50px'>  <?php common::printOrderLink('consumed',     $orderBy, $vars, $lang->task->consumedAB);?></th>
           <th class='w-40px nobr'>  <?php common::printOrderLink('left',         $orderBy, $vars, $lang->task->leftAB);?></th>
           <?php if($project->type == 'sprint') print '<th>' and common::printOrderLink('story', $orderBy, $vars, $lang->task->story) and print '</th>';?>
-          <th class='w-140px {sorter:false}'><?php echo $lang->actions;?></th>
+          <th class='w-150px {sorter:false}'><?php echo $lang->actions;?></th>
         </tr>
       </thead>
       <tbody>
@@ -75,7 +75,7 @@
           <input type='checkbox' name='taskIDList[]'  value='<?php echo $task->id;?>'/> 
           <?php if(!common::printLink('task', 'view', "task=$task->id", sprintf('%03d', $task->id))) printf('%03d', $task->id);?>
         </td>
-        <td><span class='<?php echo 'pri'. $lang->task->priList[$task->pri]?>'><?php echo $lang->task->priList[$task->pri];?></span></td>
+        <td><span class='<?php echo 'pri' . zget($lang->task->priList, $task->pri, $task->pri)?>'><?php echo zget($lang->task->priList, $task->pri, $task->pri);?></span></td>
         <td class='text-left' title="<?php echo $task->name?>">
           <?php 
           if(!common::printLink('task', 'view', "task=$task->id", $task->name)) echo $task->name;
@@ -95,7 +95,7 @@
         <?php endif;?>
 
         <td <?php echo $class;?>><?php echo $task->assignedTo == 'closed' ? 'Closed' : $task->assignedToRealName;?></td>
-        <td><?php echo $users[$task->finishedBy];?></td>
+        <td><?php echo zget($users, $task->finishedBy, $task->finishedBy);?></td>
 
         <?php if($this->cookie->windowWidth > $this->config->wideSize):?>
         <td><?php echo substr($task->finishedDate, 5, 6);?></td>
@@ -140,8 +140,9 @@
           <td colspan='<?php echo $columns;?>'>
             <div class='table-actions clearfix'>
             <?php 
-            $canBatchEdit  = common::hasPriv('task', 'batchEdit');
-            $canBatchClose = common::hasPriv('task', 'batchClose') and strtolower($browseType) != 'closedBy';
+            $canBatchEdit     = common::hasPriv('task', 'batchEdit');
+            $canBatchClose    = common::hasPriv('task', 'batchClose') and strtolower($browseType) != 'closedBy';
+            $canBatchAssignTo = common::hasPriv('task', 'batchAssignTo');
             if(count($tasks))
             {
                 echo "<div class='btn-group'>" . html::selectButton() . '</div>';
@@ -156,6 +157,25 @@
                 $actionLink = $this->createLink('task', 'batchClose');
                 $misc = $canBatchClose ? "onclick=\"setFormAction('$actionLink','hiddenwin')\"" : "class='disabled'";
                 echo "<li>" . html::a('#', $lang->close, '', $misc) . "</li>";
+
+                /* Batch assign. */
+                if($canBatchAssignTo)
+                {
+                    $withSearch = count($memberPairs) > 10;
+                    $actionLink = $this->createLink('task', 'batchAssignTo', "projectID=$projectID");
+                    echo html::select('assignedTo', $memberPairs, '', 'class="hidden"');
+                    echo "<li class='dropdown-submenu'>";
+                    echo html::a('javascript::', $lang->task->assignedTo, 'id="assignItem"');
+                    echo "<ul class='dropdown-menu assign-menu" . ($withSearch ? ' with-search':'') . "'>";
+                    foreach ($memberPairs as $key => $value)
+                    {
+                        if(empty($key)) continue;
+                        echo "<li class='option' data-key='$key'>" . html::a("javascript:$(\"#assignedTo\").val(\"$key\");setFormAction(\"$actionLink\")", $value, '', '') . '</li>';
+                    }
+                    if($withSearch) echo "<li class='assign-search'><div class='input-group input-group-sm'><input type='text' class='form-control' placeholder=''><span class='input-group-addon'><i class='icon-search'></i></span></div></li>";
+                    echo "</ul>";
+                    echo "</li>";
+                }
                 echo "</ul></div>";
             }
             echo "<div class='text'>" . $summary . "</div>";

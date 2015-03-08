@@ -2,8 +2,8 @@
 /**
  * The control file of task module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     task
  * @version     $Id: control.php 5106 2013-07-12 01:28:54Z chencongzhi520@gmail.com $
@@ -76,10 +76,26 @@ class task extends control
                 $this->send($response);
             }
 
+            /* if the count of tasksID is 1 then check exists. */
+            if(count($tasksID) == 1)
+            {
+                $taskID = current($tasksID);
+                if($taskID['status'] == 'exists')
+                {
+                    $response['locate']  = $this->createLink('task', 'view', "taskID={$taskID['id']}");
+                    $response['message'] = sprintf($this->lang->duplicate, $this->lang->task->common);
+                    $this->send($response);
+                }
+            }
+
             /* Create actions. */
             $this->loadModel('action');
             foreach($tasksID as $taskID)
             {
+                /* if status is exists then this task has exists not new create. */
+                if($taskID['status'] == 'exists') continue;
+
+                $taskID   = $taskID['id'];
                 $actionID = $this->action->create('task', $taskID, 'Opened', '');
                 $this->sendmail($taskID, $actionID);
             }            
@@ -88,7 +104,7 @@ class task extends control
             if($this->post->after == 'continueAdding')
             {
                 $response['message'] = $this->lang->task->successSaved . $this->lang->task->afterChoices['continueAdding'];
-                $response['locate']  = $this->createLink('task', 'create', "projectID=$projectID&storyID={$this->post->story}");
+                $response['locate']  = $this->createLink('task', 'create', "projectID=$projectID&storyID={$this->post->story}&moduleID=$moduleID");
                 $this->send($response);
             }
             elseif($this->post->after == 'toTaskList')
@@ -223,8 +239,7 @@ class task extends control
             if($this->post->comment != '' or !empty($changes) or !empty($files))
             {
                 $action = !empty($changes) ? 'Edited' : 'Commented';
-                $fileAction = '';
-                if(!empty($files)) $fileAction = $this->lang->addFiles . join(',', $files) . "\n" ;
+                $fileAction = !empty($files) ? $this->lang->addFiles . join(',', $files) . "\n" : '';
                 $actionID = $this->action->create('task', $taskID, $action, $fileAction . $this->post->comment);
                 if(!empty($changes)) $this->action->logHistory($actionID, $changes);
                 $this->sendmail($taskID, $actionID);
@@ -276,23 +291,22 @@ class task extends control
             {
                 foreach($allChanges as $taskID => $changes)
                 {
-                    if(!empty($changes))
-                    {
-                        $actionID = $this->loadModel('action')->create('task', $taskID, 'Edited');
-                        $this->action->logHistory($actionID, $changes);
-                        $this->sendmail($taskID, $actionID);
+                    if(empty($changes)) continue;
 
-                        $task = $this->task->getById($taskID);
-                        if($task->fromBug != 0)
+                    $actionID = $this->loadModel('action')->create('task', $taskID, 'Edited');
+                    $this->action->logHistory($actionID, $changes);
+                    $this->sendmail($taskID, $actionID);
+
+                    $task = $this->task->getById($taskID);
+                    if($task->fromBug != 0)
+                    {
+                        foreach($changes as $change)
                         {
-                            foreach($changes as $change)
+                            if($change['field'] == 'status')
                             {
-                                if($change['field'] == 'status')
-                                {
-                                    $confirmURL = $this->createLink('bug', 'view', "id=$task->fromBug");
-                                    $cancelURL  = $this->server->HTTP_REFERER;
-                                    die(js::confirm(sprintf($this->lang->task->remindBug, $task->fromBug), $confirmURL, $cancelURL, 'parent', 'parent'));
-                                }
+                                $confirmURL = $this->createLink('bug', 'view', "id=$task->fromBug");
+                                $cancelURL  = $this->server->HTTP_REFERER;
+                                die(js::confirm(sprintf($this->lang->task->remindBug, $task->fromBug), $confirmURL, $cancelURL, 'parent', 'parent'));
                             }
                         }
                     }
@@ -380,6 +394,33 @@ class task extends control
     }
 
     /**
+     * Batch update assign of task. 
+     * 
+     * @param  int    $project 
+     * @access public
+     * @return void
+     */
+    public function batchAssignTo($project)
+    {
+        if(!empty($_POST))
+        {
+            $taskIDList = $this->post->taskIDList;
+            unset($_POST['taskIDList']);
+            if(!is_array($taskIDList)) die(js::locate($this->createLink('project', 'task', "projectID=$project"), 'parent'));
+            foreach($taskIDList as $taskID)
+            {
+                $this->loadModel('action');
+                $changes = $this->task->assign($taskID);
+                if(dao::isError()) die(js::error(dao::getError()));
+                $actionID = $this->action->create('task', $taskID, 'Assigned', $this->post->comment, $this->post->assignedTo);
+                $this->action->logHistory($actionID, $changes);
+                $this->sendmail($taskID, $actionID);
+            }
+            die(js::locate($this->createLink('project', 'task', "projectID=$project"), 'parent'));
+        }
+    }
+
+    /**
      * View a task.
      * 
      * @param  int    $taskID 
@@ -390,6 +431,9 @@ class task extends control
     {
         $task = $this->task->getById($taskID, true);
         if(!$task) die(js::error($this->lang->notFound) . js::locate('back'));
+
+        $story           = $this->story->getById($task->story);
+        $task->storySpec = ($story != null) ? $story->spec : '';
 
         /* Update action. */
         if($task->assignedTo == $this->app->user->account) $this->loadModel('action')->read('task', $taskID);
@@ -562,11 +606,13 @@ class task extends control
             $this->loadModel('action');
             $changes = $this->task->finish($taskID);
             if(dao::isError()) die(js::error(dao::getError()));
+            $files = $this->loadModel('file')->saveUpload('task', $taskID);
 
             $task = $this->task->getById($taskID);
             if($this->post->comment != '' or !empty($changes))
             {
-                $actionID = $this->action->create('task', $taskID, 'Finished', $this->post->comment);
+                $fileAction = !empty($files) ? $this->lang->addFiles . join(',', $files) . "\n" : '';
+                $actionID = $this->action->create('task', $taskID, 'Finished', $fileAction . $this->post->comment);
                 $this->action->logHistory($actionID, $changes);
                 $this->sendmail($taskID, $actionID);
             }
@@ -578,7 +624,9 @@ class task extends control
                     if($change['field'] == 'status')
                     {
                         $confirmURL = $this->createLink('bug', 'view', "id=$task->fromBug");
-                        echo js::confirm(sprintf($this->lang->task->remindBug, $task->fromBug), $confirmURL, '', 'parent');
+                        unset($_GET['onlybody']);
+                        $cancelURL  = $this->createLink('task', 'view', "taskID=$taskID");
+                        die(js::confirm(sprintf($this->lang->task->remindBug, $task->fromBug), $confirmURL, $cancelURL, 'parent', 'parent.parent'));
                     }
                 }
             }
@@ -589,7 +637,74 @@ class task extends control
         $this->view->title      = $this->view->project->name . $this->lang->colon .$this->lang->task->finish;
         $this->view->position[] = $this->lang->task->finish;
         $this->view->date       = strftime("%Y-%m-%d %X", strtotime('now'));
+        $this->view->users      = $this->loadModel('user')->getPairs('noletter');
        
+        $this->display();
+    }
+
+    /**
+     * Pause task.
+     * 
+     * @param  int    $taskID 
+     * @access public
+     * @return void
+     */
+    public function pause($taskID)
+    {
+        $this->commonAction($taskID);
+
+        if(!empty($_POST))
+        {
+            $this->loadModel('action');
+            $changes = $this->task->pause($taskID);
+            if(dao::isError()) die(js::error(dao::getError()));
+
+            if($this->post->comment != '' or !empty($changes))
+            {
+                $actionID = $this->action->create('task', $taskID, 'Paused', $this->post->comment);
+                $this->action->logHistory($actionID, $changes);
+            }
+            if(isonlybody()) die(js::closeModal('parent.parent', 'this'));
+            die(js::locate($this->createLink('task', 'view', "taskID=$taskID"), 'parent'));
+        }
+
+        $this->view->title      = $this->view->project->name . $this->lang->colon .$this->lang->task->pause;
+        $this->view->position[] = $this->lang->task->pause;
+        
+        $this->display();
+    }
+
+    /**
+     * Restart task 
+     * 
+     * @param  int    $taskID 
+     * @access public
+     * @return void
+     */
+    public function restart($taskID)
+    {
+        $this->commonAction($taskID);
+
+        if(!empty($_POST))
+        {
+            $this->loadModel('action');
+            $changes = $this->task->start($taskID);
+            if(dao::isError()) die(js::error(dao::getError()));
+
+            if($this->post->comment != '' or !empty($changes))
+            {
+                $act = $this->post->left == 0 ? 'Finished' : 'Restarted';
+                $actionID = $this->action->create('task', $taskID, $act, $this->post->comment);
+                $this->action->logHistory($actionID, $changes);
+                $this->sendmail($taskID, $actionID);
+            }
+            if(isonlybody()) die(js::closeModal('parent.parent', 'this'));
+            die(js::locate($this->createLink('task', 'view', "taskID=$taskID"), 'parent'));
+        }
+
+        $this->view->title      = $this->view->project->name . $this->lang->colon .$this->lang->task->restart;
+        $this->view->position[] = $this->lang->task->restart;
+        $this->view->users      = $this->loadModel('user')->getPairs('noletter'); 
         $this->display();
     }
 
@@ -640,6 +755,7 @@ class task extends control
         {
             $taskIDList = $this->post->taskIDList;
             unset($_POST['taskIDList']);
+            unset($_POST['assignedTo']);
             $this->loadModel('action');
 
             $tasks = $this->task->getByList($taskIDList);
@@ -731,6 +847,7 @@ class task extends control
         if(!isset($this->view->members[$this->view->task->finishedBy])) $this->view->members[$this->view->task->finishedBy] = $this->view->task->finishedBy;
         $this->view->title      = $this->view->project->name . $this->lang->colon .$this->lang->task->activate;
         $this->view->position[] = $this->lang->task->activate;
+        $this->view->users      = $this->loadModel('user')->getPairs('noletter'); 
         $this->display();
     }
 
@@ -983,6 +1100,7 @@ class task extends control
                 /* Set related files. */
                 if(isset($relatedFiles[$task->id]))
                 {
+                    $task->files = '';
                     foreach($relatedFiles[$task->id] as $file)
                     {
                         $fileURL = 'http://' . $this->server->http_host . $this->config->webRoot . "data/upload/{$this->app->company->id}/" . $file->pathname;

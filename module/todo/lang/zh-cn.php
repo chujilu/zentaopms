@@ -2,8 +2,8 @@
 /**
  * The todo module zh-cn file of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     todo
  * @version     $Id: zh-cn.php 5022 2013-07-05 06:50:39Z chencongzhi520@gmail.com $
@@ -25,6 +25,7 @@ $lang->todo->browse       = "浏览待办";
 $lang->todo->import2Today = "导入到今天";
 $lang->todo->import       = "导入";
 $lang->todo->changeStatus = "更改";
+$lang->todo->legendBasic  = "基本信息";
 
 $lang->todo->id          = '编号';
 $lang->todo->account     = '所有者';

@@ -2,8 +2,8 @@
 /**
  * The control file of todo module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     todo
  * @version     $Id: control.php 4976 2013-07-02 08:15:31Z wyd621@gmail.com $
@@ -210,11 +210,10 @@ class todo extends control
             $allChanges = $this->todo->batchUpdate();
             foreach($allChanges as $todoID => $changes)
             {
-                if(!empty($changes))
-                {
-                    $actionID = $this->loadModel('action')->create('todo', $todoID, 'edited');
-                    $this->action->logHistory($actionID, $changes);
-                }
+                if(empty($changes)) continue;
+
+                $actionID = $this->loadModel('action')->create('todo', $todoID, 'edited');
+                $this->action->logHistory($actionID, $changes);
             }
 
             die(js::locate($this->session->todoList, 'parent'));
@@ -304,8 +303,8 @@ class todo extends control
      */
     public function finish($todoID)
     {
-        $this->todo->finish($todoID);
         $todo = $this->todo->getById($todoID);
+        if($todo->status != 'done') $this->todo->finish($todoID);
         if($todo->type == 'bug' or $todo->type == 'task')
         {
             $confirmNote = 'confirm' . ucfirst($todo->type);

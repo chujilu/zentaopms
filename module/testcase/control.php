@@ -2,8 +2,8 @@
 /**
  * The control file of case currentModule of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     case
  * @version     $Id: control.php 5112 2013-07-12 02:51:33Z chencongzhi520@gmail.com $
@@ -74,12 +74,13 @@ class testcase extends control
         /* Load pager. */
         $this->app->loadClass('pager', $static = true);
         $pager = pager::init($recTotal, $recPerPage, $pageID);
+        $sort = $this->loadModel('common')->appendOrder($orderBy);
 
         /* By module or all cases. */
         if($browseType == 'bymodule' or $browseType == 'all')
         {
             $childModuleIds    = $this->tree->getAllChildId($moduleID);
-            $this->view->cases = $this->testcase->getModuleCases($productID, $childModuleIds, $orderBy, $pager);
+            $this->view->cases = $this->testcase->getModuleCases($productID, $childModuleIds, $sort, $pager);
         }
         /* Cases need confirmed. */
         elseif($browseType == 'needconfirm')
@@ -88,7 +89,7 @@ class testcase extends control
                 ->where("t2.status = 'active'")
                 ->andWhere('t1.deleted')->eq(0)
                 ->andWhere('t2.version > t1.storyVersion')
-                ->orderBy($orderBy)
+                ->orderBy($sort)
                 ->page($pager)
                 ->fetchAll();
         }
@@ -126,15 +127,14 @@ class testcase extends control
             }
             $caseQuery .= ')';
 
-            $caseQuery = $this->loadModel('search')->replaceDynamic($caseQuery);
             $this->view->cases = $this->dao->select('*')->from(TABLE_CASE)->where($caseQuery)
                 ->beginIF($queryProductID != 'all')->andWhere('product')->eq($productID)->fi()
                 ->andWhere('deleted')->eq(0)
-                ->orderBy($orderBy)->page($pager)->fetchAll();
+                ->orderBy($sort)->page($pager)->fetchAll();
         }
 
         /* save session .*/
-        $this->loadModel('common')->saveQueryCondition($this->dao->get(), 'testcase', $browseType == 'needconfirm' ? false : true);
+        $this->loadModel('common')->saveQueryCondition($this->dao->get(), 'testcase', $browseType != 'bysearch' ? false : true);
 
         /* Build the search form. */
         $this->config->testcase->search['params']['product']['values']= array($productID => $this->products[$productID], 'all' => $this->lang->testcase->allProduct);
@@ -161,6 +161,51 @@ class testcase extends control
     }
 
     /**
+     * Group case.
+     * 
+     * @param  int    $productID 
+     * @param  string $groupBy 
+     * @access public
+     * @return void
+     */
+    public function groupCase($productID = 0, $groupBy = 'stroy')
+    {
+        $groupBy   = empty($groupBy) ? 'stroy' : $groupBy;
+        $productID = $this->product->saveState($productID, $this->products);
+
+        $this->app->loadLang('testtask');
+
+        $this->testcase->setMenu($this->products, $productID);
+        $this->session->set('caseList', $this->app->getURI(true));
+
+        $cases = $this->testcase->getModuleCases($productID, 0, $groupBy);
+        $this->loadModel('common')->saveQueryCondition($this->dao->get(), 'testcase', false);
+
+        $groupCases  = array();
+        $groupByList = array();
+        foreach($cases as $case)
+        {
+            if($groupBy == 'story')
+            {
+                $groupCases[$case->story][] = $case;
+                $groupByList[$case->story]  = $case->storyTitle;
+            }
+        }
+
+        $this->view->title         = $this->products[$productID] . $this->lang->colon . $this->lang->testcase->common;
+        $this->view->position[]    = html::a($this->createLink('testcase', 'groupTask', "productID=$productID&groupBy=$groupBy"), $this->products[$productID]);
+        $this->view->position[]    = $this->lang->testcase->common;
+        $this->view->productID     = $productID;
+        $this->view->productName   = $this->products[$productID];
+        $this->view->users         = $this->user->getPairs('noletter');
+        $this->view->browseType    = 'group';
+        $this->view->groupBy       = $groupBy;
+        $this->view->groupByList   = $groupByList;
+        $this->view->cases         = $groupCases;
+        $this->display();
+    }
+
+    /**
      * Create a test case.
      * 
      * @param  int    $productID 
@@ -181,16 +226,25 @@ class testcase extends control
             $response['result']  = 'success';
             $response['message'] = '';
 
-            $caseID = $this->testcase->create($bugID);
-            if(dao::isError())
+            $caseResult = $this->testcase->create($bugID);
+            if(!$caseResult or dao::isError())
             {
                 $response['result']  = 'fail';
                 $response['message'] = dao::getError();
                 $this->send($response);
             }
+
+            $caseID = $caseResult['id'];
+            if($caseResult['status'] == 'exists')
+            {
+                $response['message'] = sprintf($this->lang->duplicate, $this->lang->testcase->common);
+                $response['locate']  = $this->createLink('testcase', 'view', "caseID=$caseID");
+                $this->send($response);
+            }
+
             $this->loadModel('action');
             $this->action->create('case', $caseID, 'Opened');
-            $response['locate'] = $this->createLink('testcase', 'browse', "productID=$_POST[product]&browseType=byModule&param=$_POST[module]");
+            $response['locate'] = $this->createLink('testcase', 'browse', "productID=$_POST[product]&browseType=byModule&args=$_POST[module]");
             $this->send($response);
         }
         if(empty($this->products)) $this->locate($this->createLink('product', 'create'));
@@ -253,6 +307,17 @@ class testcase extends control
         $position[] = $this->lang->testcase->common;
         $position[] = $this->lang->testcase->create;
 
+        /* Get the status of stories are not closed. */
+        $storyStatus = $this->lang->story->statusList;
+        unset($storyStatus['closed']);
+        $modules = array();
+        if($currentModuleID)
+        {
+            $modules = $this->loadModel('tree')->getStoryModule($currentModuleID);
+            $modules = $this->tree->getAllChildID($modules);
+        }
+        $stories = $this->story->getProductStoryPairs($productID, $modules, array_keys($storyStatus), 'id_desc', 50);
+
         $this->view->title            = $title;
         $this->view->caseTitle        = $caseTitle;
         $this->view->position         = $position;
@@ -260,7 +325,7 @@ class testcase extends control
         $this->view->productName      = $this->products[$productID];
         $this->view->moduleOptionMenu = $this->tree->getOptionMenu($productID, $viewType = 'case', $startModuleID = 0);
         $this->view->currentModuleID  = $currentModuleID;
-        $this->view->stories          = $this->story->getProductStoryPairs($productID);
+        $this->view->stories          = $stories;
         $this->view->type             = $type;
         $this->view->stage            = $stage;
         $this->view->pri              = $pri;
@@ -310,16 +375,56 @@ class testcase extends control
         $position[] = $this->lang->testcase->common;
         $position[] = $this->lang->testcase->batchCreate;
 
+        $story     = $storyID ? $this->story->getByID($storyID) : '';
+        $storyList = $storyID ? array($storyID => $story->id . ':' . $story->title . '(' . $this->lang->story->pri . ':' . $story->pri . ',' . $this->lang->story->estimate . ':' . $story->estimate . ')') : array('');
+
         $this->view->title            = $title;
         $this->view->position         = $position;
         $this->view->productID        = $productID;
-        $this->view->story            = $storyID ? $this->story->getByID($storyID) : '';
+        $this->view->story            = $story;
+        $this->view->storyList        = $storyList;
         $this->view->productName      = $this->products[$productID];
         $this->view->moduleOptionMenu = $this->tree->getOptionMenu($productID, $viewType = 'case', $startModuleID = 0);
         $this->view->currentModuleID  = $currentModuleID;
         $this->view->type             = $type;
         $this->view->title            = $title;
 
+        $this->display();
+    }
+
+    /**
+     * Create bug.
+     * 
+     * @param  int    $productID 
+     * @param  string $extras 
+     * @access public
+     * @return void
+     */
+    public function createBug($productID, $extras = '')
+    {
+        parse_str(str_replace(array(',', ' '), array('&', ''), $extras));
+
+        $this->loadModel('testtask');
+        $case = '';
+        if($runID)
+        {
+            $case    = $this->testtask->getRunById($runID)->case;
+            $results = $this->testtask->getResults($runID);
+        }
+        elseif($caseID)
+        {
+            $case    = $this->testcase->getById($caseID);
+            $results = $this->testtask->getResults(0, $caseID);
+        }
+
+        if(!$case) die(js::error($this->lang->notFound) . js::locate('back', 'parent'));
+        if(empty($case->steps)) die(js::locate($this->createLink('bug', 'create', "product=$productID&extras=$extras"), 'parent'));
+
+        $this->view->title     = $this->products[$productID] . $this->lang->colon . $this->lang->testcase->createBug;
+        $this->view->case      = $case;
+        $this->view->result    = reset($results);
+        $this->view->extras    = $extras;
+        $this->view->productID = $productID;
         $this->display();
     }
 
@@ -332,13 +437,15 @@ class testcase extends control
      * @access public
      * @return void
      */
-    public function view($caseID, $version = 0, $from = 'testcase')
+    public function view($caseID, $version = 0, $from = 'testcase', $taskID = 0)
     {
         $case = $this->testcase->getById($caseID, $version);
         if(!$case) die(js::error($this->lang->notFound) . js::locate('back'));
+        if($from == 'testtask') $run = $this->loadModel('testtask')->getRunByCase($taskID, $caseID);
 
         $productID = $case->product;
         $this->testcase->setMenu($this->products, $productID);
+
 
         $this->view->title      = "CASE #$case->id $case->title - " . $this->products[$productID];
         $this->view->position[] = html::a($this->createLink('testcase', 'browse', "productID=$productID"), $this->products[$productID]);
@@ -347,12 +454,14 @@ class testcase extends control
 
         $this->view->case           = $case;
         $this->view->from           = $from;
+        $this->view->taskID         = $taskID;
         $this->view->version        = $version ? $version : $case->version;
         $this->view->productName    = $this->products[$productID];
         $this->view->modulePath     = $this->tree->getParents($case->module);
         $this->view->users          = $this->user->getPairs('noletter');
         $this->view->actions        = $this->loadModel('action')->getList('case', $caseID);
         $this->view->preAndNext     = $this->loadModel('common')->getPreAndNextObject('testcase', $caseID);
+        $this->view->runID          = $from == 'testcase' ? 0 : $run->id;
 
         $this->display();
     }
@@ -438,6 +547,8 @@ class testcase extends control
             {
                 foreach($allChanges as $caseID => $changes )
                 {
+                    if(empty($changes)) continue;
+
                     $actionID = $this->loadModel('action')->create('case', $caseID, 'Edited');
                     $this->action->logHistory($actionID, $changes);
                 }
@@ -446,7 +557,7 @@ class testcase extends control
             die(js::locate($this->session->caseList, 'parent'));
         }
 
-        $caseIDList = $this->post->caseIDList ? $this->post->caseIDList : die(js::locate($this->session->caseList, 'parent'));
+        $caseIDList = $this->post->caseIDList ? $this->post->caseIDList : die(js::locate($this->session->caseList));
 
         /* Get the edited cases. */
         $cases = $this->dao->select('*')->from(TABLE_CASE)->where('id')->in($caseIDList)->fetchAll('id');
@@ -522,6 +633,21 @@ class testcase extends control
             }
             die(js::locate($this->session->caseList, 'parent'));
         }
+    }
+
+    /**
+     * Batch delete cases.
+     * 
+     * @param  int    $productID 
+     * @access public
+     * @return void
+     */
+    public function batchDelete($productID = 0)
+    {
+        $caseIDList = $this->post->caseIDList ? $this->post->caseIDList : die(js::locate($this->session->caseList));
+
+        foreach($caseIDList as $caseID) $this->testcase->delete(TABLE_CASE, $caseID);
+        die(js::locate($this->session->caseList));
     }
 
     /**
@@ -791,6 +917,7 @@ class testcase extends control
             $this->testcase->createFromImport($productID);
             die(js::locate(inlink('browse', "productID=$productID"), 'parent'));
         }
+
         $this->testcase->setMenu($this->products, $productID);
 
         $file       = $this->session->importFile;
@@ -806,13 +933,13 @@ class testcase extends control
             unset($fields[$key]);
         }
 
-        $csv = file_get_contents($file);
-        $header = substr($csv, 0, strpos($csv, "\n"));
-        $csv    = substr($csv, strpos($csv, "\n") + 1);
+        $rows   = $this->loadModel('file')->parseCSV($file);
+        $header = $rows[0];
+        unset($rows[0]);
 
-        foreach(explode(',', $header) as $title)
+        foreach($header as $title)
         {
-            $field = array_search(trim(trim($title, '"')), $fields);
+            $field = array_search($title, $fields);
             if(!$field) continue;
             $columnKey[] = $field;
         }
@@ -822,45 +949,33 @@ class testcase extends control
             die(js::locate(inlink('browse', "productID=$productID")));
         }
 
-        $row = 1;
         $endField = $field;
         $caseData = array();
         $stepData = array();
-        while($csv)
+        foreach($rows as $row => $data)
         {
             $case = new stdclass();
-            foreach($columnKey as $field)
+            foreach($columnKey as $key => $field)
             {
-                $delimiter = $field == $endField ? "\n" : ',';
-                $delimiter = $csv[0] == '"' ? '"' . $delimiter : $delimiter;
-                $pos       = strpos($csv, $delimiter);
-                $cellValue = substr($csv, 0, $pos);
-
-                if($cellValue and $cellValue[0] == '"')$cellValue = substr($cellValue, 1);
-
+                if(!isset($data[$key])) continue;
+                $cellValue = $data[$key];
                 if($field == 'story')
                 {
+                    $case->$field = 0;
                     if(strrpos($cellValue, '(#') !== false)
                     {
                         $id = trim(substr($cellValue, strrpos($cellValue,'(#') + 2), ')');
                         $case->$field = $id;
                     }   
-                    else
-                    {
-                        $case->$field = 0;
-                    }
                 }
                 elseif($field == 'module')
                 {
+                    $case->$field = 0;
                     if(strrpos($cellValue, '(#') !== false)
                     {
                         $id = trim(substr($cellValue, strrpos($cellValue,'(#') + 2), ')');
                         $case->$field = $id;
                     }   
-                    else
-                    {
-                        $case->$field = 0;
-                    }
                 }
                 elseif(in_array($field, $caseConfig->export->listFields))
                 {
@@ -884,6 +999,7 @@ class testcase extends control
                     $steps    = explode("\n", $cellValue);
                     $stepKey  = str_replace('step', '', strtolower($field));
                     $caseStep = array();
+
                     foreach($steps as $step)
                     {
                         $step = trim($step);
@@ -896,21 +1012,33 @@ class testcase extends control
                             $step    = trim(substr($step, strpos($step, $sign) + $signbit));
                             if(!empty($step)) $caseStep[$num] = $step;
                         }
+                        elseif(isset($num))
+                        {
+                            $caseStep[$num] .= "\n" . $step;
+                        }
                         else
                         {
-                            if(isset($num)) $caseStep[$num] .= "\n" . $step;
+                            if($field == 'stepDesc')
+                            {
+                                $num = 1;
+                                $caseStep[$num] = $step;
+                            }
+                            if($field == 'stepExpect' and isset($stepData[$row]['desc']))
+                            {
+                                end($stepData[$row]['desc']);
+                                $num = key($stepData[$row]['desc']);
+                                $caseStep[$num] = $step;
+                            }
                         }
                     }
                     unset($num);
                     unset($sign);
                     $stepData[$row][$stepKey] = $caseStep;
                 }
-                $csv = substr($csv, $pos + strlen($delimiter));
             }
 
             $caseData[$row] = $case;
             unset($case);
-            $row++;
         }
 
         if(empty($caseData))

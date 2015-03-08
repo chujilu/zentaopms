@@ -2,8 +2,8 @@
 /**
  * The project module zh-tw file of ZenTaoMS.
  *
- * @copyright   Copyright 2009-2013 青島易軟天創網絡科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青島易軟天創網絡科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     project
  * @version     $Id: zh-tw.php 5094 2013-07-10 08:46:15Z chencongzhi520@gmail.com $
@@ -55,6 +55,8 @@ $lang->project->noProduct     = '無產品項目';
 $lang->project->select        = '--請選擇項目--';
 $lang->project->createStory   = "新增需求";
 $lang->project->all           = '所有';
+$lang->project->undone        = '未完成';
+$lang->project->unclosed      = '未關閉';
 $lang->project->typeDesc      = '運維項目禁用燃盡圖和需求。';
 $lang->project->mine          = '我負責：';
 $lang->project->other         = '其他：';
@@ -100,34 +102,35 @@ $lang->project->aclList['private'] = '私有項目(只有項目團隊成員才�
 $lang->project->aclList['custom']  = '自定義白名單(團隊成員和白名單的成員可以訪問)';
 
 /* 方法列表。*/
-$lang->project->index           = "項目首頁";
-$lang->project->task            = '任務列表';
-$lang->project->groupTask       = '分組瀏覽任務';
-$lang->project->story           = '需求列表';
-$lang->project->bug             = 'Bug列表';
-$lang->project->dynamic         = '動態';
-$lang->project->build           = '版本列表';
-$lang->project->testtask        = '測試任務';
-$lang->project->burn            = '燃盡圖';
-$lang->project->computeBurn     = '更新';
-$lang->project->burnData        = '燃盡圖數據';
-$lang->project->team            = '團隊成員';
-$lang->project->doc             = '文檔列表';
-$lang->project->manageProducts  = '關聯產品';
-$lang->project->linkStory       = '關聯需求';
-$lang->project->view            = "項目概況";
-$lang->project->create          = "添加項目";
-$lang->project->copy            = "複製項目";
-$lang->project->delete          = "刪除項目";
-$lang->project->browse          = "瀏覽項目";
-$lang->project->edit            = "編輯項目";
-$lang->project->batchEdit       = "批量編輯";
-$lang->project->manageMembers   = '團隊管理';
-$lang->project->unlinkMember    = '移除成員';
-$lang->project->unlinkStory     = '移除需求';
-$lang->project->importTask      = '轉入任務';
-$lang->project->importBug       = '導入Bug';
-$lang->project->ajaxGetProducts = '介面：獲得項目產品列表';
+$lang->project->index            = "項目首頁";
+$lang->project->task             = '任務列表';
+$lang->project->groupTask        = '分組瀏覽任務';
+$lang->project->story            = '需求列表';
+$lang->project->bug              = 'Bug列表';
+$lang->project->dynamic          = '動態';
+$lang->project->build            = '版本列表';
+$lang->project->testtask         = '測試任務';
+$lang->project->burn             = '燃盡圖';
+$lang->project->computeBurn      = '更新';
+$lang->project->burnData         = '燃盡圖數據';
+$lang->project->team             = '團隊成員';
+$lang->project->doc              = '文檔列表';
+$lang->project->manageProducts   = '關聯產品';
+$lang->project->linkStory        = '關聯需求';
+$lang->project->view             = "項目概況";
+$lang->project->create           = "添加項目";
+$lang->project->copy             = "複製項目";
+$lang->project->delete           = "刪除項目";
+$lang->project->browse           = "瀏覽項目";
+$lang->project->edit             = "編輯項目";
+$lang->project->batchEdit        = "批量編輯";
+$lang->project->manageMembers    = '團隊管理';
+$lang->project->unlinkMember     = '移除成員';
+$lang->project->unlinkStory      = '移除需求';
+$lang->project->batchUnlinkStory = '批量移除需求';
+$lang->project->importTask       = '轉入任務';
+$lang->project->importBug        = '導入Bug';
+$lang->project->ajaxGetProducts  = '介面：獲得項目產品列表';
 
 /* 分組瀏覽。*/
 $lang->project->allTasks             = '所有';

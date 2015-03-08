@@ -122,7 +122,7 @@ class validater
      */
     public static function checkIP($var, $range = 'all')
     {
-        if($range == 'all')  return filter_var($var, FILTER_VALIDATE_IP);
+        if($range == 'all') return filter_var($var, FILTER_VALIDATE_IP);
         if($range == 'public static') return filter_var($var, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE);
         if($range == 'private')
         {
@@ -173,7 +173,8 @@ class validater
      */
     public static function checkLength($var, $max, $min = 0)
     {
-        return self::checkInt(strlen($var), $min, $max);
+        $length = function_exists('mb_strlen') ? mb_strlen($var, 'utf-8') : strlen($var);
+        return self::checkInt($length, $min, $max);
     }
 
     /**
@@ -216,6 +217,20 @@ class validater
     }
 
     /**
+     * Check captcha.
+     * 
+     * @param  mixed    $var 
+     * @static
+     * @access public
+     * @return bool
+     */
+    public static function checkCaptcha($var)
+    {
+        if(!isset($_SESSION['captcha'])) return false;
+        return $var == $_SESSION['captcha'];
+    }
+
+    /**
      * Must equal a value.
      * 
      * @param  mixed  $var 
@@ -232,8 +247,8 @@ class validater
     /**
      * Must greater than a value.
      * 
-     * @param  mixed  $var 
-     * @param  mixed $value 
+     * @param  mixed    $var 
+     * @param  mixed    $value 
      * @static
      * @access public
      * @return bool
@@ -242,12 +257,26 @@ class validater
     {
         return $var > $value;
     }
-    
+
     /**
-     * Must greater than or equal a value.
+     * Must less than a value.
      * 
-     * @param  mixed  $var 
-     * @param  mixed $value 
+     * @param  mixed    $var 
+     * @param  mixed    $value 
+     * @static
+     * @access public
+     * @return bool
+     */
+    public static function checkLT($var, $value)
+    {
+        return $var < $value;
+    }
+
+    /**
+     * Must greater than a value or equal a value.
+     * 
+     * @param  mixed    $var 
+     * @param  mixed    $value 
      * @static
      * @access public
      * @return bool
@@ -255,6 +284,35 @@ class validater
     public static function checkGE($var, $value)
     {
         return $var >= $value;
+    }
+
+    /**
+     * Must less than a value or equal a value.
+     * 
+     * @param  mixed    $var 
+     * @param  mixed    $value 
+     * @static
+     * @access public
+     * @return bool
+     */
+    public static function checkLE($var, $value)
+    {
+        return $var <= $value;
+    }
+
+    /**
+     * Must in value list.
+     * 
+     * @param  mixed  $var 
+     * @param  mixed $value 
+     * @static
+     * @access public
+     * @return bool
+     */
+    public static function checkIn($var, $value)
+    {
+        if(!is_array($value)) $value = explode(',', $value);
+        return in_array($var, $value);
     }
 
     /**
@@ -287,6 +345,7 @@ class fixer
      */
     private $data;
 
+    private $stripedFields = array();
     /**
      * The construction function, according the scope, convert it to object.
      * 
@@ -421,23 +480,61 @@ class fixer
     public function specialChars($fieldName)
     {
         $fields = $this->processFields($fieldName);
-        foreach($fields as $fieldName) $this->data->$fieldName = htmlspecialchars($this->data->$fieldName);
+        foreach($fields as $fieldName)
+        {
+            if(empty($this->stripedFields) or !in_array($fieldName, $this->stripedFields)) $this->data->$fieldName = $this->specialArray($this->data->$fieldName);
+        }
         return $this;
     }
 
-    
     /**
-     * Strip tags 
+     * Special array 
      * 
-     * @param  string $fieldName 
-     * @param  string $allowableTags 
+     * @param  mix      $data 
+     * @access public
+     * @return mix
+     */
+    public function specialArray($data)
+    {
+        if(!is_array($data)) return htmlspecialchars($data, ENT_QUOTES);
+
+        foreach($data as &$value) $value = $this->specialArray($value);
+
+        return $data;
+    }
+
+    /**
+     * Strip tags
+     *
+     * @param  string $fieldName
+     * @param  string $allowedTags
      * @access public
      * @return object fixer object
      */
-    public function stripTags($fieldName)
+    public function stripTags($fieldName, $allowedTags)
     {
         $fields = $this->processFields($fieldName);
-        foreach($fields as $fieldName) $this->data->$fieldName = filter_var($this->data->$fieldName, FILTER_SANITIZE_STRING);
+        foreach($fields as $fieldName)
+        {
+            if(version_compare(phpversion(), '5.4', '<') and get_magic_quotes_gpc()) $this->data->$fieldName = stripslashes($this->data->$fieldName);
+
+            if(!in_array($fieldName, $this->stripedFields)) $this->data->$fieldName = strip_tags($this->data->$fieldName, $allowedTags);
+            $this->stripedFields[] = $fieldName;
+        }
+        return $this;
+    }
+
+    /**
+     * Skip special chars.
+     * 
+     * @param  string    $filename 
+     * @access public
+     * @return object fixer object
+     */
+    public function skipSpecial($fieldName)
+    {
+        $fields = $this->processFields($fieldName);
+        foreach($fields as $fieldName) $this->stripedFields[] = $fieldName;
         return $this;
     }
 
@@ -589,15 +686,30 @@ class fixer
 
     /**
      * Get the data after fixing.
+     *
+     * If only one field, return it's value directly. 
+     * More fields, remove other fields not in the list and return $data.
      * 
-     * @param  string $fieldName 
+     * @param  string $fields   the fields list.
      * @access public
-     * @return object
+     * @return mix
      */
-    public function get($fieldName = '')
+    public function get($fields = '')
     {
-        if(empty($fieldName)) return $this->data;
-        return $this->data->$fieldName;
+        $fields = str_replace(' ', '', trim($fields));
+        foreach($this->data as $field => $value) $this->specialChars($field);
+
+        if(empty($fields)) return $this->data;
+        if(strpos($fields, ',') === false) return $this->data->$fields;
+
+        $fields = array_flip(explode(',', $fields));
+        foreach($this->data as $field => $value)
+        {
+            if(!isset($fields[$field])) unset($this->data->$field);
+            if(!in_array($field, $this->stripedFields)) $this->data->$field = $this->specialChars($this->data->field);
+        }
+
+        return $this->data;
     }
 
     /**

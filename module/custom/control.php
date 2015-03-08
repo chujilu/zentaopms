@@ -2,8 +2,8 @@
 /**
  * The control file of custom of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2010 QingDao Nature Easy Soft Network Technology Co,LTD (www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     custom
  * @version     $Id$
@@ -36,17 +36,29 @@ class custom extends control
         $currentLang = $this->app->getClientLang();
 
         $this->app->loadLang($module);
+        $this->app->loadConfig('story');
         $fieldList = $this->lang->$module->$field;
         if(!empty($_POST))
         {
-            $lang = $_POST['lang'];
-            $this->custom->deleteItems("lang=$lang&module=$module&section=$field");
-            foreach($_POST['keys'] as $index => $key)
+            if($module == 'story' && $field == 'review')
             {
-                $value  = $_POST['values'][$index];
-                if(!$value or !$key) continue;
-                $system = $_POST['systems'][$index];
-                $this->custom->setItem("{$lang}.{$module}.{$field}.{$key}.{$system}", $value);
+                $this->loadModel('setting')->setItem('system.story.needReview', fixer::input('post')->get()->needReview);
+            }
+            else
+            {
+                $lang = $_POST['lang'];
+                $this->custom->deleteItems("lang=$lang&module=$module&section=$field");
+                foreach($_POST['keys'] as $index => $key)
+                {
+                    $value  = $_POST['values'][$index];
+                    if(!$value or !$key) continue;
+                    $system = $_POST['systems'][$index];
+
+                    /* the length of role is 20, check it when save. */
+                    if($module == 'user' and $field == 'roleList' and strlen($key) > 20) die(js::alert($this->lang->custom->notice->userRole));
+
+                    $this->custom->setItem("{$lang}.{$module}.{$field}.{$key}.{$system}", $value);
+                }
             }
             if(dao::isError()) die(js::error(dao::getError()));
             die(js::reload('parent'));
@@ -55,6 +67,7 @@ class custom extends control
         $this->view->title       = $this->lang->custom->common . $this->lang->colon . $this->lang->$module->common;
         $this->view->position[]  = $this->lang->custom->common;
         $this->view->position[]  = $this->lang->$module->common;
+        $this->view->needReview  = $this->config->story->needReview;
         $this->view->fieldList   = $fieldList;
         $this->view->dbFields    = $this->custom->getItems("lang=$currentLang,all&module=$module&section=$field");
         $this->view->field       = $field;

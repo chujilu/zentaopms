@@ -2,8 +2,8 @@
 /**
  * The model file of file module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     file
  * @version     $Id: model.php 4976 2013-07-02 08:15:31Z wyd621@gmail.com $
@@ -76,6 +76,7 @@ class fileModel extends model
 
         foreach($files as $id => $file)
         {
+            if($file['size'] == 0) continue;
             move_uploaded_file($file['tmpname'], $this->savePath . $file['pathname']);
             $file['objectType'] = $objectType;
             $file['objectID']   = $objectID;
@@ -150,8 +151,9 @@ class fileModel extends model
      */
     public function getExtension($filename)
     {
-        $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-        if(strpos($this->config->file->dangers, $extension) !== false) return 'txt';
+        $extension = trim(strtolower(pathinfo($filename, PATHINFO_EXTENSION)));
+        if(empty($extension) or strpos($this->config->file->dangers, $extension) !== false) return 'txt';
+        if($extension == 'php') return 'txt';
         return $extension;
     }
 
@@ -252,7 +254,7 @@ class fileModel extends model
         $data = str_replace('\"', '"', $data);
 
         ini_set('pcre.backtrack_limit', strlen($data));
-        preg_match_all('/<img src="(data:image\/(\S+);base64,(\S+))" .+ \/>/U', $data, $out);
+        preg_match_all('/<img src="(data:image\/(\S+);base64,(\S+))".*\/>/U', $data, $out);
         foreach($out[3] as $key => $base64Image)
         {
             $imageData = base64_decode($base64Image);
@@ -271,5 +273,139 @@ class fileModel extends model
         }
 
         return $data;
+    }
+
+    /**
+     * Parse CSV.
+     * 
+     * @param  string    $fileName 
+     * @access public
+     * @return array
+     */
+    public function parseCSV($fileName)
+    {
+        $handle = fopen($this->session->importFile, 'r');
+        $col    = -1;
+        $row    = 0;
+        $data   = array();
+        while(($line = fgets($handle)) !== false)
+        {
+            $line    = trim($line);
+            $markNum = substr_count($line, '"') - substr_count($line, '\"');
+            if(substr($line, -1) != ',' and (($markNum % 2 == 1 and $col != -1) or ($markNum % 2 == 0 and substr($line, -2) != ',"' and $col == -1))) $line .= ',';
+            $line = str_replace(',"",', ',,', $line);
+            $line = str_replace(',"",', ',,', $line);
+            $line = preg_replace_callback('/(\"{2,})(\,+)/U', array($this, 'removeInterference'), $line);
+
+            /* if only one column then line is the data. */
+            if(strpos($line, ',') === false and $col == -1)
+            {
+                $data[$row][0] = trim($line, '"');
+            }
+            else
+            {
+                /* if col is not -1, then the data of column is not end. */
+                if($col != -1)
+                {
+                    $pos = strpos($line, '",');
+                    if($pos === false)
+                    {
+                        $data[$row][$col] .= "\n" . $line;
+                        $data[$row][$col] = str_replace('&comma;', ',', trim($data[$row][$col], '"'));
+                        continue;
+                    }
+                    else
+                    {
+                        $data[$row][$col] .= "\n" . substr($line, 0, $pos + 1);
+                        $data[$row][$col] = trim(str_replace('&comma;', ',', trim($data[$row][$col], '"')));
+                        $line = substr($line, $pos + 2);
+                        $col++;
+                    }
+                }
+
+                if($col == -1) $col = 0;
+                /* explode cols with delimiter. */
+                while($line)
+                {
+                    /* the cell has '"', the delimiter is '",'. */
+                    if($line{0} == '"')
+                    {
+                        $pos = strpos($line, '",');
+                        if($pos === false)
+                        {
+                            $data[$row][$col] = $line;
+                            /* if end of cell is not '"', then the data of cell is not end. */
+                            if(strlen($line) == 1 or $line{strlen($line) - 1} != '"') continue 2;
+                            $line = '';
+                        }
+                        else
+                        {
+                            $data[$row][$col] = substr($line, 0, $pos + 1);
+                            $line = substr($line, $pos + 2);
+                        }
+                        $data[$row][$col] = str_replace('&comma;', ',', trim($data[$row][$col], '"'));
+                    }
+                    else
+                    {
+                        /* the delimiter default is ','. */
+                        $pos = strpos($line, ',');
+                        /* if line is not delimiter, then line is the data of cell. */
+                        if($pos === false)
+                        {
+                            $data[$row][$col] = $line;
+                            $line = '';
+                        }
+                        else
+                        {
+                            $data[$row][$col] = substr($line, 0, $pos);
+                            $line = substr($line, $pos + 1);
+                        }
+                    }
+
+                    $data[$row][$col] = trim(str_replace('&comma;', ',', trim($data[$row][$col], '"')));
+                    $col++;
+                }
+            }
+            $row ++;
+            $col = -1;
+        }
+        fclose ($handle);
+
+        return $data;
+    }
+
+    /**
+     * Remove interference for parse csv.
+     * 
+     * @param  array    $matchs 
+     * @access private
+     * @return string
+     */
+    private function removeInterference($matchs)
+    {
+        return str_replace('""', '"', $matchs[1]) . str_replace(',', '&comma;', $matchs[2]);
+    }
+
+    /**
+     * Extract zip.
+     * 
+     * @param  string    $zipFile 
+     * @access public
+     * @return string
+     */
+    public function extractZip($zipFile)
+    {
+        $classFile  = $this->app->loadClass('zfile');
+        $parentPath = $this->app->getCacheRoot() . 'uploadimages/';
+        if(!is_dir($parentPath)) mkdir($parentPath, 0777, true);
+
+        $filePath = $parentPath . str_replace('.zip', '', basename($zipFile)) . '/';
+        if(is_dir($filePath)) $classFile->removeDir($filePath);
+
+        $this->app->loadClass('pclzip', true);
+        $zip = new pclzip($zipFile);
+        $files = $zip->listContent();
+        if($zip->extract(PCLZIP_OPT_PATH, $filePath) == 0) return false;
+        return $filePath;
     }
 }

@@ -2,8 +2,8 @@
 /**
  * The html template file of index method of index module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     ZenTaoPMS
  * @version     $Id: index.html.php 2343 2011-11-21 05:24:56Z wwccss $
@@ -33,7 +33,7 @@
     <td class='text-left'><?php echo html::a($this->createLink('project', 'task', 'project=' . $project->id), $project->name, '_parent');?></td>
     <td><?php echo $project->code;?></td>
     <td><?php echo $project->end;?></td>
-    <td><?php echo $lang->project->statusList[$project->status];?></td>
+    <td class='status-<?php echo $project->status?>'><?php echo $lang->project->statusList[$project->status];?></td>
     <td><?php echo $project->hours->totalEstimate;?></td>
     <td><?php echo $project->hours->totalConsumed;?></td>
     <td><?php echo $project->hours->totalLeft;?></td>

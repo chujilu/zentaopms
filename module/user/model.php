@@ -2,8 +2,8 @@
 /**
  * The model file of user module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     user
  * @version     $Id: model.php 5005 2013-07-03 08:39:11Z chencongzhi520@gmail.com $
@@ -42,7 +42,7 @@ class userModel extends model
      */
     public function setUserList($users, $account)
     {
-        return html::select('account', $users, $account, "onchange=\"switchAccount(this.value, '{$this->app->getMethodName()}')\" class='form-control'");
+        return html::select('account', $users, $account, "onchange=\"switchAccount(this.value, '{$this->app->getMethodName()}')\" class='form-control chosen'");
     }
 
     /**
@@ -250,7 +250,6 @@ class userModel extends model
                 $users->password[$i] = (isset($prev['password']) and $users->ditto[$i] == 'on' and empty($users->password[$i])) ? $prev['password'] : $users->password[$i];
                 if(!validater::checkReg($users->password[$i], '|(.){6,}|')) die(js::error(sprintf($this->lang->user->error->password, $i+1)));
                 $role = $users->role[$i] == 'ditto' ? (isset($prev['role']) ? $prev['role'] : '') : $users->role[$i];
-                if(empty($role)) die(js::error(sprintf($this->lang->user->error->role, $i+1)));
 
                 $data[$i] = new stdclass();
                 $data[$i]->dept     = $users->dept[$i] == 'ditto' ? (isset($prev['dept']) ? $prev['dept'] : 0) : $users->dept[$i];
@@ -307,7 +306,6 @@ class userModel extends model
             ->setDefault('join', '0000-00-00')
             ->setIF($this->post->password1 != false, 'password', md5($this->post->password1))
             ->remove('password1, password2, groups')
-            ->specialChars('skype,qq,yahoo,gtalk,wangwang,mobile,phone,address,zipcode')
             ->get();
 
         $this->dao->update(TABLE_USER)->data($user)
@@ -540,7 +538,7 @@ class userModel extends model
         if($account == 'guest')
         {
             $sql = $this->dao->select('module, method')->from(TABLE_GROUP)->alias('t1')->leftJoin(TABLE_GROUPPRIV)->alias('t2')
-                ->on('t1.id = t2.group')->where('t1.role')->eq('guest');
+                ->on('t1.id = t2.group')->where('t1.name')->eq('guest');
         }
         else
         {
@@ -621,6 +619,8 @@ class userModel extends model
     public function failPlus($account)
     {
         $user  = $this->dao->select('fails')->from(TABLE_USER)->where('account')->eq($account)->fetch();
+        if(empty($user)) return 0;
+
         $fails = $user->fails;
         $fails ++; 
         if($fails < $this->config->user->failTimes) 
@@ -647,6 +647,8 @@ class userModel extends model
     public function checkLocked($account)
     {
         $user = $this->dao->select('locked')->from(TABLE_USER)->where('account')->eq($account)->fetch(); 
+        if(empty($user)) return false;
+
         if((strtotime(date('Y-m-d H:i:s')) - strtotime($user->locked)) > $this->config->user->lockMinutes * 60) return false;
         return true;
     }
@@ -773,5 +775,28 @@ class userModel extends model
     public function deleteContactList($listID)
     {
         return $this->dao->delete()->from(TABLE_USERCONTACT)->where('id')->eq($listID)->exec();
+    }
+
+    /**
+     * Get data in JSON.
+     * 
+     * @param  object    $user 
+     * @access public
+     * @return array
+     */
+    public function getDataInJSON($user)
+    {
+        $data                   = array();
+        $data['user']           = new stdclass();
+        $data['user']->id       = $user->id;
+        $data['user']->account  = $user->account;
+        $data['user']->email    = $user->email;
+        $data['user']->realname = $user->realname;
+        $data['user']->gender   = $user->gender;
+        $data['user']->dept     = $user->dept;
+        $data['user']->role     = $user->role;
+        $data['user']->company  = $this->app->company->name;
+
+        return $data;
     }
 }

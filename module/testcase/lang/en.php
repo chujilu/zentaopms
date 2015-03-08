@@ -2,8 +2,8 @@
 /**
  * The testcase module English file of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     testcase
  * @version     $Id: en.php 4966 2013-07-02 02:59:25Z wyd621@gmail.com $
@@ -45,6 +45,7 @@ $lang->testcase->allProduct       = 'All product';
 $lang->testcase->fromBug          = 'From bug';
 $lang->testcase->toBug            = 'To bug';
 $lang->testcase->changed          = 'Changed';
+$lang->testcase->createBug        = 'Transform bug';
 $lang->case = $lang->testcase;  // For dao checking using. Because 'case' is a php keywords, so the module name is testcase, table name is still case.
 
 $lang->testcase->stepID     = 'ID';
@@ -60,8 +61,10 @@ $lang->testcase->view               = "Info";
 $lang->testcase->edit               = "Edit";
 $lang->testcase->batchEdit          = "Batch edit";
 $lang->testcase->delete             = "Delete";
+$lang->testcase->batchDelete        = "Batch delete ";
 $lang->testcase->deleted            = "Deleted";
 $lang->testcase->browse             = "Browse";
+$lang->testcase->groupCase          = "View case by group";
 $lang->testcase->import             = "Import";
 $lang->testcase->importID           = "Linenum";
 $lang->testcase->showImport         = "Show import";
@@ -109,8 +112,9 @@ $lang->testcase->legendHistory      = 'History';
 $lang->testcase->legendComment      = 'Comment';
 $lang->testcase->legendProduct      = 'Product & module';
 
-$lang->testcase->confirmDelete = 'Are you sure to delete this case?';
-$lang->testcase->same          = 'Ditto';
+$lang->testcase->confirmDelete      = 'Are you sure to delete this case?';
+$lang->testcase->confirmBatchDelete = 'Are you sure to batch delete there cases?';
+$lang->testcase->same               = 'Ditto';
 
 $lang->testcase->priList[3] = 3;
 $lang->testcase->priList[1] = 1;
@@ -135,6 +139,9 @@ $lang->testcase->stageList['system']      = 'System testing';
 $lang->testcase->stageList['smoke']       = 'Smoking testing';
 $lang->testcase->stageList['bvt']         = 'BVT testing';
 
+$lang->testcase->groups['']      = 'Group view';
+$lang->testcase->groups['story'] = 'Group by story';
+
 $lang->testcase->statusList['']            = '';
 $lang->testcase->statusList['normal']      = 'Normal';
 $lang->testcase->statusList['blocked']     = 'Blocked';
@@ -150,3 +157,6 @@ $lang->testcase->buttonToList = 'Back';
 
 $lang->testcase->errorEncode = 'No data, please select right encode and upload again!';
 $lang->testcase->noFunction  = 'Iconv and mb_convert_encoding does not exist, you can not turn the data into the desired coding!';
+$lang->testcase->noRequire   = "In the row of %s, the %s is a required field";
+
+$lang->testcase->searchStories = 'Type to search stories';

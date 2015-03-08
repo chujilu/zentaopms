@@ -2,8 +2,8 @@
 /**
  * The control file of convert currentModule of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     convert
  * @version     $Id: control.php 4976 2013-07-02 08:15:31Z wyd621@gmail.com $
@@ -232,6 +232,7 @@ class convert extends control
         helper::import('./converter/redmine.php');
         helper::import("./converter/redmine$version.php");
         $className = "redmine11ConvertModel";
+        $redmine = new stdclass();
         $redmine->aimTypes             = $this->post->aimTypes;
         $redmine->statusTypes['bug']   = $this->post->statusTypesOfBug;
         $redmine->statusTypes['story'] = $this->post->statusTypesOfStory;

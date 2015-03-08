@@ -2,8 +2,8 @@
 /**
  * The uninstall view file of extension module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     extension
  * @version     $Id$
@@ -19,19 +19,18 @@
   </div>
 </div>
 <?php if(isset($confirm) and $confirm == 'no'):?>
-<div class='alert alert-warning'>
+<div class='alert alert-pure with-icon'>
   <i class='icon-info-sign'></i>
   <div class='content'>
   <?php
     echo "<p class='waring'>{$lang->extension->confirmUninstall}";
     echo html::a(inlink('uninstall', "extension=$code&confirm=yes"), $lang->extension->uninstall, '', "class='btn'");
     echo "</p>";
-    echo "<p>{$lang->extension->noticeBackupDB}</p>"
   ?>
   </div>
 </div>
 <?php elseif(!empty($error)):?>
-<div class='alert alert-danger'>
+<div class='alert alert-pure with-icon'>
   <i class='icon-info-sign'></i>
   <div class='content'>
   <?php
@@ -41,12 +40,12 @@
   </div>
 </div>
 <?php else:?>
-<div class='alert alert-success'>
+<div class='alert alert-pure with-icon'>
   <i class='icon-ok-sign'></i>
   <div class='content'>
     <?php
     echo "<h3>{$title}</h3>";
-    if(!empty($backupFile)) echo '<p>' . sprintf($lang->extension->backDBFile, $backupFile) . '</p>';
+    if(!empty($backupFile)) echo "<p>" . sprintf($lang->extension->backDBFile, $backupFile) . '</p>';
     if($removeCommands)
     {
         echo "<p class='strong'>{$lang->extension->unremovedFiles}</p>";

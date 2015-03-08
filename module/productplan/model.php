@@ -2,8 +2,8 @@
 /**
  * The model file of productplan module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     productplan
  * @version     $Id: model.php 4639 2013-04-11 02:06:35Z chencongzhi520@gmail.com $
@@ -79,7 +79,7 @@ class productplanModel extends model
             ->beginIF($expired == 'unexpired')
             ->andWhere('end')->gt($date)
             ->fi()
-            ->orderBy('begin')->fetchPairs();
+            ->orderBy('begin desc')->fetchPairs();
     }
 
     /**
@@ -94,7 +94,7 @@ class productplanModel extends model
         return array('' => '') + $this->dao->select('id,title')->from(TABLE_PRODUCTPLAN)
             ->where('product')->in(array_keys($products))
             ->andWhere('deleted')->eq(0)
-            ->orderBy('begin')->fetchPairs();
+            ->orderBy('begin desc')->fetchPairs();
     }
 
     /**
@@ -105,7 +105,7 @@ class productplanModel extends model
      */
     public function create()
     {
-        $plan = fixer::input('post')->stripTags('title')->remove('delta')->get();
+        $plan = fixer::input('post')->stripTags($this->config->productplan->editor->create['id'], $this->config->allowedTags)->remove('delta')->get();
         $this->dao->insert(TABLE_PRODUCTPLAN)
             ->data($plan)
             ->autoCheck()
@@ -125,7 +125,7 @@ class productplanModel extends model
     public function update($planID)
     {
         $oldPlan = $this->getById($planID);
-        $plan = fixer::input('post')->stripTags('title')->get();
+        $plan = fixer::input('post')->stripTags($this->config->productplan->editor->edit['id'], $this->config->allowedTags)->get();
         $this->dao->update(TABLE_PRODUCTPLAN)
             ->data($plan)
             ->autoCheck()

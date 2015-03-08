@@ -2,8 +2,8 @@
 /**
  * The delay file of project module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang<wwccss@gmail.com>
  * @package     project 
  * @version     $Id: delay.html.php 935 2013-01-16 07:49:24Z wwccss@gmail.com $
@@ -14,7 +14,7 @@
 <?php include '../../common/view/kindeditor.html.php';?>
 <?php include '../../common/view/datepicker.html.php';?>
 <?php js::import($jsRoot . 'misc/date.js');?>
-<div class='container mw-800px'>
+<div class='container mw-1400px'>
   <div id='titlebar'>
     <div class='heading'>
       <span class='prefix'><?php echo html::icon($lang->icons['project']);?> <strong><?php echo $project->id;?></strong></span>
@@ -25,8 +25,8 @@
   <form class='form-condensed' method='post' target='hiddenwin'>
     <table class='table table-form'>
       <tr>
-        <th class='w-90px'><?php echo $lang->project->dateRange;?></th>
-        <td>
+        <th class='w-80px'><?php echo $lang->project->dateRange;?></th>
+        <td class='w-p50'>
           <div class='input-group'>
             <?php echo html::input('begin', $project->begin, "class='form-control form-date' onchange='computeWorkDays()' placeholder='" . $lang->project->begin . "'");?>
             <span class='input-group-addon'><?php echo $lang->project->to;?></span>
@@ -41,6 +41,7 @@
             </div>
           </div>
         </td>
+        <td></td>
       </tr>
       <tr>
         <th><?php echo $lang->project->days;?></th>
@@ -53,10 +54,10 @@
       </tr> 
       <tr>
         <th><?php echo $lang->comment;?></th>
-        <td><?php echo html::textarea('comment', '', "rows='6' class='form-control'");?></td>
+        <td colspan='2'><?php echo html::textarea('comment', '', "rows='6' class='form-control'");?></td>
       </tr>
       <tr>
-        <td colspan='2' class='text-center'><?php echo html::submitButton() . html::linkButton($lang->goback, $this->session->taskList); ?></td>
+        <th></th><td><?php echo html::submitButton() . html::linkButton($lang->goback, $this->session->taskList); ?></td>
       </tr>
     </table>
   </form>

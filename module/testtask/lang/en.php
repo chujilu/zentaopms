@@ -2,8 +2,8 @@
 /**
  * The testtask module English file of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     testtask
  * @version     $Id: en.php 4490 2013-02-27 03:27:05Z wyd621@gmail.com $
@@ -15,7 +15,7 @@ $lang->testtask->delete         = "Delete";
 $lang->testtask->deleted        = "Deleted";
 $lang->testtask->view           = "Info";
 $lang->testtask->edit           = "Edit";
-$lang->testtask->browse         = "Testtask browse";
+$lang->testtask->browse         = "Browse";
 $lang->testtask->linkCase       = "Link case";
 $lang->testtask->linkCaseAB     = "Link";
 $lang->testtask->unlinkCase     = "Del";
@@ -26,12 +26,15 @@ $lang->testtask->results        = "Result";
 $lang->testtask->createBug      = "Bug(+)";
 $lang->testtask->assign         = 'Assign';
 $lang->testtask->cases          = 'Cases';
+$lang->testtask->groupCase      = "View case by group";
 $lang->testtask->pre            = 'Previous';
 $lang->testtask->next           = 'Next';
 $lang->testtask->start          = "Start";
 $lang->testtask->close          = "Close";
+$lang->testtask->wait           = "Testing build";
+$lang->testtask->done           = "Tested build";
 
-$lang->testtask->common         = 'Test task';
+$lang->testtask->common         = 'Test build';
 $lang->testtask->id             = 'ID';
 $lang->testtask->product        = 'Product';
 $lang->testtask->project        = 'Project';
@@ -49,6 +52,8 @@ $lang->testtask->lastRunAccount = "Run";
 $lang->testtask->lastRunTime    = 'Time';
 $lang->testtask->lastRunResult  = 'Result';
 $lang->testtask->report         = 'Report';
+$lang->testtask->stories        = 'Stories';
+$lang->testtask->bugs           = 'Bugs';
 
 $lang->testtask->legendDesc      = 'Desc';
 $lang->testtask->legendReport    = 'Report';
@@ -72,8 +77,10 @@ $lang->testtask->linkByBug     = 'Link by bug';
 $lang->testtask->passAll       = 'Pass all';
 $lang->testtask->pass          = 'Pass';
 $lang->testtask->fail          = 'Fail';
+$lang->testtask->showResult    = 'Executed <span class="text-info">%s</span> times';
+$lang->testtask->showFail      = 'Failed <span class="text-danger">%s</span times';
 
-$lang->testtask->confirmDelete     = 'Are you sure to delete this test task?';
+$lang->testtask->confirmDelete     = 'Are you sure to delete this test build?';
 $lang->testtask->confirmUnlinkCase = 'Are you sure to unlink this case?';
 
 $lang->testtask->byModule      = 'By module';
@@ -94,3 +101,10 @@ $lang->testtask->mail->create = new stdclass();
 $lang->testtask->mail->edit   = new stdclass();
 $lang->testtask->mail->create->title = "%s created testtask #%s:%s";
 $lang->testtask->mail->edit->title   = "%s finished testtask #%s:%s";
+
+$lang->testtask->testScope = 'Test scope';
+
+$lang->testtask->action = new stdclass();
+$lang->testtask->action->testtaskopened  = '$date, 由 <strong>$actor</strong> opened test task. <strong>$extra</strong>。' . "\n";
+$lang->testtask->action->testtaskstarted = '$date, 由 <strong>$actor</strong> started test task. <strong>$extra</strong>。' . "\n";
+$lang->testtask->action->testtaskclosed  = '$date, 由 <strong>$actor</strong> finished test task. <strong>$extra</strong>。' . "\n";

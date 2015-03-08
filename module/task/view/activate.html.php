@@ -2,8 +2,8 @@
 /**
  * The activate file of task module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Jia Fu <fujia@cnezsoft.com>
  * @package     task
  * @version     $Id: start.html.php 935 2010-07-06 07:49:24Z jajacn@126.com $
@@ -24,7 +24,7 @@
   <table class='table table-form'>
     <tr>
       <th class='w-80px'><?php echo $lang->task->assignedTo;?></th>
-      <td class='w-p45'><?php echo html::select('assignedTo', $members, $task->finishedBy, "class='form-control'");?></td><td></td>
+      <td class='w-p25-f'><?php echo html::select('assignedTo', $members, $task->finishedBy, "class='form-control chosen'");?></td><td></td>
     </tr>
     <tr>
       <th><?php echo $lang->task->left;?></th>

@@ -2,8 +2,8 @@
 /**
  * The edit view of testtask module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     testtask
  * @version     $Id: edit.html.php 4728 2013-05-03 06:14:34Z chencongzhi520@gmail.com $
@@ -13,7 +13,7 @@
 <?php include '../../common/view/header.html.php';?>
 <?php include '../../common/view/datepicker.html.php';?>
 <?php include '../../common/view/kindeditor.html.php';?>
-<div class='container mw-800px'>
+<div class='container mw-1400px'>
   <div id='titlebar'>
     <div class='heading'>
       <span class='prefix' title='TESTTASK'><?php echo html::icon($lang->icons['testtask']);?></span>
@@ -25,11 +25,11 @@
     <table class='table table-form'> 
       <tr>
         <th class='w-80px'><?php echo $lang->testtask->project;?></th>
-        <td class='w-p25-f'><?php echo html::select('project', $projects, $task->project, "class='form-control'");?></td><td></td>
+        <td class='w-p25-f'><?php echo html::select('project', $projects, $task->project, "class='form-control chosen'");?></td><td></td>
       </tr>
       <tr>
         <th><?php echo $lang->testtask->build;?></th>
-        <td><?php echo html::select('build', $builds, $task->build, "class='form-control'");?></td>
+        <td><?php echo html::select('build', $builds, $task->build, "class='form-control chosen'");?></td>
       </tr>
       <tr>
         <th><?php echo $lang->testtask->owner;?></th>

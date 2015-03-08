@@ -21,39 +21,26 @@ function loadList(type, id)
     {
         divClass   = '.nameBox';
         divID      = '#nameBox';
-        customHtml = $(divID).html();
     }
 
+    var param = 'account=' + account;
+    if(id) param += '&id=' + id;
     if(type == 'bug')
     {
-        if(id)
-        {
-          link = createLink('bug', 'ajaxGetUserBugs', 'account=' + account + '&id=' + id);
-        }
-        else
-        {
-          link = createLink('bug', 'ajaxGetUserBugs', 'account=' + account);
-        }
+        link = createLink('bug', 'ajaxGetUserBugs', param);
     }
     else if(type == 'task')
     {
-        if(id)
-        {
-          link = createLink('task', 'ajaxGetUserTasks', 'account=' + account + '&id=' + id);
-        }
-        else
-        {
-          link = createLink('task', 'ajaxGetUserTasks', 'account=' + account);
-        }
+        link = createLink('task', 'ajaxGetUserTasks', param);
     }
 
     if(type == 'bug' || type == 'task')
     {
-        $(divClass).load(link);
+        $(divClass).load(link, function(){$(divClass).find('select').chosen(defaultChosenOptions)});
     }
     else if(type == 'custom')
     {
-        $(divClass).html(customHtml);
+        $(divClass).html($(divID).html());
     }
 }
 

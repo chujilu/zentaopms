@@ -2,8 +2,8 @@
 /**
  * The control file of admin module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     admin
  * @version     $Id: control.php 4460 2013-02-26 02:28:02Z chencongzhi520@gmail.com $
@@ -119,33 +119,5 @@ class admin extends control
             $result = $this->dbh->query("REPAIR TABLE $tableName")->fetch();
             echo "Repairing TABLE: " . $result->Table . "\t" . $result->Msg_type . ":" . $result->Msg_text . "\n";
         }
-    }
-
-    /**
-     * Confirm clear data.
-     * 
-     * @param  string $confirm ''|no|yes
-     * @access public
-     * @return void
-     */
-    public function clearData($confirm = '')
-    {
-        if($confirm == 'no')
-        {
-            die(js::confirm($this->lang->admin->confirmClearData, inlink('clearData', "confirm=yes")));
-        }
-        elseif($confirm == 'yes')
-        {
-            $result = $this->admin->clearData();
-
-            if(!$result) die(js::alert($this->lang->admin->clearDataFailed));
-
-            js::alert($this->lang->admin->clearDataSuccessfully);
-            die(js::locate(inLink('index'), 'parent'));
-        }
-
-        $this->view->title      = $this->lang->admin->clearData;
-        $this->view->position[] = $this->lang->admin->clearData;
-        $this->display();
     }
 }

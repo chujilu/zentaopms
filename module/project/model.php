@@ -2,8 +2,8 @@
 /**
  * The model file of project module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     project
  * @version     $Id: model.php 5118 2013-07-12 07:41:41Z chencongzhi520@gmail.com $
@@ -211,11 +211,11 @@ class projectModel extends model
         $this->lang->project->team = $this->lang->project->teamname;
         $project = fixer::input('post')
             ->setDefault('status', 'wait')
-            ->stripTags('name, code, team')
             ->setIF($this->post->acl != 'custom', 'whitelist', '')
             ->setDefault('openedVersion', $this->config->version)
-            ->setDefault('team', $this->post->name)
+            ->setDefault('team', substr($this->post->name,0, 30))
             ->join('whitelist', ',')
+            ->stripTags($this->config->project->editor->create['id'], $this->config->allowedTags)
             ->remove('products, workDays, delta')
             ->get();
         $this->dao->insert(TABLE_PROJECT)->data($project)
@@ -280,12 +280,12 @@ class projectModel extends model
         $this->lang->project->team = $this->lang->project->teamname;
         $projectID = (int)$projectID;
         $project = fixer::input('post')
-            ->stripTags('name, code, team')
             ->setIF($this->post->begin == '0000-00-00', 'begin', '')
             ->setIF($this->post->end   == '0000-00-00', 'end', '')
             ->setIF($this->post->acl != 'custom', 'whitelist', '')
             ->setDefault('team', $this->post->name)
             ->join('whitelist', ',')
+            ->stripTags($this->config->project->editor->create['id'], $this->config->allowedTags)
             ->remove('products')
             ->get();
         $this->dao->update(TABLE_PROJECT)->data($project)
@@ -509,15 +509,7 @@ class projectModel extends model
         foreach($projects as $project)
         {
             if(strpos($mode, 'noclosed') !== false and $project->status == 'done') continue;
-            if($this->checkPriv($project))
-            {
-                if(strpos($mode, 'nocode') === false and $project->code)
-                {
-                    $firstChar = strtoupper(substr($project->code, 0, 1));
-                    if(ord($firstChar) < 127) $project->name =  $firstChar . ':' . $project->name;
-                }
-                $pairs[$project->id] = $project->name;
-            }
+            if($this->checkPriv($project)) $pairs[$project->id] = $project->name;
         }
 
         /* If the pairs is empty, to make sure there's an project in the pairs. */
@@ -610,13 +602,27 @@ class projectModel extends model
      * Get project stats.
      * 
      * @param  string $status 
+     * @param  int    $productID 
+     * @param  int    $itemCounts 
+     * @param  string $orderBy 
+     * @param  int    $pager 
      * @access public
-     * @return array
+     * @return void
      */
-    public function getProjectStats($status = 'undone', $productID = 0, $itemCounts = 30)
+    public function getProjectStats($status = 'undone', $productID = 0, $itemCounts = 30, $orderBy = 'code', $pager = null)
     {
         /* Init vars. */
         $projects    = $this->getList($status, 0, $productID);
+        foreach($projects as $projectID => $project)
+        {
+            if(!$this->checkPriv($project)) unset($projects[$projectID]);
+        }
+        $projects = $this->dao->select('*')->from(TABLE_PROJECT)
+            ->where('id')->in(array_keys($projects))
+            ->orderBy($orderBy)
+            ->page($pager)
+            ->fetchAll('id');
+
         $projectKeys = array_keys($projects);
         $stats       = array();
         $hours       = array();
@@ -681,12 +687,6 @@ class projectModel extends model
         /* Process projects. */
         foreach($projects as $key => $project)
         {
-            if(!$this->checkPriv($project))
-            {
-                unset($projects[$key]);
-                continue;
-            }
-
             // Process the end time.
             $project->end = date("Y-m-d", strtotime($project->end));
 
@@ -786,6 +786,8 @@ class projectModel extends model
         $projects = $this->dao->select('distinct t1.*')->from(TABLE_PROJECT)->alias('t1')
             ->leftJoin(TABLE_TASK)->alias('t2')->on('t1.id=t2.project')
             ->where('t2.status')->notIN('done,closed')
+            ->andWhere('t2.deleted')->eq(0)
+            ->andWhere('t1.deleted')->eq(0)
             ->orderBy('id desc')
             ->fetchAll('id');
 
@@ -853,7 +855,7 @@ class projectModel extends model
     {
         $this->loadModel('task');
         $tasks        = array();
-        $projectTasks = $this->task->getProjectTasks($fromProject, 'wait,doing,cancel');
+        $projectTasks = $this->task->getProjectTasks($fromProject, 'wait,doing,pause,cancel');
         $tasks        = array_merge($tasks, $projectTasks); 
         return $tasks;
     }
@@ -929,40 +931,43 @@ class projectModel extends model
     public function importBug($projectID)
     {
         $this->loadModel('bug');
-        $bugLang = $this->app->loadLang('bug');
         $this->loadModel('task');
         $this->loadModel('story');
 
-        $now = helper::now();
-        $BugToTasks = fixer::input('post')->get();
-        foreach($BugToTasks->import as $key => $value)
+        $now     = helper::now();
+        $modules = $this->loadModel('tree')->getTaskOptionMenu($projectID);
+
+        $bugToTasks = fixer::input('post')->get();
+        $bugs       = $this->bug->getByList(array_keys($bugToTasks->import));
+        foreach($bugToTasks->import as $key => $value)
         {
-            $bug  = $this->bug->getById($key);
+            $bug  = $bugs[$key];
             $task = new stdClass();
             $task->project      = $projectID;
             $task->story        = $bug->story;
-            $task->storyVersion = $bug->story;
+            $task->storyVersion = $bug->storyVersion;
+            $task->module       = isset($modules[$bug->module]) ? $bug->module : 0;
             $task->fromBug      = $key;
             $task->name         = $bug->title;
             $task->type         = 'devel';
-            $task->pri          = $BugToTasks->pri[$key];
+            $task->pri          = $bugToTasks->pri[$key];
             $task->consumed     = 0;
             $task->status       = 'wait';
-            $task->desc         = $bugLang->bug->resolve . ':' . '#' . html::a(helper::createLink('bug', 'view', "bugID=$key"), sprintf('%03d', $key));
+            $task->desc         = $this->lang->bug->resolve . ':' . '#' . html::a(helper::createLink('bug', 'view', "bugID=$key"), sprintf('%03d', $key));
             $task->openedDate   = $now;
             $task->openedBy     = $this->app->user->account;
-            if(!empty($BugToTasks->estimate[$key]))
+            if(!empty($bugToTasks->estimate[$key]))
             {
-                $task->estimate     = $BugToTasks->estimate[$key];
+                $task->estimate     = $bugToTasks->estimate[$key];
                 $task->left         = $task->estimate;
             }
-            if(!empty($BugToTasks->assignedTo[$key]))
+            if(!empty($bugToTasks->assignedTo[$key]))
             {
-                $task->assignedTo   = $BugToTasks->assignedTo[$key];
+                $task->assignedTo   = $bugToTasks->assignedTo[$key];
                 $task->assignedDate = $now;
             }
             if(!$bug->confirmed) $this->dao->update(TABLE_BUG)->set('confirmed')->eq(1)->where('id')->eq($bug->id)->exec();
-            $this->dao->insert(TABLE_TASK)->data($task)->checkIF($BugToTasks->estimate[$key] != '', 'estimate', 'float')->exec();
+            $this->dao->insert(TABLE_TASK)->data($task)->checkIF($bugToTasks->estimate[$key] != '', 'estimate', 'float')->exec();
 
             if(dao::isError()) 
             {
@@ -979,6 +984,30 @@ class projectModel extends model
 
             $this->action->create('bug', $key, 'Totask', '', $taskID);
             $this->dao->update(TABLE_BUG)->set('toTask')->eq($taskID)->where('id')->eq($key)->exec();
+
+            /* activate bug if bug postponed. */
+            if($bug->status == 'resolved' && $bug->resolution == 'postponed')
+            {
+                $newBug = new stdclass();
+                $newBug->lastEditedBy   = $this->app->user->account;
+                $newBug->lastEditedDate = $now;
+                $newBug->assignedDate   = $now;
+                $newBug->status         = 'active';
+                $newBug->resolvedDate   = '0000-00-00';
+                $newBug->resolution     = '';
+                $newBug->resolvedBy     = '';
+                $newBug->resolvedBuild  = '';
+                $newBug->closedBy       = '';
+                $newBug->closedDate     = '0000-00-00';
+                $newBug->duplicateBug   = '0';
+
+                $this->dao->update(TABLE_BUG)->data($newBug)->autoCheck()->where('id')->eq($key)->exec();
+                $this->dao->update(TABLE_BUG)->set('activatedCount = activatedCount + 1')->where('id')->eq($key)->exec();
+
+                $actionID = $this->action->create('bug', $key, 'Activated');
+                $changes  = common::createChanges($bug, $newBug);
+                $this->action->logHistory($actionID, $changes);
+            }
 
             if(isset($task->assignedTo) and $task->assignedTo and $task->assignedTo != $bug->assignedTo)
             {
@@ -1224,7 +1253,7 @@ class projectModel extends model
         $today = helper::today();
         $burns = array();
 
-        $projects = $this->dao->select('id, name')->from(TABLE_PROJECT)
+        $projects = $this->dao->select('id, code')->from(TABLE_PROJECT)
             ->where("end >= '$today'")
             ->andWhere('status')->notin('done,suspended')
             ->fetchPairs();
@@ -1414,7 +1443,7 @@ class projectModel extends model
      */
     public function summary($tasks)
     {
-        $taskSum = $statusWait = $statusDone = $statusDoing = $statusClosed = $statusCancel = 0;  
+        $taskSum = $statusWait = $statusDone = $statusDoing = $statusClosed = $statusCancel = $statusPause = 0;  
         $totalEstimate = $totalConsumed = $totalLeft = 0.0;
         foreach($tasks as $task)
         {
@@ -1425,7 +1454,7 @@ class projectModel extends model
             $$statusVar ++;
         }
 
-        return sprintf($this->lang->project->taskSummary, count($tasks), $statusWait, $statusDoing, $totalEstimate, $totalConsumed, $totalLeft);
+        return sprintf($this->lang->project->taskSummary, count($tasks), $statusWait, $statusDoing, $totalEstimate, round($totalConsumed, 1), $totalLeft);
     }
 
     /**
@@ -1473,9 +1502,18 @@ class projectModel extends model
         }   
 
         if($module == 'project' && $method == 'create') return;
-
-        $link = helper::createLink($module, $method, "projectID=%s");
-        if($extra != '') $link = helper::createLink($module, $method, "projectID=%s&type=$extra");
+        if($extra != '')
+        {
+            $link = helper::createLink($module, $method, "projectID=%s&type=$extra");
+        }
+        elseif($module == 'project' && $method == 'index')
+        {
+            $link = helper::createLink($module, $method, "locate=no&status=undone&projectID=%s");
+        }
+        else
+        {
+            $link = helper::createLink($module, $method, "projectID=%s");
+        }
         return $link;
     }
 

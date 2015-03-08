@@ -2,8 +2,8 @@
 /**
  * The view file of case module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     case
  * @version     $Id: view.html.php 4141 2013-01-18 06:15:13Z zhujinyonging@gmail.com $
@@ -29,8 +29,8 @@
         ob_start();
 
         echo "<div class='btn-group'>";
-        common::printIcon('testtask', 'start',    "taskID=$task->id", $task);
-        common::printIcon('testtask', 'close',    "taskID=$task->id", $task, 'button', '', '', 'text-danger');
+        common::printIcon('testtask', 'start',    "taskID=$task->id", $task, 'button', '', '', 'iframe', true);
+        common::printIcon('testtask', 'close',    "taskID=$task->id", $task, 'button', '', '', 'iframe', true);
         common::printIcon('testtask', 'cases',    "taskID=$task->id", $task, 'button', 'smile');
         common::printIcon('testtask', 'linkCase', "taskID=$task->id", $task, 'button', 'link');
         echo '</div>';
@@ -40,13 +40,14 @@
         common::printIcon('testtask', 'delete',   "taskID=$task->id", '', 'button', '', 'hiddenwin');
         echo '</div>';
 
+        echo "<div class='btn-group'>";
+        common::printRPN($browseLink);
+        echo '</div>';
+
         $actionLinks = ob_get_contents();
         ob_clean();
         echo $actionLinks;
     }
-    echo "<div class='btn-group'>";
-    common::printRPN($browseLink);
-    echo '</div>';
     ?>
   </div>
 </div>
@@ -96,11 +97,7 @@
           </tr>  
           <tr>
             <th><?php echo $lang->testtask->status;?></th>
-            <td><?php echo $lang->testtask->statusList[$task->status];?></td>
-          </tr>  
-          <tr>
-            <th><?php echo $lang->testtask->report;?></th>
-            <td class='content'><?php echo $task->report;?></td>
+            <td class='task-<?php echo $task->status?>'><?php echo $lang->testtask->statusList[$task->status];?></td>
           </tr>  
        </table>
       </fieldset>

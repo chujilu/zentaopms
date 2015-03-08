@@ -2,8 +2,8 @@
 /**
  * The model file of git module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     git
  * @version     $Id$
@@ -82,6 +82,8 @@ class gitModel extends model
     public function run()
     {
         $this->setRepos();
+        if(empty($this->repos)) return false;
+
         $this->setLogRoot();
         $this->setRestartFile();
 
@@ -90,11 +92,13 @@ class gitModel extends model
             $this->printLog("begin repo $name");
             $repo = (object)$repo;
             $repo->name = $name;
-            $this->setRepo($repo);
+            if(!$this->setRepo($repo)) return false;
 
             $savedRevision = $this->getSavedRevision();
             $this->printLog("start from revision $savedRevision");
             $logs = $this->getRepoLogs($repo, $savedRevision);
+            if(empty($logs)) return false;
+
             $this->printLog("get " . count($logs) . " logs");
             if(empty($logs)) continue;
 
@@ -171,12 +175,18 @@ class gitModel extends model
      * Set the repos.
      * 
      * @access public
-     * @return void
+     * @return bool
      */
     public function setRepos()
     {
-        if(!$this->config->git->repos) die("You must set one git repo.\n");
+        if(!$this->config->git->repos)
+        {
+            echo "You must set one git repo.\n";
+            return false;
+        }
+
         $this->repos = $this->config->git->repos;
+        return true;
     }
 
     /**
@@ -184,13 +194,16 @@ class gitModel extends model
      * 
      * @param  object    $repo 
      * @access public
-     * @return void
+     * @return bool
      */
     public function setRepo($repo)
     {
         $this->setClient($repo);
+        if(empty($this->client)) return false;
+
         $this->setLogFile($repo->name);
         $this->setRepoRoot($repo);
+        return true;
     }
 
     /**
@@ -198,12 +211,18 @@ class gitModel extends model
      * 
      * @param  object    $repo 
      * @access public
-     * @return void
+     * @return bool
      */
     public function setClient($repo)
     {
-        if($this->config->git->client == '') die("You must set the git client file.\n");
+        if($this->config->git->client == '')
+        {
+            echo "You must set the git client file.\n";
+            return false;
+        }
+
         $this->client = $this->config->git->client;
+        return true;
     }
 
     /**
@@ -253,7 +272,11 @@ class gitModel extends model
         }
         exec($cmd, $list, $return);
 
-        if(!$list and $return) die("Some error occers: \nThe command is $cmd\n");
+        if(!$list and $return) 
+        {
+            echo "Some error occers: \nThe command is $cmd\n";
+            return false;
+        }
         if(!$list and !$return) return array();
 
         /* Process logs. */
@@ -348,12 +371,11 @@ class gitModel extends model
     public function iconvComment($comment)
     {
         /* Get encodings. */
-        $encodings = str_replace(' ', '', trim($comment));
-        if($encodings == '') return $comment;
-        $encodings = explode(',', $encodings);
+        $encoding = str_replace(' ', '', $this->config->git->encodings);
+        if($encoding == '') return $comment;
 
         /* Try convert. */
-        foreach($encodings as $encoding)
+        if($encoding != 'utf-8')
         {
             $result = @iconv($encoding, 'utf-8', $comment);
             if($result) return $result;
@@ -376,6 +398,7 @@ class gitModel extends model
         if(!$repo) return false;
 
         $this->setClient($repo);
+        if(empty($this->client)) return false;
         putenv('LC_CTYPE=en_US.UTF-8');
 
         $path = str_replace('%2F', '/', urlencode($path));
@@ -400,6 +423,7 @@ class gitModel extends model
         if(!$repo) return false;
 
         $this->setClient($repo);
+        if(empty($this->client)) return false;
 
         putenv('LC_CTYPE=en_US.UTF-8');
 
@@ -421,7 +445,11 @@ class gitModel extends model
      */
     public function getRepoByURL($url)
     {
-        foreach($this->config->git->repos as $repo) if(strpos($url, $repo['path']) !== false) return (object)$repo;
+        foreach($this->config->git->repos as $repo)
+        {
+            if(empty($repo['path'])) continue;
+            if(strpos($url, $repo['path']) !== false) return (object)$repo;
+        }
         return false;
     }
 

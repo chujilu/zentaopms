@@ -2,8 +2,8 @@
 /**
  * The control file of doc module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     doc
  * @version     $Id: control.php 933 2010-07-06 06:53:40Z wwccss $
@@ -72,6 +72,9 @@ class doc extends control
         /* Load pager. */
         $this->app->loadClass('pager', $static = true);
         $pager = new pager($recTotal, $recPerPage, $pageID);
+
+        /* Append id for secend sort. */
+        $sort = $this->loadModel('common')->appendOrder($orderBy);
  
         /* Get docs. */
         $modules = 0;
@@ -79,7 +82,7 @@ class doc extends control
         if($browseType == "bymodule")
         {
             if($moduleID) $modules = $this->tree->getAllChildID($moduleID);
-            $docs = $this->doc->getDocs($libID, $productID, $projectID, $modules, $orderBy, $pager);
+            $docs = $this->doc->getDocs($libID, $productID, $projectID, $modules, $sort, $pager);
         }
         elseif($browseType == "bysearch")
         {
@@ -102,10 +105,9 @@ class doc extends control
             }
             $docQuery = str_replace("`product` = 'all'", '1', $this->session->docQuery); // Search all producti.
             $docQuery = str_replace("`project` = 'all'", '1', $docQuery);                // Search all project.
-            $docQuery = $this->search->replaceDynamic($docQuery);
             $docs = $this->dao->select('*')->from(TABLE_DOC)->where($docQuery)
             ->andWhere('deleted')->eq(0)
-            ->orderBy($orderBy)->page($pager)->fetchAll();
+            ->orderBy($sort)->page($pager)->fetchAll();
         }
 
         /* Get the tree menu. */
@@ -249,8 +251,15 @@ class doc extends control
         $projectID = (int)$projectID;
         if(!empty($_POST))
         {
-            $docID = $this->doc->create();
-            if(dao::isError()) die(js::error(dao::getError()));
+            $docResult = $this->doc->create();
+            if(!$docResult or dao::isError()) die(js::error(dao::getError()));
+
+            $docID = $docResult['id'];
+            if($docResult['status'] == 'exists')
+            {
+                echo js::alert(sprintf($this->lang->duplicate, $this->lang->doc->common));
+                die(js::locate($this->createLink('doc', 'view', "docID=$docID"), 'parent'));
+            }
             $this->action->create('doc', $docID, 'Created');
 
             if($from == 'product') $link = $this->createLink('product', 'doc', "productID={$this->post->product}");
@@ -359,7 +368,10 @@ class doc extends control
 
         $this->view->doc              = $doc;
         $this->view->libID            = $libID;
+        $this->view->libs             = $this->libs;
         $this->view->moduleOptionMenu = $moduleOptionMenu;
+        $this->view->products         = $doc->project == 0 ? $this->product->getPairs() : $this->project->getProducts($doc->project);
+        $this->view->projects         = $this->loadModel('project')->getPairs('all');
         $this->display();
     }
 

@@ -2,8 +2,8 @@
 /**
  * The model file of install module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     install
  * @version     $Id: model.php 5006 2013-07-03 08:52:21Z wyd621@gmail.com $
@@ -216,6 +216,12 @@ class installModel extends model
         /* Connect to database. */
         $this->setDBParam();
         $this->dbh = $this->connectDB();
+        if(strpos($this->post->dbName, '.') !== false)
+        {
+            $return->result = 'fail';
+            $return->error  = $this->lang->install->errorDBName;
+            return $return;
+        }
         if(!is_object($this->dbh))
         {
             $return->result = 'fail';
@@ -286,6 +292,7 @@ class installModel extends model
             $dbh->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_OBJ);
             $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             $dbh->exec("SET NAMES {$this->config->db->encoding}");
+            if(isset($this->config->db->strictMode) and $this->config->db->strictMode == false) $dbh->exec("SET @@sql_mode= ''");
             return $dbh;
         }
         catch (PDOException $exception)

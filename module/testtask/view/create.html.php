@@ -2,8 +2,8 @@
 /**
  * The create view of testtask module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     testtask
  * @version     $Id: create.html.php 4728 2013-05-03 06:14:34Z chencongzhi520@gmail.com $
@@ -13,7 +13,8 @@
 <?php include '../../common/view/header.html.php';?>
 <?php include '../../common/view/datepicker.html.php';?>
 <?php include '../../common/view/kindeditor.html.php';?>
-<div class='container'>
+<?php js::import($jsRoot . 'misc/date.js');?>
+<div class='container mw-1400px'>
   <div id='titlebar'>
     <div class='heading'>
       <span class='prefix'><?php echo html::icon($lang->icons['testtask']);?></span>
@@ -25,7 +26,7 @@
       <?php if(isset($projectID)):?>
       <tr>
         <th class='w-90px'><?php echo $lang->testtask->product;?></th>
-        <td class='w-p25-f'><?php echo html::select('product', $products, '', "class='form-control'");?></td><td></td>
+        <td class='w-p25-f'><?php echo html::select('product', $products, '', "class='form-control chosen'");?></td><td></td>
       </tr>  
       <?php else:?>
       <tr class='hide'>
@@ -35,11 +36,11 @@
       <?php endif;?>
       <tr>
         <th class='w-90px'><?php echo $lang->testtask->project;?></th>
-        <td class='w-p25-f'><?php echo html::select('project', $projects, '', 'class=form-control onchange=loadProjectRelated(this.value)');?></td><td></td>
+        <td class='w-p25-f'><?php echo html::select('project', $projects, '', "class='form-control chosen' onchange='loadProjectRelated(this.value)'");?></td><td></td>
       </tr>  
       <tr>
         <th><?php echo $lang->testtask->build;?></th>
-        <td><span id='buildBox'><?php echo html::select('build', $builds, '', "class='form-control'");?></span></td>
+        <td><span id='buildBox'><?php echo html::select('build', $builds, '', "class='form-control chosen'");?></span></td>
       </tr>  
       <tr>
         <th><?php echo $lang->testtask->owner;?></th>
@@ -51,7 +52,7 @@
       </tr>  
       <tr>
         <th><?php echo $lang->testtask->begin;?></th>
-        <td><?php echo html::input('begin', '', "class='form-control form-date'");?></td>
+        <td><?php echo html::input('begin', '', "class='form-control form-date' onchange='suitEndDate()'");?></td>
       </tr>  
       <tr>
         <th><?php echo $lang->testtask->end;?></th>

@@ -2,8 +2,8 @@
 /**
  * The create view of bug module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     bug
  * @version     $Id: create.html.php 4903 2013-06-26 05:32:59Z wyd621@gmail.com $
@@ -13,7 +13,6 @@
 <?php
 include '../../common/view/header.html.php';
 include '../../common/view/form.html.php';
-include '../../common/view/chosen.html.php';
 include '../../common/view/kindeditor.html.php';
 js::set('holders', $lang->bug->placeholder);
 js::set('page', 'create');
@@ -21,7 +20,7 @@ js::set('createRelease', $lang->release->create);
 js::set('createBuild', $lang->build->create);
 js::set('refresh', $lang->refresh);
 ?>
-<div class='container'>
+<div class='container mw-1400px'>
   <div id='titlebar'>
     <div class='heading'>
       <span class='prefix'><?php echo html::icon($lang->icons['bug']);?></span>
@@ -32,13 +31,13 @@ js::set('refresh', $lang->refresh);
     <table class='table table-form'> 
       <tr>
         <th class='w-110px'><?php echo $lang->bug->lblProductAndModule;?></th>
-        <td class='w-p25-f'>
-          <?php echo html::select('product', $products, $productID, "onchange=loadAll(this.value) class='form-control' autocomplete='off'");?>
+        <td class='w-p35-f'>
+          <?php echo html::select('product', $products, $productID, "onchange=loadAll(this.value) class='form-control chosen' autocomplete='off'");?>
         </td>
         <td>
-          <div class='input-group w-p25-f' id='moduleIdBox'>
+          <div class='input-group w-p35-f' id='moduleIdBox'>
           <?php
-          echo html::select('module', $moduleOptionMenu, $moduleID, "onchange='loadModuleRelated()' class='form-control'");
+          echo html::select('module', $moduleOptionMenu, $moduleID, "onchange='loadModuleRelated()' class='form-control chosen'");
           if(count($moduleOptionMenu) == 1)
           {
               echo "<span class='input-group-addon'>";
@@ -49,11 +48,11 @@ js::set('refresh', $lang->refresh);
           }
           ?>
           </div>
-        </td><td class='w-150px'></td>
+        </td>
       </tr>
       <tr>
         <th><?php echo $lang->bug->project;?></th>
-        <td><span id='projectIdBox'><?php echo html::select('project', $projects, $projectID, 'class=form-control onchange=loadProjectRelated(this.value) autocomplete="off"');?></span></td>
+        <td><span id='projectIdBox'><?php echo html::select('project', $projects, $projectID, "class='form-control chosen' onchange='loadProjectRelated(this.value)' autocomplete='off'");?></span></td>
       </tr>
       <tr>
         <th><?php echo $lang->bug->openedBuild;?></th>
@@ -74,26 +73,42 @@ js::set('refresh', $lang->refresh);
       </tr>  
       <tr>
         <th><?php echo $lang->bug->steps;?></th>
-        <td colspan='2'><?php echo html::textarea('steps', $steps, "rows='10' class='form-control'");?></td>
-        <td style='vertical-align: top;'>
-          <ul id='tplBox' class='list-group'><?php echo $this->fetch('bug', 'buildTemplates');?></ul>
+        <td colspan='2'>
+          <div id='tplBoxWrapper'>
+            <div class='btn-toolbar'>
+              <div class='btn-group'><button id='saveTplBtn' type='button' class='btn btn-mini'><?php echo $lang->bug->saveTemplate?></button></div>
+              <div class="btn-group">
+                <button type='button' class='btn btn-mini dropdown-toggle' data-toggle='dropdown'><?php echo $lang->bug->applyTemplate?> <span class='caret'></span></button>
+                <ul id='tplBox' class='dropdown-menu pull-right'>
+                  <?php echo $this->fetch('bug', 'buildTemplates');?>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <?php echo html::textarea('steps', $steps, "rows='10' class='form-control'");?>
         </td>
-      </tr>  
+      </tr>
       <tr>
         <th><?php echo $lang->bug->lblStory;?></th>
         <td colspan='2'>
-          <span id='storyIdBox'><?php echo html::select('story', $stories, $storyID, "class='form-control'");?></span>
+          <span id='storyIdBox'><?php echo html::select('story', $stories, $storyID, "class='form-control chosen'");?></span>
         </td>
-      </tr>  
+      </tr>
       <tr>
         <th><?php echo $lang->bug->task;?></th>
-        <td colspan='2'><span id='taskIdBox'><?php echo html::select('task', $tasks, $taskID, "class='form-control'");?></span></td>
+        <td colspan='2'><span id='taskIdBox'><?php echo html::select('task', '', $taskID, "class='form-control chosen'");?></span></td>
       </tr>
       <tr>
         <th><?php echo $lang->bug->lblTypeAndSeverity;?></th>
         <td>
           <div class='input-group'>
-            <?php echo html::select('type', $lang->bug->typeList, $type, "class='form-control' style='width: 50%'");?> 
+            <?php
+            /* Remove the unused types. */
+            unset($lang->bug->typeList['designchange']);
+            unset($lang->bug->typeList['newfeature']);
+            unset($lang->bug->typeList['trackthings']);
+            echo html::select('type', $lang->bug->typeList, $type, "class='form-control' style='width: 50%'");
+            ?>
             <?php echo html::select('severity', $lang->bug->severityList, $severity, "class='form-control' style='width: 50%'");?>
           </div>
         </td>
@@ -116,7 +131,7 @@ js::set('refresh', $lang->refresh);
         </td>
         <td class='text-top'>
           <?php
-          if($contactLists) echo html::select('', $contactLists, '', "class='form-control' onchange=\"setMailto('mailto', this.value)\"");
+          if($contactLists) echo html::select('', $contactLists, '', "class='form-control chosen' onchange=\"setMailto('mailto', this.value)\"");
           ?>
         </td>
       </tr>
@@ -127,11 +142,15 @@ js::set('refresh', $lang->refresh);
       <tr>
         <th><?php echo $lang->bug->files;?></th>
         <td colspan='2'><?php echo $this->fetch('file', 'buildform', 'fileCount=2&percent=0.85');?></td>
-      </tr>  
+      </tr>
       <tr>
         <td></td>
         <td colspan='2'>
-          <?php echo html::submitButton() . html::backButton() . html::hidden('case', $caseID);?>
+          <?php
+          echo html::submitButton() . html::backButton();
+          echo html::hidden('case', (int)$caseID) . html::hidden('caseVersion', (int)$version);
+          echo html::hidden('result', (int)$runID) . html::hidden('testtask', (int)$testtask);
+          ?>
         </td>
       </tr>
     </table>

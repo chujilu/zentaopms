@@ -2,8 +2,8 @@
 /**
  * The view file of task module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     task
  * @version     $Id: view.html.php 4808 2013-06-17 05:48:13Z zhujinyonging@gmail.com $
@@ -33,7 +33,9 @@
         echo "<div class='btn-group'>";
         common::printIcon('task', 'assignTo',       "projectID=$task->project&taskID=$task->id", $task, 'button', '', '', 'iframe', true);
         common::printIcon('task', 'start',          "taskID=$task->id", $task, 'button', '', '', 'iframe', true);
+        common::printIcon('task', 'restart',        "taskID=$task->id", $task, 'button', '', '', 'iframe', true);
         common::printIcon('task', 'recordEstimate', "taskID=$task->id", $task, 'button', '', '', 'iframe', true);
+        common::printIcon('task', 'pause',          "taskID=$task->id", $task, 'button', '', '', 'iframe', true);
         common::printIcon('task', 'finish',         "taskID=$task->id", $task, 'button', '', '', 'iframe showinonlybody text-success', true);
         common::printIcon('task', 'close',          "taskID=$task->id", $task, 'button', '', '', 'iframe', true);
         common::printIcon('task', 'activate',       "taskID=$task->id", $task, 'button', '', '', 'iframe text-success', true);
@@ -67,7 +69,11 @@
     <div class='main'>
       <fieldset>
         <legend><?php echo $lang->task->legendDesc;?></legend>
-        <div class='content'><?php echo $task->desc;?></div>
+        <div class='article-content'><?php echo $task->desc;?></div>
+      </fieldset>
+      <fieldset>
+        <legend><?php echo $lang->task->storySpec;?></legend>
+        <div class='article-content'><?php echo $task->storySpec;?></div>
       </fieldset>
       <?php echo $this->fetch('file', 'printFiles', array('files' => $task->files, 'fieldset' => 'true'));?>
       <?php include '../../common/view/action.html.php';?>
@@ -114,7 +120,7 @@
             <th><?php echo $lang->task->story;?></th>
             <td>
             <?php 
-            if($task->storyTitle and !common::printLink('story', 'view', "storyID=$task->story", $task->storyTitle)) echo $task->storyTitle;
+            if($task->storyTitle and !common::printLink('story', 'view', "storyID=$task->story", $task->storyTitle, '', "class='iframe' data-width='80%'", true, true)) echo $task->storyTitle;
             if($task->needConfirm)
             {
                 echo "(<span class='warning'>{$lang->story->changed}</span> ";
@@ -123,26 +129,26 @@
             }
             ?>
             </td>
-          </tr>  
+          </tr>
           <tr>
             <th><?php echo $lang->task->assignedTo;?></th>
             <td><?php echo $task->assignedTo ? $task->assignedToRealName . $lang->at . $task->assignedDate : '';?></td> 
-          </tr>  
+          </tr>
           <tr>
             <th><?php echo $lang->task->type;?></th>
             <td><?php echo $lang->task->typeList[$task->type];?></td>
-          </tr>  
+          </tr>
           <tr>
             <th><?php echo $lang->task->status;?></th>
             <td><?php $lang->show($lang->task->statusList, $task->status);?></td>
-          </tr>  
+          </tr>
           <tr>
             <th><?php echo $lang->task->pri;?></th>
             <td><?php $lang->show($lang->task->priList, $task->pri);?></td>
           </tr>
           <tr>
             <th><?php echo $lang->task->mailto;?></th>
-            <td><?php $mailto = explode(',', str_replace(' ', '', $task->mailto)); foreach($mailto as $account) echo ' ' . $users[$account]; ?></td>
+            <td><?php $mailto = explode(',', str_replace(' ', '', $task->mailto)); foreach($mailto as $account) echo ' ' . zget($users, $account, $account); ?></td>
           </tr>
         </table>
       </fieldset>
@@ -152,7 +158,7 @@
           <tr>
             <th class='w-80px'><?php echo $lang->task->estStarted;?></th>
             <td><?php echo $task->estStarted;?></td>
-          </tr>  
+          </tr>
           <tr>
             <th><?php echo $lang->task->realStarted;?></th>
             <td><?php echo $task->realStarted; ?> </td>
@@ -185,19 +191,19 @@
         <table class='table table-data table-condensed table-borderless'> 
           <tr>
             <th class='w-80px'><?php echo $lang->task->openedBy;?></th>
-            <td><?php if($task->openedBy) echo $users[$task->openedBy] . $lang->at . $task->openedDate;?></td>
+            <td><?php if($task->openedBy) echo zget($users, $task->openedBy, $task->openedBy) . $lang->at . $task->openedDate;?></td>
           </tr>
           <tr>
             <th><?php echo $lang->task->finishedBy;?></th>
-            <td><?php if($task->finishedBy) echo $users[$task->finishedBy] . $lang->at . $task->finishedDate;?></td>
+            <td><?php if($task->finishedBy) echo zget($users, $task->finishedBy, $task->finishedBy) . $lang->at . $task->finishedDate;?></td>
           </tr>
           <tr>
             <th><?php echo $lang->task->canceledBy;?></th>
-            <td><?php if($task->canceledBy) echo $users[$task->canceledBy] . $lang->at . $task->canceledDate;?></td>
+            <td><?php if($task->canceledBy) echo zget($users, $task->canceledBy, $task->canceledBy) . $lang->at . $task->canceledDate;?></td>
           </tr>
           <tr>
             <th><?php echo $lang->task->closedBy;?></th>
-            <td><?php if($task->closedBy) echo $users[$task->closedBy] . $lang->at . $task->closedDate;?></td>
+            <td><?php if($task->closedBy) echo zget($users, $task->closedBy, $task->closedBy) . $lang->at . $task->closedDate;?></td>
           </tr>
           <tr>
             <th><?php echo $lang->task->closedReason;?></th>
@@ -205,7 +211,7 @@
           </tr>
           <tr>
             <th><?php echo $lang->task->lastEdited;?></th>
-            <td><?php if($task->lastEditedBy) echo $users[$task->lastEditedBy] . $lang->at . $task->lastEditedDate;?></td>
+            <td><?php if($task->lastEditedBy) echo zget($users, $task->lastEditedBy, $task->lastEditedBy) . $lang->at . $task->lastEditedDate;?></td>
           </tr>
         </table>
       </fieldset>

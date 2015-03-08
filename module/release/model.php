@@ -2,8 +2,8 @@
 /**
  * The model file of release module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     release
  * @version     $Id: model.php 4129 2013-01-18 01:58:14Z wwccss $
@@ -100,9 +100,9 @@ class releaseModel extends model
         if($this->post->build == false)
         {
             $build = fixer::input('post')
-                ->stripTags('name')
                 ->add('product', (int)$productID)
                 ->add('builder', $this->app->user->account)
+                ->stripTags($this->config->release->editor->create['id'], $this->config->allowedTags)
                 ->remove('build,files,labels')
                 ->get();
             $this->dao->insert(TABLE_BUILD)->data($build)->autoCheck()->check('name','unique')->exec();
@@ -110,12 +110,12 @@ class releaseModel extends model
         }
 
         $release = fixer::input('post')
-            ->stripTags('name')
             ->add('product', (int)$productID)
             ->setDefault('stories', '')
             ->join('stories', ',')
             ->join('bugs', ',')
             ->setIF($this->post->build == false, 'build', $buildID)
+            ->stripTags($this->config->release->editor->create['id'], $this->config->allowedTags)
             ->remove('allchecker,files,labels')
             ->get();
 
@@ -142,13 +142,8 @@ class releaseModel extends model
     public function update($releaseID)
     {
         $oldRelease = $this->getByID($releaseID);
-        $release = fixer::input('post')
-            ->stripTags('name')
-            ->setDefault('stories', '')
-            ->setDefault('bugs', '')
-            ->join('stories', ',')
-            ->join('bugs', ',')
-            ->remove('files,labels')
+        $release = fixer::input('post')->stripTags($this->config->release->editor->edit['id'], $this->config->allowedTags)
+            ->remove('files,labels,allchecker')
             ->get();
         $this->dao->update(TABLE_RELEASE)->data($release)
             ->autoCheck()
@@ -158,5 +153,105 @@ class releaseModel extends model
             ->exec();
         $this->dao->update(TABLE_STORY)->set('stage')->eq('released')->where('id')->in($release->stories)->exec();
         if(!dao::isError()) return common::createChanges($oldRelease, $release);
+    }
+
+    /**
+     * Link stories
+     * 
+     * @param  int    $releaseID 
+     * @access public
+     * @return void
+     */
+    public function linkStory($releaseID)
+    {
+        $release = $this->getByID($releaseID);
+
+        $release->stories .= ',' . join(',', $this->post->stories);
+        $this->dao->update(TABLE_RELEASE)->set('stories')->eq($release->stories)->where('id')->eq((int)$releaseID)->exec();
+        if($release->stories) $this->dao->update(TABLE_STORY)->set('stage')->eq('released')->where('id')->in($release->stories)->exec();
+    }
+
+    /**
+     * Unlink story 
+     * 
+     * @param  int    $releaseID 
+     * @param  int    $storyID 
+     * @access public
+     * @return void
+     */
+    public function unlinkStory($releaseID, $storyID)
+    {
+        $release = $this->getByID($releaseID);
+        $release->stories = trim(str_replace(",$storyID,", ',', ",$release->stories,"), ',');
+        $this->dao->update(TABLE_RELEASE)->set('stories')->eq($release->stories)->where('id')->eq((int)$releaseID)->exec();
+    }
+
+    /**
+     * Batch unlink story.
+     * 
+     * @param  int    $releaseID 
+     * @access public
+     * @return void
+     */
+    public function batchUnlinkStory($releaseID)
+    {
+        $storyList = $this->post->unlinkStories;
+        if(empty($storyList)) return true;
+
+        $release = $this->getByID($releaseID);
+        $release->stories = ",$release->stories,";
+        foreach($storyList as $storyID) $release->stories = str_replace(",$storyID,", ',', $release->stories);
+        $release->stories = trim($release->stories, ',');
+        $this->dao->update(TABLE_RELEASE)->set('stories')->eq($release->stories)->where('id')->eq((int)$releaseID)->exec();
+    }
+
+    /**
+     * Link bugs.
+     * 
+     * @param  int    $releaseID 
+     * @access public
+     * @return void
+     */
+    public function linkBug($releaseID)
+    {
+        $release = $this->getByID($releaseID);
+
+        $release->bugs .= ',' . join(',', $this->post->bugs);
+        $this->dao->update(TABLE_RELEASE)->set('bugs')->eq($release->bugs)->where('id')->eq((int)$releaseID)->exec();
+    }
+
+    /**
+     * Unlink bug. 
+     * 
+     * @param  int    $releaseID 
+     * @param  int    $bugID 
+     * @access public
+     * @return void
+     */
+    public function unlinkBug($releaseID, $bugID)
+    {
+        $release = $this->getByID($releaseID);
+        $release->bugs = trim(str_replace(",$bugID,", ',', ",$release->bugs,"), ',');
+        $this->dao->update(TABLE_RELEASE)->set('bugs')->eq($release->bugs)->where('id')->eq((int)$releaseID)->exec();
+    }
+
+    /**
+     * Batch unlink bug.
+     * 
+     * @param  int    $releaseID 
+     * @access public
+     * @return void
+     */
+    public function batchUnlinkBug($releaseID)
+    {
+
+        $bugList = $this->post->unlinkBugs;
+        if(empty($bugList)) return true;
+
+        $release = $this->getByID($releaseID);
+        $release->bugs = ",$release->bugs,";
+        foreach($bugList as $bugID) $release->bugs = str_replace(",$bugID,", ',', $release->bugs);
+        $release->bugs = trim($release->bugs, ',');
+        $this->dao->update(TABLE_RELEASE)->set('bugs')->eq($release->bugs)->where('id')->eq((int)$releaseID)->exec();
     }
 }

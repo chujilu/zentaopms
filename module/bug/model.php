@@ -2,8 +2,8 @@
 /**
  * The model file of bug module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     bug
  * @version     $Id: model.php 5079 2013-07-10 00:44:34Z chencongzhi520@gmail.com $
@@ -48,18 +48,23 @@ class bugModel extends model
             ->setDefault('openedBuild', '')
             ->setIF($this->post->assignedTo != '', 'assignedDate', $now)
             ->setIF($this->post->story != false, 'storyVersion', $this->loadModel('story')->getVersion($this->post->story))
-            ->specialChars('title,keyword')
+            ->stripTags($this->config->bug->editor->create['id'], $this->config->allowedTags)
             ->cleanInt('product, module, severity')
             ->join('openedBuild', ',')
             ->join('mailto', ',')
             ->remove('files, labels')
             ->get();
+
+        /* Check repeat bug. */
+        $result = $this->loadModel('common')->removeDuplicate('bug', $bug, "product={$bug->product}");
+        if($result['stop']) return array('status' => 'exists', 'id' => $result['duplicate']);
+
         $this->dao->insert(TABLE_BUG)->data($bug)->autoCheck()->batchCheck($this->config->bug->create->requiredFields, 'notempty')->exec();
         if(!dao::isError())
         {
             $bugID = $this->dao->lastInsertID();
             $this->loadModel('file')->saveUpload('bug', $bugID);
-            return $bugID;
+            return array('status' => 'created', 'id' => $bugID);
         }
         return false;
     }
@@ -74,31 +79,91 @@ class bugModel extends model
     public function batchCreate($productID)
     {
         $this->loadModel('action');
-        $now     = helper::now();
-        $data    = fixer::input('post')->get();
-        $actions = array();
+        $now        = helper::now();
+        $actions    = array();
+        $data       = fixer::input('post')->get();
+        $batchNum   = count(reset($data));
+
+        $result = $this->loadModel('common')->removeDuplicate('bug', $data, "product=$productID");
+        $data   = $result['data'];
+
+        for($i = 0; $i < $batchNum; $i++)
+        {
+            if(!empty($data->title[$i]) and empty($data->openedBuilds[$i])) die(js::alert(sprintf($this->lang->error->notempty, $this->lang->bug->openedBuild)));
+        }
 
         /* Get pairs(moduleID => moduleOwner) for bug. */
         $stmt         = $this->dbh->query($this->loadModel('tree')->buildMenuQuery($productID, 'bug', $startModuleID = 0));
         $moduleOwners = array();
         while($module = $stmt->fetch()) $moduleOwners[$module->id] = $module->owner;
 
-        for($i = 0; $i < $this->config->bug->batchCreate; $i++)
+        $module  = 0;
+        $project = 0;
+        $type    = '';
+        $os      = '';
+        $browser = '';
+        for($i = 0; $i < $batchNum; $i++)
         {
-            if(empty($data->titles[$i])) continue;
+            if($data->modules[$i]  != 'ditto') $module  = (int)$data->modules[$i];
+            if($data->projects[$i] != 'ditto') $project = (int)$data->projects[$i];
+            if($data->types[$i]    != 'ditto') $type    = $data->types[$i];
+            if($data->oses[$i]     != 'ditto') $os      = $data->oses[$i];
+            if($data->browsers[$i] != 'ditto') $browser = $data->browsers[$i];
+
+            $data->modules[$i]  = (int)$module;
+            $data->projects[$i] = (int)$project;
+            $data->types[$i]    = $type;
+            $data->oses[$i]     = $os;
+            $data->browsers[$i] = $browser;
+        }
+
+        if(isset($data->uploadImage)) $this->loadModel('file');
+        for($i = 0; $i < $batchNum; $i++)
+        {
+            if(empty($data->title[$i])) continue;
+
             $bug = new stdClass();
             $bug->openedBy    = $this->app->user->account;
             $bug->openedDate  = $now;
             $bug->product     = $productID;
             $bug->module      = $data->modules[$i];
-            $bug->project     = $data->projects[$i] ? $data->projects[$i] : 0;
+            $bug->project     = $data->projects[$i];
             $bug->openedBuild = implode(',', $data->openedBuilds[$i]);
-            $bug->title       = $data->titles[$i];
-            $bug->steps       = nl2br(htmlspecialchars($data->stepses[$i]));
+            $bug->title       = $data->title[$i];
+            $bug->steps       = nl2br($data->stepses[$i]);
             $bug->type        = $data->types[$i];
             $bug->severity    = $data->severities[$i];
             $bug->os          = $data->oses[$i];
             $bug->browser     = $data->browsers[$i];
+
+            if(!empty($data->uploadImage[$i]))
+            {
+                $fileName  = htmlspecialchars_decode($data->uploadImage[$i]);
+                $realPath  = $this->session->bugImagesFile . $fileName;
+
+                $file = array();
+                $file['extension'] = $this->file->getExtension($fileName);
+                $file['pathname']  = $this->file->setPathName($i, $file['extension']);
+                $file['title']     = str_replace(".{$file['extension']}", '', $fileName);
+                $file['size']      = filesize($realPath);
+                if(rename($realPath, $this->file->savePath . $file['pathname']))
+                {
+                    if(in_array($file['extension'], $this->config->file->imageExtensions))
+                    {
+                        $file['addedBy']    = $this->app->user->account;
+                        $file['addedDate']  = $now;
+                        $this->dao->insert(TABLE_FILE)->data($file)->exec();
+
+                        $url = $this->file->webPath . $file['pathname'];
+                        $bug->steps .= '<img src="' . $url . '" alt="" />';
+                        unset($file);
+                    }
+                }
+                else
+                {
+                    unset($file);
+                }
+            }
 
             if(!empty($moduleOwners[$bug->module]))
             {
@@ -109,9 +174,28 @@ class bugModel extends model
             $this->dao->insert(TABLE_BUG)->data($bug)->autoCheck()->batchCheck($this->config->bug->create->requiredFields, 'notempty')->exec();
             $bugID = $this->dao->lastInsertID();
 
+            if(!empty($data->uploadImage[$i]) and !empty($file))
+            {
+                $file['objectType'] = 'bug';
+                $file['objectID']   = $bugID;
+                $file['addedBy']    = $this->app->user->account;    
+                $file['addedDate']  = $now;     
+                $this->dao->insert(TABLE_FILE)->data($file)->exec();
+                unset($file);
+            }
+
             if(dao::isError()) die(js::error('bug#' . ($i+1) . dao::getError(true)));
             $actions[$bugID] = $this->action->create('bug', $bugID, 'Opened');
         }
+
+        /* Remove upload image file and session. */
+        if(!empty($data->uploadImage) and $this->session->bugImagesFile)
+        {
+            $classFile = $this->app->loadClass('zfile'); 
+            if(is_dir($this->session->bugImagesFile)) $classFile->removeDir($this->session->bugImagesFile);
+            unset($_SESSION['bugImagesFile']);
+        }
+
         return $actions;
     }
 
@@ -234,6 +318,29 @@ class bugModel extends model
     }
 
     /**
+     * get Active And Postponed Bugs 
+     * 
+     * @param  int    $products 
+     * @param  int    $projectID 
+     * @param  int    $pager 
+     * @access public
+     * @return void
+     */
+    public function getActiveAndPostponedBugs($products, $projectID, $pager = null)
+    {
+        return $this->dao->select('*')->from(TABLE_BUG)
+            ->where("((status = 'resolved' AND resolution = 'postponed') OR (status = 'active'))")
+            ->andWhere('toTask')->eq(0)
+            ->andWhere('toStory')->eq(0)
+            ->beginIF(!empty($products))->andWhere('product')->in($products)->fi()
+            ->beginIF(empty($products))->andWhere('project')->eq($projectID)->fi()
+            ->andWhere('deleted')->eq(0)
+            ->orderBy('id desc')
+            ->page($pager)
+            ->fetchAll();
+    }
+
+    /**
      * Update a bug.
      * 
      * @param  int    $bugID 
@@ -246,8 +353,7 @@ class bugModel extends model
         $now = helper::now();
         $bug = fixer::input('post')
             ->cleanInt('product,module,severity,project,story,task')
-            ->specialChars('title,keyword')
-            ->remove('comment,files,labels')
+            ->stripTags($this->config->bug->editor->edit['id'], $this->config->allowedTags)
             ->setDefault('project,module,project,story,task,duplicateBug', 0)
             ->setDefault('openedBuild', '')
             ->setDefault('plan', 0)
@@ -270,6 +376,7 @@ class bugModel extends model
             ->setIF($this->post->resolution  == '' and $this->post->resolvedDate =='', 'status', 'active')
             ->setIF($this->post->resolution  != '', 'confirmed', 1)
             ->setIF($this->post->story != false and $this->post->story != $oldBug->story, 'storyVersion', $this->loadModel('story')->getVersion($this->post->story))
+            ->remove('comment,files,labels')
             ->get();
 
         $this->dao->update(TABLE_BUG)->data($bug)
@@ -295,6 +402,7 @@ class bugModel extends model
         $bugs       = array();
         $allChanges = array();
         $now        = helper::now();
+        $data       = fixer::input('post')->get();
         $bugIDList  = $this->post->bugIDList ? $this->post->bugIDList : array();
 
         /* Adjust whether the post data is complete, if not, remove the last element of $bugIDList. */
@@ -310,20 +418,20 @@ class bugModel extends model
                 $bug = new stdclass();
                 $bug->lastEditedBy   = $this->app->user->account;
                 $bug->lastEditedDate = $now;
-                $bug->type           = $this->post->types[$bugID];
-                $bug->severity       = $this->post->severities[$bugID];
-                $bug->pri            = $this->post->pris[$bugID];
-                $bug->status         = $this->post->statuses[$bugID];
-                $bug->title          = htmlspecialchars($this->post->titles[$bugID]);
-                $bug->assignedTo     = $this->post->assignedTos[$bugID];
-                $bug->resolvedBy     = $this->post->resolvedBys[$bugID];
-                $bug->resolution     = $this->post->resolutions[$bugID];
-                $bug->duplicateBug   = $this->post->duplicateBugs[$bugID] ? $this->post->duplicateBugs[$bugID] : $oldBug->duplicateBug;
+                $bug->type           = $data->types[$bugID];
+                $bug->severity       = $data->severities[$bugID];
+                $bug->pri            = $data->pris[$bugID];
+                $bug->status         = $data->statuses[$bugID];
+                $bug->title          = $data->titles[$bugID];
+                $bug->assignedTo     = $data->assignedTos[$bugID];
+                $bug->resolvedBy     = $data->resolvedBys[$bugID];
+                $bug->resolution     = $data->resolutions[$bugID];
+                $bug->duplicateBug   = $data->duplicateBugs[$bugID] ? $data->duplicateBugs[$bugID] : $oldBug->duplicateBug;
 
                 if($bug->assignedTo  != $oldBug->assignedTo)           $bug->assignedDate = $now;
                 if(($bug->resolvedBy != '' or $bug->resolution != '') and $oldBug->status != 'resolved') $bug->resolvedDate = $now;
                 if($bug->resolution  != '' and $bug->resolvedBy == '') $bug->resolvedBy   = $this->app->user->account;
-                if($bug->resolution  != '') 
+                if($bug->resolution  != '' and $bug->status != 'closed')
                 { 
                     $bug->status    = 'resolved';
                     $bug->confirmed = 1; 
@@ -460,8 +568,13 @@ class bugModel extends model
             ->add('lastEditedDate', $now)
             ->setDefault('duplicateBug', 0)
             ->setDefault('assignedTo', $oldBug->openedBy)
-            ->remove('comment')
+            ->remove('comment,files,labels')
             ->get();
+
+        if($bug->resolvedBuild != 'trunk')
+        {
+            $bug->testtask = $this->dao->select('id')->from(TABLE_TESTTASK)->where('build')->eq($bug->resolvedBuild)->orderBy('id_desc')->limit(1)->fetch('id');
+        }
 
         $this->dao->update(TABLE_BUG)->data($bug)
             ->autoCheck()
@@ -616,7 +729,7 @@ class bugModel extends model
     {
         $bugs = $this->dao->select('*')->from(TABLE_BUG)
             ->where('deleted')->eq(0)
-            ->andWhere("$type")->eq($account)
+            ->beginIF($type != 'all')->andWhere("$type")->eq($account)->fi()
             ->orderBy($orderBy)
             ->beginIF($limit > 0)->limit($limit)->fi()
             ->page($pager)
@@ -676,6 +789,28 @@ class bugModel extends model
     }
 
     /**
+     * get Product Bug Pairs 
+     * 
+     * @param  int    $productID 
+     * @access public
+     * @return void
+     */
+    public function getProductBugPairs($productID)
+    {
+        $bugs = array('' => '');
+        $data = $this->dao->select('id, title')->from(TABLE_BUG)
+            ->where('product')->eq((int)$productID)
+            ->andWhere('deleted')->eq(0)
+            ->orderBy('id desc')
+            ->fetchAll();
+        foreach($data as $bug)
+        {
+            $bugs[$bug->id] = $bug->id . ':' . $bug->title;
+        }
+        return $bugs;
+    }
+
+    /**
      * Get bugs according to buildID and productID.
      * 
      * @param  int    $buildID 
@@ -693,6 +828,7 @@ class bugModel extends model
             ->fetch();
         $bugs = $this->dao->select('*')->from(TABLE_BUG) 
             ->where('resolvedDate')->ge($project->begin)
+            ->andWhere('resolution')->ne('postponed')
             ->andWhere('product')->eq($productID)
             ->andWhere('deleted')->eq(0)
             ->orderBy('openedDate ASC')
@@ -713,6 +849,7 @@ class bugModel extends model
     {
         $title    = '';
         $bugSteps = '';
+        $steps    = zget($_POST, 'stepIDList', array());
 
         $result = $this->dao->findById($resultID)->from(TABLE_TESTRESULT)->fetch();
         if($caseID > 0)
@@ -736,23 +873,32 @@ class bugModel extends model
             $bugSteps .= $this->lang->bug->tplStep;
             if(!empty($stepResults))
             {
+                $i = 0;
                 foreach($caseSteps as $key => $step)
                 {
-                    $bugSteps .= ($key + 1) . '. '  . $step->desc . "<br />";
+                    if(!in_array($step->id, $steps)) continue;
+                    $i++;
+                    $bugSteps .= $i . '. '  . $step->desc . "<br />";
                 }
 
                 $bugSteps .= $this->lang->bug->tplResult;
+                $i = 0;
                 foreach($caseSteps as $key => $step)
                 {
-                    if(!$stepResults[$step->id]['real']) continue;
-                    $bugSteps .= ($key + 1) . '. ' . $stepResults[$step->id]['real'] . "<br />";
+                    if(!in_array($step->id, $steps)) continue;
+                    $i++;
+                    if(empty($stepResults[$step->id]['real'])) continue;
+                    $bugSteps .= $i . '. ' . $stepResults[$step->id]['real'] . "<br />";
                 }
 
                 $bugSteps .= $this->lang->bug->tplExpect;
+                $i = 0;
                 foreach($caseSteps as $key => $step)
                 {
+                    if(!in_array($step->id, $steps)) continue;
+                    $i++;
                     if(!$step->expect) continue;
-                    $bugSteps .= ($key + 1) . '. ' . $step->expect . "<br />";
+                    $bugSteps .= $i . '. ' . $step->expect . "<br />";
                 }
 
             }
@@ -762,7 +908,7 @@ class bugModel extends model
                 $bugSteps .= $this->lang->bug->tplExpect;
             }
         }
-        return array('title' => $title, 'steps' => $bugSteps, 'storyID' => $run->case->story);
+        return array('title' => $title, 'steps' => $bugSteps, 'storyID' => $run->case->story, 'moduleID' => $run->case->module, 'version' => $run->case->version);
     }
 
     /**
@@ -1070,9 +1216,9 @@ class bugModel extends model
     public function saveUserBugTemplate()
     {
         $template = fixer::input('post')
-            ->specialChars('title')
             ->add('account', $this->app->user->account)
             ->add('type', 'bug')
+            ->stripTags('content', $this->config->allowedTags)
             ->get();
         $this->dao->insert(TABLE_USERTPL)->data($template)->autoCheck('title, content', 'notempty')->check('title', 'unique')->exec();
     }
@@ -1200,6 +1346,26 @@ class bugModel extends model
     }
 
     /**
+     * Get unconfirmed bugs.
+     * 
+     * @param  int    $productID 
+     * @param  int    $projects 
+     * @param  int    $orderBy 
+     * @param  int    $pager 
+     * @access public
+     * @return void
+     */
+    public function getUnconfirmed($productID, $projects, $orderBy, $pager)
+    {
+        return $this->dao->select('*')->from(TABLE_BUG)
+            ->where('confirmed')->eq(0)
+            ->andWhere('product')->eq($productID)
+            ->andWhere('project')->in(array_keys($projects))
+            ->andWhere('deleted')->eq(0)
+            ->orderBy($orderBy)->page($pager)->fetchAll();
+    }
+
+    /**
      * Get bugs the status is active or unclosed. 
      * 
      * @param  int    $productID 
@@ -1296,7 +1462,7 @@ class bugModel extends model
      * @access public
      * @return array
      */
-    public function getBySearch($productID, $projects, $queryID, $orderBy, $pager)
+    public function getBySearch($productID, $projects, $queryID, $orderBy, $pager = null)
     {
         if($queryID)
         {
@@ -1336,7 +1502,6 @@ class bugModel extends model
             $bugQuery = str_replace($allProduct, '1', $this->session->bugQuery);
             $bugQuery = $bugQuery . ' AND `product`' . helper::dbIN($products);
         }
-        $bugQuery = $this->loadModel('search')->replaceDynamic($bugQuery);
         $bugs = $this->dao->select('*')->from(TABLE_BUG)->where($bugQuery)
             ->andWhere('deleted')->eq(0)
             ->orderBy($orderBy)->page($pager)->fetchAll();

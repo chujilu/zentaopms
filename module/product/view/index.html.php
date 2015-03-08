@@ -2,8 +2,8 @@
 /**
  * The html template file of index method of index module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Yangyang Shi <shiyangyang@cnezsoft.com>
  * @package     ZenTaoPMS
  * @version     $Id$
@@ -11,7 +11,6 @@
 ?>
 <?php include '../../common/view/header.html.php';?>
 <?php include '../../common/view/sparkline.html.php';?>
-<?php include '../../common/view/colorize.html.php';?>
 <div id='featurebar'>
   <div class='heading'><?php echo html::icon($lang->icons['product']) . ' ' . $lang->product->index;?>  </div>
   <div class='actions'>
@@ -32,20 +31,21 @@
 </div>
 <?php else:?>
 <form method='post' action='<?php echo inLink('batchEdit', "productID=$productID");?>'>
-  <table class='table table-condensed table-hover table-striped'>
+  <table class='table table-condensed table-hover table-striped tablesorter'>
+    <?php $vars = "locate=no&productID=$productID&orderBy=%s&recTotal={$pager->recTotal}&recPerPage={$pager->recPerPage}&pageID={$pager->pageID}";?>
     <thead>
       <tr>
-        <th class='w-id'>   <?php echo $lang->idAB;?></th>
-        <th class='w-150px'><?php echo $lang->product->name;?></th>
-        <th><?php echo $lang->story->statusList['active']  . $lang->story->common;?></th>
-        <th><?php echo $lang->story->statusList['changed'] . $lang->story->common;?></th>
-        <th><?php echo $lang->story->statusList['draft']   . $lang->story->common;?></th>
-        <th><?php echo $lang->story->statusList['closed']  . $lang->story->common;?></th>
-        <th><?php echo $lang->product->plans;?></th>
-        <th><?php echo $lang->product->releases;?></th>
-        <th><?php echo $lang->product->bugs;?></th>
-        <th><?php echo $lang->bug->unResolved;?></th>
-        <th><?php echo $lang->bug->assignToNull;?></th>
+        <th class='w-id'><?php common::printOrderLink('id', $orderBy, $vars, $lang->idAB);?></th>
+        <th><?php common::printOrderLink('name', $orderBy, $vars, $lang->product->name);?></th>
+        <th class='w-80px'><?php echo $lang->story->statusList['active']  . $lang->story->common;?></th>
+        <th class='w-80px'><?php echo $lang->story->statusList['changed'] . $lang->story->common;?></th>
+        <th class='w-80px'><?php echo $lang->story->statusList['draft']   . $lang->story->common;?></th>
+        <th class='w-80px'><?php echo $lang->story->statusList['closed']  . $lang->story->common;?></th>
+        <th class='w-80px'><?php echo $lang->product->plans;?></th>
+        <th class='w-80px'><?php echo $lang->product->releases;?></th>
+        <th class='w-80px'><?php echo $lang->product->bugs;?></th>
+        <th class='w-80px'><?php echo $lang->bug->unResolved;?></th>
+        <th class='w-80px'><?php echo $lang->bug->assignToNull;?></th>
       </tr>
     </thead>
     <?php $canBatchEdit = common::hasPriv('product', 'batchEdit'); ?>
@@ -57,7 +57,7 @@
         <?php endif;?>
         <?php echo html::a($this->createLink('product', 'view', 'product=' . $product->id), sprintf('%03d', $product->id));?>
       </td>
-      <td class='text-left'><?php echo html::a($this->createLink('product', 'view', 'product=' . $product->id), $product->name);?></td>
+      <td class='text-left' title='<?php echo $product->name?>'><?php echo html::a($this->createLink('product', 'view', 'product=' . $product->id), $product->name);?></td>
       <td><?php echo $product->stories['active']?></td>
       <td><?php echo $product->stories['changed']?></td>
       <td><?php echo $product->stories['draft']?></td>
@@ -77,6 +77,7 @@
             <?php echo "<div class='btn-group'>" . html::selectButton() . '</div>';?>
             <?php echo html::submitButton($lang->product->batchEdit, '', '');?>
           </div>
+          <div class='text-right'><?php $pager->show();?></div>
         </td>
       </tr>
     </tfoot>

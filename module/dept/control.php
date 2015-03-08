@@ -2,8 +2,8 @@
 /**
  * The control file of dept module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     dept
  * @version     $Id: control.php 4157 2013-01-20 07:09:42Z wwccss $
@@ -72,6 +72,36 @@ class dept extends control
             $this->dept->manageChild($_POST['parentDeptID'], $_POST['depts']);
             die(js::reload('parent'));
         }
+    }
+
+    /**
+     * Edit dept. 
+     * 
+     * @param  int    $deptID 
+     * @access public
+     * @return void
+     */
+    public function edit($deptID)
+    {
+        if(!empty($_POST))
+        {
+            $this->dept->update($deptID);
+            die(js::alert($this->lang->dept->successSave) . js::reload('parent'));
+        }
+
+        $dept  = $this->dept->getById($deptID);
+        $users = $this->loadModel('user')->getPairs('nodeleted|noletter|noclosed');
+
+        $this->view->optionMenu = $this->dept->getOptionMenu();
+
+        $this->view->dept  = $dept;
+        $this->view->users = $users;
+
+        /* Remove self and childs from the $optionMenu. Because it's parent can't be self or childs. */
+        $childs = $this->dept->getAllChildId($deptID);
+        foreach($childs as $childModuleID) unset($this->view->optionMenu[$childModuleID]);
+
+        die($this->display());
     }
 
     /**

@@ -2,8 +2,8 @@
 /**
  * The view method view file of project module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     project
  * @version     $Id: view.html.php 4594 2013-03-13 06:16:02Z wyd621@gmail.com $
@@ -27,11 +27,11 @@
     {
         ob_start();
         echo "<div class='btn-group'>";
-        common::printIcon('project', 'start',    "projectID=$project->id", $project);
-        common::printIcon('project', 'activate', "projectID=$project->id", $project, 'button', '', '', 'text-success');
-        common::printIcon('project', 'putoff',   "projectID=$project->id", $project);
-        common::printIcon('project', 'suspend',  "projectID=$project->id", $project);
-        common::printIcon('project', 'close',    "projectID=$project->id", $project, 'button', '', '', 'text-danger');
+        common::printIcon('project', 'start',    "projectID=$project->id", $project, 'button', '', '', 'iframe', true);
+        common::printIcon('project', 'activate', "projectID=$project->id", $project, 'button', '', '', 'iframe', true);
+        common::printIcon('project', 'putoff',   "projectID=$project->id", $project, 'button', '', '', 'iframe', true);
+        common::printIcon('project', 'suspend',  "projectID=$project->id", $project, 'button', '', '', 'iframe', true);
+        common::printIcon('project', 'close',    "projectID=$project->id", $project, 'button', '', '', 'iframe', true);
         echo '</div>';
 
         echo "<div class='btn-group'>";
@@ -93,19 +93,19 @@
           </tr>
           <tr>
             <th><?php echo $lang->project->PM;?></th>
-            <td><?php echo $users[$project->PM];?></td>
+            <td><?php echo zget($users, $project->PM, $project->PM);?></td>
           </tr>
           <tr>
             <th><?php echo $lang->project->PO;?></th>
-            <td><?php echo $users[$project->PO];?></td>
+            <td><?php echo zget($users, $project->PO, $project->PO);?></td>
           </tr>
           <tr>
             <th><?php echo $lang->project->QD;?></th>
-            <td><?php echo $users[$project->QD];?></td>
+            <td><?php echo zget($users, $project->QD, $project->QD);?></td>
           </tr>
           <tr>
             <th><?php echo $lang->project->RD;?></th>
-            <td><?php echo $users[$project->RD];?></td>
+            <td><?php echo zget($users, $project->RD, $project->RD);?></td>
           </tr>
           <tr>
             <th><?php echo $lang->project->products;?></th>
@@ -140,4 +140,4 @@
     </div>
   </div>
 </div>
-  <?php include '../../common/view/footer.html.php';?>
+<?php include '../../common/view/footer.html.php';?>

@@ -2,8 +2,8 @@
 /**
  * The task module zh-tw file of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青島易軟天創網絡科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青島易軟天創網絡科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     task
  * @version     $Id: zh-tw.php 5040 2013-07-06 06:22:18Z zhujinyonging@gmail.com $
@@ -21,7 +21,9 @@ $lang->task->view               = "查看任務";
 $lang->task->logEfforts         = "記錄工時";
 $lang->task->record             = "工時";
 $lang->task->start              = "開始";
+$lang->task->restart            = "繼續";
 $lang->task->finish             = "完成";
+$lang->task->pause              = "暫停";
 $lang->task->close              = "關閉";
 $lang->task->batchClose         = "批量關閉";
 $lang->task->cancel             = "取消";
@@ -36,6 +38,7 @@ $lang->task->id                = '編號';
 $lang->task->project           = '所屬項目';
 $lang->task->module            = '所屬模組';
 $lang->task->story             = '相關需求';
+$lang->task->storySpec         = '需求描述';
 $lang->task->storyVersion      = '需求版本';
 $lang->task->name              = '任務名稱';
 $lang->task->type              = '任務類型';
@@ -59,6 +62,7 @@ $lang->task->status            = '任務狀態';
 $lang->task->desc              = '任務描述';
 $lang->task->assign            = '指派';
 $lang->task->assignTo          = $lang->task->assign;
+$lang->task->batchAssignTo     = '批量指派';
 $lang->task->assignedTo        = '指派給';
 $lang->task->assignedToAB      = '指派給';
 $lang->task->assignedDate      = '指派日期';
@@ -88,6 +92,7 @@ $lang->task->statusList['']        = '';
 $lang->task->statusList['wait']    = '未開始';
 $lang->task->statusList['doing']   = '進行中';
 $lang->task->statusList['done']    = '已完成';
+$lang->task->statusList['pause']   = '已暫停';
 $lang->task->statusList['cancel']  = '已取消';
 $lang->task->statusList['closed']  = '已關閉';
 
@@ -249,5 +254,4 @@ $lang->task->report->finishedTasksPerDay->height             = 400;
 $lang->task->report->finishedTasksPerDay->graph->xAxisName   = '日期';
 $lang->task->report->finishedTasksPerDay->graph->rotateNames = '1';
 
-$lang->task->placeholder = new stdclass();
-$lang->task->placeholder->estimate = '對該任務最初的預計';
+$lang->task->estimateTip = '對該任務最初的預計';

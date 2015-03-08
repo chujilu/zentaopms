@@ -1,3 +1,4 @@
+<style>#actionbox a{font-weight:normal}</style>
 <script language='Javascript'>
 var fold   = '<?php echo $lang->fold;?>';
 var unfold = '<?php echo $lang->unfold;?>';
@@ -9,15 +10,15 @@ function switchChange(historyID)
     {
         $swbtn.closest('li').addClass('show-changes');
         $showTag.removeClass('change-show').addClass('change-hide');
-        $('#changeBox' + historyID).slideDown('fast');
-        $('#changeBox' + historyID).prev('.changeDiff').slideDown('fast');
+        $('#changeBox' + historyID).show();
+        $('#changeBox' + historyID).prev('.changeDiff').show();
     }
     else
     {
         $swbtn.closest('li').removeClass('show-changes');
         $swbtn.find('.change-hide').removeClass('change-hide').addClass('change-show');
-        $('#changeBox' + historyID).slideUp('fast');
-        $('#changeBox' + historyID).prev('.changeDiff').slideUp('fast');
+        $('#changeBox' + historyID).hide();
+        $('#changeBox' + historyID).prev('.changeDiff').hide();
     }
 }
 
@@ -77,16 +78,18 @@ function toggleOrder(obj)
 
 function toggleComment(actionID)
 {
-    $('.comment' + actionID).slideToggle('fast');
-    $('#lastCommentBox').slideToggle('fast');
+    $('.comment' + actionID).toggle();
+    $('#lastCommentBox').toggle();
     $('.ke-container').css('width', '100%');
 }
 
-$(function(){
-    var diffButton = "<a href='javascript:;' onclick='toggleStripTags(this)' class='hide changeDiff btn-icon' title='<?php echo $lang->action->original?>'><i class='icon- diff-all'></i></a>";
+$(function()
+{
+    var diffButton = "<a href='javascript:;' onclick='toggleStripTags(this)' class='changeDiff btn-icon' style='display:none;' title='<?php echo $lang->action->original?>'><i class='icon- diff-all'></i></a>";
     var newBoxID = ''
     var oldBoxID = ''
-    $('blockquote').each(function(){
+    $('blockquote').each(function()
+    {
         newBoxID = $(this).parent().attr('id');
         if(newBoxID != oldBoxID) 
         {
@@ -134,7 +137,7 @@ $(function(){
         <?php if(!empty($action->history)) echo "<a id='switchButton$i' class='switch-btn btn-icon' onclick='switchChange($i)' href='javascript:;'><i class='change-show icon-'></i></a>";?>
       </span>
       <?php if(!empty($action->comment) or !empty($action->history)):?>
-      <?php if(!empty($action->comment)) echo "<div class='history alert'>";?>
+      <?php if(!empty($action->comment)) echo "<div class='history'>";?>
         <div class='changes hide alert' id='changeBox<?php echo $i;?>'>
         <?php echo $this->action->printChanges($action->objectType, $action->history);?>
         </div>
@@ -144,7 +147,7 @@ $(function(){
         <?php 
         if($action->comment) 
         {
-            echo "<div class='comment$action->id'>";
+            echo "<div class='article-content comment$action->id'>";
             echo strip_tags($action->comment) == $action->comment ? nl2br($action->comment) : $action->comment; 
             echo "</div>";
         }

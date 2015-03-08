@@ -2,8 +2,8 @@
 /**
  * The model file of extension module of ZenTaoCMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     extension
  * @version     $Id$
@@ -77,7 +77,7 @@ class extensionModel extends model
      */
     public function fetchAPI($url)
     {
-        $url .= '?lang=' . str_replace('-', '_', $this->app->getClientLang()) . '&managerVersion=' . self::EXT_MANAGER_VERSION . '&zentaoVersion=' . $this->config->version;
+        $url .= (strpos($url, '?') === false ? '?' : '&') . 'lang=' . str_replace('-', '_', $this->app->getClientLang()) . '&managerVersion=' . self::EXT_MANAGER_VERSION . '&zentaoVersion=' . $this->config->version;
         $this->agent->fetch($url);
         $result = json_decode($this->agent->results);
 
@@ -152,7 +152,7 @@ class extensionModel extends model
      */
     public function checkIncompatible($versions)
     {
-        $apiURL = $this->apiRoot . 'apiCheckIncompatible-' . helper::safe64Encode(json_encode($versions)) . '.json';
+        $apiURL = $this->apiRoot . 'apiCheckIncompatible' . '.json?versions=' . helper::safe64Encode(json_encode($versions));
         $data = $this->fetchAPI($apiURL);
         if(isset($data->incompatibleExts)) return (array)$data->incompatibleExts;
         return array();
@@ -480,9 +480,9 @@ class extensionModel extends model
         }
 
         if($return->errors) $return->result = 'fail';
-        $return->mkdirCommands = str_replace('/', DIRECTORY_SEPARATOR, $return->mkdirCommands);
+        $return->mkdirCommands = empty($return->mkdirCommands) ? '' : '<code>' . str_replace('/', DIRECTORY_SEPARATOR, $return->mkdirCommands) . '</code>';
         $return->errors .= $this->lang->extension->executeCommands . $return->mkdirCommands;
-        if(PHP_OS == 'Linux') $return->errors .= $return->chmodCommands;
+        if(PHP_OS == 'Linux') $return->errors .= empty($return->chmodCommands) ? '' : '<code>' . $return->chmodCommands . '</code>';
         return $return;
     }
 
@@ -707,6 +707,7 @@ class extensionModel extends model
         $return = new stdclass();
         $return->result = 'ok';
         $return->error  = '';
+        $ignoreCode     = '|1050|1060|1062|1091|1169|';
 
         $dbFile = $this->getDBFile($extension, $method);
         if(!file_exists($dbFile)) return $return;
@@ -724,9 +725,11 @@ class extensionModel extends model
             {
                 $this->dbh->query($sql);
             }
-            catch (PDOException $e) 
+            catch(PDOException $e) 
             {
-                $return->error .= '<p>' . $e->getMessage() . "<br />THE SQL IS: $sql</p>";
+                $errorInfo = $e->errorInfo;
+                $errorCode = $errorInfo[1];
+                if(strpos($ignoreCode, "|$errorCode|") === false) $return->error .= '<p>' . $e->getMessage() . "<br />THE SQL IS: $sql</p>";
             }
         }
         if($return->error) $return->result = 'fail';

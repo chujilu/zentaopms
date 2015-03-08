@@ -2,8 +2,8 @@
 /**
  * The project module English file of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     project
  * @version     $Id: en.php 5094 2013-07-10 08:46:15Z chencongzhi520@gmail.com $
@@ -55,6 +55,8 @@ $lang->project->noProduct     = 'No product';
 $lang->project->select        = '--select project--';
 $lang->project->createStory   = "Create story";
 $lang->project->all           = 'All';
+$lang->project->undone        = 'Undone';
+$lang->project->unclosed      = 'Unclosed';
 $lang->project->typeDesc      = 'No burndown and story in OPS';
 $lang->project->mine          = 'I charge : ';
 $lang->project->other         = 'Other : ';
@@ -100,34 +102,35 @@ $lang->project->aclList['private'] = 'Private(Only team members can visit)';
 $lang->project->aclList['custom']  = 'Whitelist(Team members and who belongs to the whitelist grups can visit)';
 
 /* Methods.*/
-$lang->project->index           = "Index";
-$lang->project->task            = 'Task';
-$lang->project->groupTask       = 'View task by group';
-$lang->project->story           = 'Story';
-$lang->project->bug             = 'Bug';
-$lang->project->dynamic         = 'Dynamic';
-$lang->project->build           = 'Build';
-$lang->project->testtask        = 'Testtask';
-$lang->project->burn            = 'Burndown';
-$lang->project->computeBurn     = 'Update';
-$lang->project->burnData        = 'Burndown data';
-$lang->project->team            = 'Team';
-$lang->project->doc             = 'Doc';
-$lang->project->manageProducts  = 'Link product';
-$lang->project->linkStory       = 'Link story';
-$lang->project->view            = "Info";
-$lang->project->create          = "Add";
-$lang->project->copy            = "Copy a project";
-$lang->project->delete          = "Delete";
-$lang->project->browse          = "Browse";
-$lang->project->edit            = "Edit";
-$lang->project->batchEdit       = "Batch Edit";
-$lang->project->manageMembers   = 'Manage team members';
-$lang->project->unlinkMember    = 'Remove member';
-$lang->project->unlinkStory     = 'Remove story';
-$lang->project->importTask      = 'Transfer task';
-$lang->project->importBug       = 'Import bug';
-$lang->project->ajaxGetProducts = "API: get project's products";
+$lang->project->index            = "Index";
+$lang->project->task             = 'Task';
+$lang->project->groupTask        = 'View task by group';
+$lang->project->story            = 'Story';
+$lang->project->bug              = 'Bug';
+$lang->project->dynamic          = 'Dynamic';
+$lang->project->build            = 'Build';
+$lang->project->testtask         = 'Testtask';
+$lang->project->burn             = 'Burndown';
+$lang->project->computeBurn      = 'Update';
+$lang->project->burnData         = 'Burndown data';
+$lang->project->team             = 'Team';
+$lang->project->doc              = 'Doc';
+$lang->project->manageProducts   = 'Link product';
+$lang->project->linkStory        = 'Link story';
+$lang->project->view             = "Info";
+$lang->project->create           = "Add";
+$lang->project->copy             = "Copy a project";
+$lang->project->delete           = "Delete";
+$lang->project->browse           = "Browse";
+$lang->project->edit             = "Edit";
+$lang->project->batchEdit        = "Batch Edit";
+$lang->project->manageMembers    = 'Manage team members';
+$lang->project->unlinkMember     = 'Remove member';
+$lang->project->unlinkStory      = 'Remove story';
+$lang->project->batchUnlinkStory = 'Batch remove story';
+$lang->project->importTask       = 'Transfer task';
+$lang->project->importBug        = 'Import bug';
+$lang->project->ajaxGetProducts  = "API: get project's products";
 
 /* Browse. */
 $lang->project->allTasks             = 'All';

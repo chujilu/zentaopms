@@ -2,8 +2,8 @@
 /**
  * The model file of tree module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     tree
  * @version     $Id: model.php 5149 2013-07-16 01:47:01Z zhujinyonging@gmail.com $
@@ -246,8 +246,19 @@ class treeModel extends model
     {
         $treeMenu = array();
         $stmt = $this->dbh->query($this->buildMenuQuery($rootID, $type, $startModule));
+
+        /* Add for task #1945. check the module has case or no. */
+        if($type == 'case' and !empty($extra)) $this->loadModel('testtask');
         while($module = $stmt->fetch())
         {
+            /* Add for task #1945. check the module has case or no. */
+            if($type == 'case' and !empty($extra))
+            {
+                $modules = $this->getAllChildID($module->id);
+                $runs    = $this->testtask->getRuns($extra, $modules, 'id');
+                if(empty($runs)) continue;
+            }
+
             $linkHtml = call_user_func($userFunc, $type, $module, $extra);
 
             if(isset($treeMenu[$module->id]) and !empty($treeMenu[$module->id]))
@@ -365,7 +376,7 @@ class treeModel extends model
             }
 
             $tree     = isset($treeMenu[0]) ? $treeMenu[0] : '';
-            $lastMenu = "<ul class='tree'>" . $tree . "</ul>\n";
+            $lastMenu = "<ul>" . $tree . "</ul>\n";
             $menu    .= $lastMenu . '</li>';
         }
 
@@ -428,8 +439,7 @@ class treeModel extends model
         if($linkStory)
         {
             /* Get story paths of this project. */
-            $paths = $this->dao->select('t3.' . $field)
-                ->from(TABLE_PROJECTSTORY)->alias('t1')
+            $paths = $this->dao->select('DISTINCT t3.' . $field)->from(TABLE_PROJECTSTORY)->alias('t1')
                 ->leftJoin(TABLE_STORY)->alias('t2')->on('t1.story = t2.id')
                 ->leftJoin(TABLE_MODULE)->alias('t3')->on('t2.module = t3.id')
                 ->where('t1.project')->eq($projectID)
@@ -448,6 +458,14 @@ class treeModel extends model
         $paths += $this->dao->select($field)->from(TABLE_MODULE)
             ->where('root')->eq($projectID)
             ->andWhere('type')->eq('task')
+            ->fetchPairs();
+
+        /* Add task paths of this project for has existed. */
+        $paths += $this->dao->select('DISTINCT t1.' . $field)->from(TABLE_MODULE)->alias('t1')
+            ->leftJoin(TABLE_TASK)->alias('t2')->on('t1.id=t2.module')
+            ->where('t2.module')->ne(0)
+            ->andWhere('t2.deleted')->eq(0)
+            ->andWhere('t1.type')->eq('story')
             ->fetchPairs();
 
         /* Get all modules from paths. */
@@ -620,12 +638,12 @@ class treeModel extends model
         if($type == 'bug' and $module->owner) $linkHtml .= '<span class="owner">[' . $users[$module->owner] . ']</span>';
         if($type != 'story' and $module->type == 'story')
         {
-            if(common::hasPriv('tree', 'edit') and $type == 'bug') $linkHtml .= ' ' . html::a(helper::createLink('tree', 'edit',   "module={$module->id}&type=$type"), $this->lang->tree->edit, '', 'class="iframe"');
+            if(common::hasPriv('tree', 'edit') and $type == 'bug') $linkHtml .= ' ' . html::a(helper::createLink('tree', 'edit',   "module={$module->id}&type=$type"), $this->lang->tree->edit, '', 'data-toggle="modal" data-type="ajax"');
             if(common::hasPriv('tree', 'browse')) $linkHtml .= ' ' . html::a(helper::createLink('tree', 'browse', "root={$module->root}&type=$type&module={$module->id}"), $this->lang->tree->child);
         }
         else
         {
-            if(common::hasPriv('tree', 'edit')) $linkHtml .= ' ' . html::a(helper::createLink('tree', 'edit',   "module={$module->id}&type=$type"), $this->lang->tree->edit, '', 'class="iframe" data-width="400"');
+            if(common::hasPriv('tree', 'edit')) $linkHtml .= ' ' . html::a(helper::createLink('tree', 'edit',   "module={$module->id}&type=$type"), $this->lang->tree->edit, '', 'data-toggle="modal" data-type="ajax" data-width="500"');
             if(common::hasPriv('tree', 'browse') and strpos($this->config->tree->noBrowse, ",$module->type,") === false) $linkHtml .= ' ' . html::a(helper::createLink('tree', 'browse', "root={$module->root}&type=$type&module={$module->id}"), $this->lang->tree->child);
             if(common::hasPriv('tree', 'delete')) $linkHtml .= ' ' . html::a(helper::createLink('tree', 'delete', "root={$module->root}&module={$module->id}"), $this->lang->delete, 'hiddenwin');
             if(common::hasPriv('tree', 'updateorder')) $linkHtml .= ' ' . html::input("orders[$module->id]", $module->order, 'class="text-center w-30px form-control inline input-sm"');
@@ -654,7 +672,7 @@ class treeModel extends model
         }
         else
         {
-            if(common::hasPriv('tree', 'edit'))        $linkHtml .= ' ' . html::a(helper::createLink('tree', 'edit', "module={$module->id}&type=task"), $this->lang->tree->edit, '', 'class="iframe"');
+            if(common::hasPriv('tree', 'edit'))        $linkHtml .= ' ' . html::a(helper::createLink('tree', 'edit', "module={$module->id}&type=task"), $this->lang->tree->edit, '', 'data-toggle="modal" data-type="ajax"');
             if(common::hasPriv('tree', 'browseTask'))  $linkHtml .= ' ' . html::a(helper::createLink('tree', 'browsetask', "rootID=$projectID&productID=$productID&module={$module->id}"), $this->lang->tree->child);
             if(common::hasPriv('tree', 'delete'))      $linkHtml .= ' ' . html::a(helper::createLink('tree', 'delete', "root={$module->root}&module={$module->id}"), $this->lang->delete, 'hiddenwin');
             if(common::hasPriv('tree', 'updateorder')) $linkHtml .= ' ' . html::input("orders[$module->id]", $module->order, 'style="width:30px;text-align:center"');
@@ -728,10 +746,11 @@ class treeModel extends model
         }
 
         /* else get modules of its type and story type. */
+        if(strpos('task|case|bug', $type) !== false) $type = "$type,story";
         return $this->dao->select('*')->from(TABLE_MODULE)
             ->where('root')->eq((int)$rootID)
             ->andWhere('parent')->eq((int)$moduleID)
-            ->andWhere('type')->in("$type,story")
+            ->andWhere('type')->in($type)
             ->orderBy('type desc,`order`')
             ->fetchAll();
     }
@@ -856,7 +875,7 @@ class treeModel extends model
         $module = $this->dao->select('id,type,parent')->from(TABLE_MODULE)->where('id')->eq((int)$moduleID)->fetch();
         if(empty($module)) return 0;
 
-        if($module->id and $module->type != 'story')
+        while(!empty($module) and $module->id and $module->type != 'story')
         {
             $module = $this->dao->select('id,type,parent')->from(TABLE_MODULE)->where('id')->eq($module->parent)->fetch();
         }
@@ -956,7 +975,7 @@ class treeModel extends model
      */
     public function update($moduleID)
     {
-        $module = fixer::input('post')->specialChars('name')->get();
+        $module = fixer::input('post')->get();
         $self   = $this->getById($moduleID);
         $parent = $this->getById($this->post->parent);
         $childs = $this->getAllChildId($moduleID);
@@ -989,9 +1008,15 @@ class treeModel extends model
         $this->fixModulePath($module->root, $module->type);
 
         if($module->type == 'task')  $this->dao->update(TABLE_TASK)->set('module')->eq($module->parent)->where('module')->in($childs)->exec();
-        if($module->type == 'story') $this->dao->update(TABLE_STORY)->set('module')->eq($module->parent)->where('module')->in($childs)->exec();
         if($module->type == 'bug')   $this->dao->update(TABLE_BUG)->set('module')->eq($module->parent)->where('module')->in($childs)->exec();
         if($module->type == 'case')  $this->dao->update(TABLE_CASE)->set('module')->eq($module->parent)->where('module')->in($childs)->exec();
+        if($module->type == 'story') 
+        {
+            $this->dao->update(TABLE_STORY)->set('module')->eq($module->parent)->where('module')->in($childs)->exec();
+            $this->dao->update(TABLE_TASK)->set('module')->eq($module->parent)->where('module')->in($childs)->exec();
+            $this->dao->update(TABLE_BUG)->set('module')->eq($module->parent)->where('module')->in($childs)->exec();
+            $this->dao->update(TABLE_CASE)->set('module')->eq($module->parent)->where('module')->in($childs)->exec();
+        }
 
         return true;
     }
@@ -1007,7 +1032,8 @@ class treeModel extends model
     public function fixModulePath($root, $type)
     {
         /* Get all modules grouped by parent. */
-        $groupModules = $this->dao->select('id, parent')->from(TABLE_MODULE)->where('root')->eq($root)->andWhere('type')->eq($type)->fetchGroup('parent', 'id');
+        if($type == 'bug' or $type == 'case') $type = 'story,' . $type;
+        $groupModules = $this->dao->select('id, parent')->from(TABLE_MODULE)->where('root')->eq($root)->andWhere('type')->in($type)->fetchGroup('parent', 'id');
         $modules = array();
 
         /* Cycle the groupModules until it has no item any more. */

@@ -2,8 +2,8 @@
 /**
  * The testcase module zh-cn file of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     testcase
  * @version     $Id: zh-cn.php 4764 2013-05-05 04:07:04Z chencongzhi520@gmail.com $
@@ -45,23 +45,26 @@ $lang->testcase->allProduct       = '所有产品';
 $lang->testcase->fromBug          = '来源Bug';
 $lang->testcase->toBug            = '生成Bug';
 $lang->testcase->changed          = '用例变更';
+$lang->testcase->createBug        = '转Bug';
 $lang->case = $lang->testcase;  // 用于DAO检查时使用。因为case是系统关键字，所以无法定义该模块为case，只能使用testcase，但表还是使用的case。
 
 $lang->testcase->stepID     = '编号';
 $lang->testcase->stepDesc   = '步骤';
 $lang->testcase->stepExpect = '预期';
 
-$lang->testcase->common             = '用例管理';
+$lang->testcase->common             = '用例';
 $lang->testcase->index              = "用例管理首页";
 $lang->testcase->create             = "建用例";
 $lang->testcase->batchCreate        = "批量添加";
 $lang->testcase->delete             = "删除用例";
 $lang->testcase->view               = "用例详情";
 $lang->testcase->edit               = "编辑";
-$lang->testcase->batchEdit          =  "批量编辑 ";
+$lang->testcase->batchEdit          = "批量编辑 ";
 $lang->testcase->delete             = "删除";
+$lang->testcase->batchDelete        = "批量删除 ";
 $lang->testcase->deleted            = "已删除";
 $lang->testcase->browse             = "用例列表";
+$lang->testcase->groupCase          = "分组浏览用例";
 $lang->testcase->import             = "导入";
 $lang->testcase->importID           = "行号";
 $lang->testcase->showImport         = "显示导入内容";
@@ -109,8 +112,9 @@ $lang->testcase->legendHistory      = '历史记录';
 $lang->testcase->legendComment      = '备注';
 $lang->testcase->legendProduct      = '产品模块';
 
-$lang->testcase->confirmDelete = '您确认要删除该测试用例吗？';
-$lang->testcase->same          = '同上';
+$lang->testcase->confirmDelete      = '您确认要删除该测试用例吗？';
+$lang->testcase->confirmBatchDelete = '您确认要批量删除这些测试用例吗？';
+$lang->testcase->same               = '同上';
 
 $lang->testcase->priList[3] = 3;
 $lang->testcase->priList[1] = 1;
@@ -135,6 +139,9 @@ $lang->testcase->stageList['system']     = '系统测试阶段';
 $lang->testcase->stageList['smoke']      = '冒烟测试阶段';
 $lang->testcase->stageList['bvt']        = '版本验证阶段';
 
+$lang->testcase->groups['']      = '分组查看';
+$lang->testcase->groups['story'] = '需求分组';
+
 $lang->testcase->statusList['']            = '';
 $lang->testcase->statusList['normal']      = '正常';
 $lang->testcase->statusList['blocked']     = '被阻塞';
@@ -150,3 +157,6 @@ $lang->testcase->buttonToList = '返回';
 
 $lang->testcase->errorEncode = '无数据，请选择正确的编码重新上传！';
 $lang->testcase->noFunction  = '不存在iconv和mb_convert_encoding转码方法，不能将数据转成想要的编码！';
+$lang->testcase->noRequire   = "%s行的“%s”是必填字段，不能为空";
+
+$lang->testcase->searchStories = '键入来搜索需求';

@@ -9,8 +9,8 @@ $lang->custom->value     = 'Value';
 $lang->custom->object['story']    = 'Story';
 $lang->custom->object['task']     = 'Task';
 $lang->custom->object['bug']      = 'Bug';
-$lang->custom->object['testcase'] = 'Test case';
-$lang->custom->object['testtask'] = 'Test task';
+$lang->custom->object['testcase'] = 'Case';
+$lang->custom->object['testtask'] = 'Build';
 $lang->custom->object['todo']     = 'Todo';
 $lang->custom->object['user']     = 'User';
 
@@ -18,9 +18,10 @@ $lang->custom->story = new stdClass();
 $lang->custom->story->fields['priList']          = 'Priority';
 $lang->custom->story->fields['sourceList']       = 'Source';
 $lang->custom->story->fields['reasonList']       = 'Closed reason';
-$lang->custom->story->fields['reviewResultList'] = 'Reviewed result';
 $lang->custom->story->fields['stageList']        = 'Stage';
 $lang->custom->story->fields['statusList']       = 'Status';
+$lang->custom->story->fields['reviewResultList'] = 'Reviewed result';
+$lang->custom->story->fields['review']           = 'Reviewed procedure';
 
 $lang->custom->task = new stdClass();
 $lang->custom->task->fields['priList']    = 'Priority';
@@ -61,3 +62,10 @@ $lang->custom->currentLang = 'For current language';
 $lang->custom->allLang     = 'For all language';
 
 $lang->custom->confirmRestore = 'Are you sure to restore the default lang setting?';
+
+$lang->custom->notice = new stdclass();
+$lang->custom->notice->userRole = 'The length of key must be less than 20!';
+
+$lang->custom->storyReview   = 'Reviewed procedure';
+$lang->custom->reviewList[1] = 'Open';
+$lang->custom->reviewList[0] = 'Close';

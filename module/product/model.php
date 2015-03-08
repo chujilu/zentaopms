@@ -2,8 +2,8 @@
 /**
  * The model file of product module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     product
  * @version     $Id: model.php 5118 2013-07-12 07:41:41Z chencongzhi520@gmail.com $
@@ -155,17 +155,7 @@ class productModel extends model
         $pairs = array();
         foreach($products as $product)
         {
-            if($this->checkPriv($product))
-            {
-
-                if(strpos($mode, 'nocode') === false and $product->code)
-                {
-                    $firstChar = strtoupper(substr($product->code, 0, 1));
-                    if(ord($firstChar) < 127) $product->name =  $firstChar . ':' . $product->name;
-                }
-
-                $pairs[$product->id] = $product->name;
-            }
+            if($this->checkPriv($product)) $pairs[$product->id] = $product->name;
         }
         return $pairs;
     }
@@ -207,13 +197,13 @@ class productModel extends model
     public function create()
     {
         $product = fixer::input('post')
-            ->stripTags('name,code')
              ->setIF($this->post->acl != 'custom', 'whitelist', '')
              ->setDefault('status', 'normal')
              ->setDefault('createdBy', $this->app->user->account)
              ->setDefault('createdDate', helper::now())
              ->setDefault('createdVersion', $this->config->version)
             ->join('whitelist', ',')
+            ->stripTags($this->config->product->editor->create['id'], $this->config->allowedTags)
             ->get();
         $this->dao->insert(TABLE_PRODUCT)
             ->data($product)
@@ -237,9 +227,9 @@ class productModel extends model
         $productID  = (int)$productID;
         $oldProduct = $this->getById($productID);
         $product = fixer::input('post')
-            ->stripTags('name,code')
             ->setIF($this->post->acl != 'custom', 'whitelist', '')
             ->join('whitelist', ',')
+            ->stripTags($this->config->product->editor->edit['id'], $this->config->allowedTags)
             ->get();
         $this->dao->update(TABLE_PRODUCT)
             ->data($product)
@@ -463,18 +453,29 @@ class productModel extends model
     /**
      * Get product stats.
      * 
+     * @param  string $orderBy 
+     * @param  int    $pager 
      * @access public
-     * @return array
+     * @return array 
      */
-    public function getStats()
+    public function getStats($orderBy = 'code_asc', $pager = null)
     {
         $this->loadModel('report');
         $this->loadModel('story');
         $this->loadModel('bug');
 
         $products = $this->getList(',normal');
-        $stats    = array();
+        foreach($products as $productID => $product)
+        {
+            if(!$this->checkPriv($product)) unset($products[$productID]);
+        }
+        $products = $this->dao->select('*')->from(TABLE_PRODUCT)
+            ->where('id')->in(array_keys($products))
+            ->orderBy($orderBy)
+            ->page($pager)
+            ->fetchAll('id');
 
+        $stats = array();
         $stories = $this->dao->select('product, status, count(status) AS count')
             ->from(TABLE_STORY)
             ->where('deleted')->eq(0)
@@ -536,23 +537,16 @@ class productModel extends model
             ->fetchPairs();
         foreach($products as $key => $product)
         {
-            if($this->checkPriv($product))
+            if($product->status != 'closed')
             {
-                if($product->status != 'closed')
-                {
-                    $product->stories = $stories[$product->id];
-                    $product->plans   = isset($plans[$product->id])    ? $plans[$product->id]    : 0;
-                    $product->releases= isset($releases[$product->id]) ? $releases[$product->id] : 0;
+                $product->stories = $stories[$product->id];
+                $product->plans   = isset($plans[$product->id])    ? $plans[$product->id]    : 0;
+                $product->releases= isset($releases[$product->id]) ? $releases[$product->id] : 0;
 
-                    $product->bugs = isset($bugs[$product->id]) ? $bugs[$product->id] : 0;
-                    $product->unResolved = isset($unResolved[$product->id]) ? $unResolved[$product->id] : 0;
-                    $product->assignToNull = isset($assignToNull[$product->id]) ? $assignToNull[$product->id] : 0;
-                    $stats[] = $product;
-                }
-            }
-            else
-            {
-                unset($products[$key]);
+                $product->bugs = isset($bugs[$product->id]) ? $bugs[$product->id] : 0;
+                $product->unResolved = isset($unResolved[$product->id]) ? $unResolved[$product->id] : 0;
+                $product->assignToNull = isset($assignToNull[$product->id]) ? $assignToNull[$product->id] : 0;
+                $stats[] = $product;
             }
         }
 
@@ -658,6 +652,10 @@ class productModel extends model
             if($module == 'product' && $method == 'project')
             {
                 $link = helper::createLink($module, $method, "status=all&productID=%s");
+            }
+            elseif($module == 'product' && $method == 'index')
+            {
+                $link = helper::createLink($module, $method, "locate=no&productID=%s");
             }
             else
             {

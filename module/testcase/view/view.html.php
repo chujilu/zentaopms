@@ -2,8 +2,8 @@
 /**
  * The view file of case module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     case
  * @version     $Id: view.html.php 5000 2013-07-03 08:20:57Z chencongzhi520@gmail.com $
@@ -43,10 +43,10 @@
         ob_start();
 
         echo "<div class='btn-group'>";
-        common::printIcon('testtask', 'runCase', "runID=0&caseID=$case->id&version=$case->currentVersion", '', 'button', '', '', 'runCase');
-        common::printIcon('testtask', 'results', "runID=0&caseID=$case->id&version=$case->version", '', 'button', '', '', 'results');
+        common::printIcon('testtask', 'runCase', "runID=$runID&caseID=$case->id&version=$case->currentVersion", '', 'button', '', '', 'runCase');
+        common::printIcon('testtask', 'results', "runID=$runID&caseID=$case->id&version=$case->version", '', 'button', '', '', 'results');
 
-        if($case->lastRunResult == 'fail') common::printIcon('testcase', 'createBug', "product=$case->product&extra=caseID=$case->id,version=$case->version,runID=", '', 'button', 'bug');
+        if($case->lastRunResult == 'fail') common::printIcon('testcase', 'createBug', "product=$case->product&extra=caseID=$case->id,version=$case->version,runID=$runID", '', 'button', 'bug', '', 'iframe');
         echo '</div>';
 
         echo "<div class='btn-group'>";
@@ -57,7 +57,7 @@
         echo '</div>';
         
         echo "<div class='btn-group'>";
-        common::printRPN($browseLink, $preAndNext);
+        common::printRPN($browseLink, $preAndNext, inlink('view', "caseID=%s&version=0&testtask=$from&taskID=$taskID"));
         echo '</div>';
 
         $actionLinks = ob_get_contents();

@@ -2,8 +2,8 @@
 /**
  * The erase view file of extension module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     extension
  * @version     $Id$
@@ -18,7 +18,7 @@
     <small class='text-danger'><?php echo $lang->extension->erase;?> <?php echo html::icon('trash');?></small>
   </div>
 </div>
-<div class='alert alert-success'>
+<div class='alert alert-success with-icon'>
   <i class='icon-ok-sign'></i>
   <div class='content'>
     <h3><?php echo $title;?></h3>

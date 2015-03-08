@@ -2,8 +2,8 @@
 /**
  * The model file of case module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     case
  * @version     $Id: model.php 5108 2013-07-12 01:59:04Z chencongzhi520@gmail.com $
@@ -48,12 +48,17 @@ class testcaseModel extends model
             ->add('status', 'normal')
             ->add('version', 1)
             ->add('fromBug', $bugID)
-            ->setIF($this->post->story != false, 'storyVersion', $this->loadModel('story')->getVersion($this->post->story))
+            ->setIF($this->post->story != false, 'storyVersion', $this->loadModel('story')->getVersion((int)$this->post->story))
             ->remove('steps,expects,files,labels')
             ->setDefault('story', 0)
-            ->specialChars('title')
             ->join('stage', ',')
             ->get();
+
+        $result = $this->loadModel('common')->removeDuplicate('case', $case, "product={$case->product}");
+        if($result['stop']) return array('status' => 'exists', 'id' => $result['duplicate']);
+
+        /* value of story may be showmore. */
+        $case->story = (int)$case->story;
         $this->dao->insert(TABLE_CASE)->data($case)->autoCheck()->batchCheck($this->config->testcase->create->requiredFields, 'notempty')->exec();
         if(!$this->dao->isError())
         {
@@ -69,7 +74,7 @@ class testcaseModel extends model
                 $step->expect  = htmlspecialchars($this->post->expects[$stepID]);
                 $this->dao->insert(TABLE_CASESTEP)->data($step)->autoCheck()->exec();
             }
-            return $caseID;
+            return array('status' => 'created', 'id' => $caseID);
         }
     }
     
@@ -83,18 +88,41 @@ class testcaseModel extends model
      */
     function batchCreate($productID, $storyID)
     {
-        $now   = helper::now();
-        $cases = fixer::input('post')->get();
-        for($i = 0; $i < $this->config->testcase->batchCreate; $i++)
+        $now         = helper::now();
+        $cases       = fixer::input('post')->get();
+        $batchNum    = count(reset($cases));
+
+        $result = $this->loadModel('common')->removeDuplicate('case', $cases, "product=$productID");
+        $cases  = $result['data'];
+
+        for($i = 0; $i < $batchNum; $i++)
+        {
+            if(!empty($cases->title[$i]) and empty($cases->type[$i])) die(js::alert(sprintf($this->lang->error->notempty, $this->lang->testcase->type)));
+        }
+
+        $module = 0;
+        $story  = 0;
+        $type   = '';
+        for($i = 0; $i < $batchNum; $i++)
+        {
+            $module = $cases->module[$i] == 'same' ? $module : $cases->module[$i];
+            $story  = $cases->story[$i] == 'same'  ? $story  : $cases->story[$i];
+            $type   = $cases->type[$i] == 'same'   ? $type   : $cases->type[$i];
+            $cases->module[$i] = (int)$module;
+            $cases->story[$i]  = (int)$story;        
+            $cases->type[$i]   = $type;
+        }
+
+        for($i = 0; $i < $batchNum; $i++)
         {
             if($cases->type[$i] != '' and $cases->title[$i] != '')
             {
                 $data[$i] = new stdclass();
                 $data[$i]->product    = $productID;
-                $data[$i]->module     = $cases->module[$i] == 'same' ? ($i == 0 ? 0 : $data[$i-1]->module) : $cases->module[$i];
-                $data[$i]->type       = $cases->type[$i] == 'same' ? ($i == 0 ? '' : $data[$i-1]->type) : $cases->type[$i]; 
-                $data[$i]->story      = $storyID ? $storyID : ($cases->story[$i] == 'same' ? ($i == 0 ? 0 : $data[$i-1]->story) : $cases->story[$i]); 
-                $data[$i]->title      = htmlspecialchars($cases->title[$i]);
+                $data[$i]->module     = $cases->module[$i];
+                $data[$i]->type       = $cases->type[$i];
+                $data[$i]->story      = $storyID ? $storyID : $cases->story[$i]; 
+                $data[$i]->title      = $cases->title[$i];
                 $data[$i]->openedBy   = $this->app->user->account;
                 $data[$i]->openedDate = $now;
                 $data[$i]->status     = 'normal';
@@ -119,7 +147,7 @@ class testcaseModel extends model
                     die(js::reload('parent'));
                 }
 
-                $caseID = $this->dao->lastInsertID();
+                $caseID   = $this->dao->lastInsertID();
                 $actionID = $this->loadModel('action')->create('case', $caseID, 'Opened');
             }
             else
@@ -144,11 +172,12 @@ class testcaseModel extends model
      */
     public function getModuleCases($productID, $moduleIds = 0, $orderBy = 'id_desc', $pager = null)
     {
-        return $this->dao->select('*')->from(TABLE_CASE)
-            ->where('product')->eq((int)$productID)
-            ->beginIF($moduleIds)->andWhere('module')->in($moduleIds)->fi()
-            ->andWhere('deleted')->eq('0')
-            ->orderBy($orderBy)->page($pager)->fetchAll();
+        return $this->dao->select('t1.*, t2.title as storyTitle')->from(TABLE_CASE)->alias('t1')
+            ->leftJoin(TABLE_STORY)->alias('t2')->on('t1.story=t2.id')
+            ->where('t1.product')->eq((int)$productID)
+            ->beginIF($moduleIds)->andWhere('t1.module')->in($moduleIds)->fi()
+            ->andWhere('t1.deleted')->eq('0')
+            ->orderBy($orderBy)->page($pager)->fetchAll('id');
     }
 
     /**
@@ -233,7 +262,6 @@ class testcaseModel extends model
             ->add('version', $version)
             ->setIF($this->post->story != false and $this->post->story != $oldCase->story, 'storyVersion', $this->loadModel('story')->getVersion($this->post->story))
             ->setDefault('story', 0)
-            ->specialChars('title')
             ->join('stage', ',')
             ->remove('comment,steps,expects,files,labels')
             ->get();
@@ -279,6 +307,7 @@ class testcaseModel extends model
         $cases      = array();
         $allChanges = array();
         $now        = helper::now();
+        $data       = fixer::input('post')->get();
         $caseIDList = $this->post->caseIDList;
 
         /* Adjust whether the post data is complete, if not, remove the last element of $caseIDList. */
@@ -290,12 +319,12 @@ class testcaseModel extends model
             $case = new stdclass();
             $case->lastEditedBy   = $this->app->user->account;
             $case->lastEditedDate = $now;
-            $case->pri            = $this->post->pris[$caseID];
-            $case->status         = $this->post->statuses[$caseID];
-            $case->module         = $this->post->modules[$caseID];
-            $case->title          = htmlspecialchars($this->post->titles[$caseID]);
-            $case->type           = $this->post->types[$caseID];
-            $case->stage          = empty($this->post->stages[$caseID]) ? '' : implode(',', $this->post->stages[$caseID]);
+            $case->pri            = $data->pris[$caseID];
+            $case->status         = $data->statuses[$caseID];
+            $case->module         = $data->modules[$caseID];
+            $case->title          = $data->titles[$caseID];
+            $case->type           = $data->types[$caseID];
+            $case->stage          = empty($data->stages[$caseID]) ? '' : implode(',', $data->stages[$caseID]);
 
             $cases[$caseID] = $case;
             unset($case);
@@ -405,7 +434,8 @@ class testcaseModel extends model
         $this->loadModel('action');
         $this->loadModel('story');
         $this->loadModel('file');
-        $now = helper::now();
+        $now  = helper::now();
+        $data = fixer::input('post')->get();
 
         if(!empty($_POST['id']))
         {
@@ -419,38 +449,40 @@ class testcaseModel extends model
             $oldCases = $this->dao->select('*')->from(TABLE_CASE)->where('id')->in($_POST['id'])->fetchAll('id');
         }
 
-        foreach($this->post->product as $key => $product)
+        $cases = array();
+        foreach($data->product as $key => $product)
         {
-            dao::getError();
             $caseData = new stdclass();
 
             $caseData->product      = $product;
-            $caseData->module       = $this->post->module[$key];
-            $caseData->story        = (int)$this->post->story[$key];
-            $caseData->title        = $this->post->title[$key];
-            $caseData->pri          = (int)$this->post->pri[$key];
-            $caseData->type         = $this->post->type[$key];
-            $caseData->status       = $this->post->status[$key];
-            $caseData->stage        = join(',', $this->post->stage[$key]);
-            $caseData->frequency    = $this->post->frequency[$key];
-            $caseData->linkCase     = $this->post->linkCase[$key];
-            $caseData->precondition = $this->post->precondition[$key];
+            $caseData->module       = $data->module[$key];
+            $caseData->story        = (int)$data->story[$key];
+            $caseData->title        = $data->title[$key];
+            $caseData->pri          = (int)$data->pri[$key];
+            $caseData->type         = $data->type[$key];
+            $caseData->status       = $data->status[$key];
+            $caseData->stage        = join(',', $data->stage[$key]);
+            $caseData->frequency    = 1;
+            $caseData->precondition = $data->precondition[$key];
 
             if(isset($this->config->testcase->create->requiredFields))
             {
                 $requiredFields = explode(',', $this->config->testcase->create->requiredFields);
-                $invalid = false;
                 foreach($requiredFields as $requiredField)
                 {
                     $requiredField = trim($requiredField);
-                    if(empty($caseData->$requiredField)) $invalid = true;
+                    if(empty($caseData->$requiredField)) die(js::alert(sprintf($this->lang->testcase->noRequire, $key, $this->lang->testcase->$requiredField)));
                 }
-                if($invalid) continue;
             }
 
+            $cases[$key] =$caseData;
+        }
+
+        foreach($cases as $key => $caseData)
+        {
             if(!empty($_POST['id'][$key]))
             {
-                $caseID      = $this->post->id[$key];
+                $caseID      = $data->id[$key];
                 $stepChanged = false;
                 $steps       = array();
                 $oldStep     = isset($oldSteps[$caseID]) ? $oldSteps[$caseID] : array();

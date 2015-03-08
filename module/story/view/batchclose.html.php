@@ -2,8 +2,8 @@
 /**
  * The batch close view of story module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Congzhi Chen <congzhi@cnezsoft.com>
  * @package     story
  * @version     $Id$
@@ -23,11 +23,11 @@
   <table class='table table-fixed table-form'>
   <thead>
     <tr>
-      <th class='w-30px'> <?php echo $lang->idAB;?></th> 
+      <th class='w-50px'> <?php echo $lang->idAB;?></th> 
       <th>                <?php echo $lang->story->title;?></th>
       <th class='w-80px'> <?php echo $lang->story->status;?></th>
       <th class='w-120px'><?php echo $lang->story->closedReason;?></th>
-      <th class='w-p30 '> <?php echo $lang->story->comment;?></th>
+      <th class='w-p40 '> <?php echo $lang->story->comment;?></th>
     </tr>
   </thead>
     <?php foreach($storyIDList as $storyID):?>

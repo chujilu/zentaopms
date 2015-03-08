@@ -2,8 +2,8 @@
 /**
  * The model file of report module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     report
  * @version     $Id: model.php 4726 2013-05-03 05:51:27Z chencongzhi520@gmail.com $
@@ -320,7 +320,7 @@ EOT;
         {
             if($bug->project)
             {
-                $projects[$bug->project] = new stdclass();
+                if(!isset($projects[$bug->project]))$projects[$bug->project] = new stdclass();
                 $projects[$bug->project]->bugs = isset($projects[$bug->project]->bugs) ? $projects[$bug->project]->bugs + 1 : 1;
             }
         }
@@ -519,7 +519,7 @@ EOT;
     public function getSysURL()
     {
         /* Ger URL when run in shell. */
-        if(defined('IN_SHELL'))
+        if(PHP_SAPI == 'cli')
         {
             $url = parse_url(trim($this->server->argv[1]));
             $port = (empty($url['port']) or $url['port'] == 80) ? '' : $url['port'];

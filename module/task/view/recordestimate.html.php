@@ -2,8 +2,8 @@
 /**
  * The record file of task module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang<wwccss@gmail.com>
  * @package     task
  * @version     $Id: record.html.php 935 2013-01-08 07:49:24Z wwccss@gmail.com $
@@ -43,7 +43,7 @@
         <td class="text-left"><?php echo $estimate->work;?></td>
         <td align='center'>
           <?php
-          if($task->status == 'wait' or $task->status == 'doing')
+          if($task->status == 'wait' or $task->status == 'pause' or $task->status == 'doing')
           {
               common::printIcon('task', 'editEstimate', "estimateID=$estimate->id", '', 'list', 'pencil', '', 'showinonlybody', true);
               common::printIcon('task', 'deleteEstimate', "estimateID=$estimate->id", '', 'list', 'remove', 'hiddenwin', 'showinonlybody');
@@ -53,7 +53,7 @@
       </tr>
       <?php endforeach;?>
       <?php endif;?>
-      <?php if($task->status == 'wait' or $task->status == 'doing'):?>
+      <?php if($task->status == 'wait' or $task->status =='pause' or $task->status == 'doing'):?>
       <thead>
         <tr class='text-center'>
           <th class="w-id"><?php echo $lang->idAB;?></th>

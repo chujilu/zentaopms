@@ -2,8 +2,8 @@
 /**
  * The action->dynamic view file of dashboard module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     dashboard
  * @version     $Id: action->dynamic.html.php 1477 2011-03-01 15:25:50Z wwccss $
@@ -11,7 +11,6 @@
  */
 ?>
 <?php include '../../common/view/header.html.php';?>
-<?php include '../../common/view/tablesorter.html.php';?>
 <script language='Javascript'>
 var browseType = '<?php echo $browseType;?>';
 </script>
@@ -26,9 +25,9 @@ var browseType = '<?php echo $browseType;?>';
     echo '<li id="thismonth">'   . html::a(inlink('dynamic', "browseType=thismonth"),  $lang->action->dynamic->thisMonth)  . '</li>';
     echo '<li id="lastmonth">'   . html::a(inlink('dynamic', "browseType=lastmonth"),  $lang->action->dynamic->lastMonth)  . '</li>';
     echo '<li id="all">'         . html::a(inlink('dynamic', "browseType=all"),        $lang->action->dynamic->all)        . '</li>';
-    echo "<li id='account'>"     . html::select('account', $users, $account, 'onchange=changeUser(this.value) class="form-control"') . '</li>';
-    echo "<li id='product'>"     . html::select('product', $products, $product, 'onchange=changeProduct(this.value) class="form-control"') . '</li>';
-    echo "<li id='project' style='margin-right: 10px;'>"     . html::select('project', $projects, $project, 'onchange=changeProject(this.value) class="form-control"') . '</li>';
+    echo "<li id='account' class='w-120px'>"     . html::select('account', $users, $account, 'onchange=changeUser(this.value) class="form-control chosen"') . '</li>';
+    echo "<li id='product' class='w-180px'>"     . html::select('product', $products, $product, 'onchange=changeProduct(this.value) class="form-control chosen"') . '</li>';
+    echo "<li id='project' class='w-180px' style='margin-right: 10px;'>"     . html::select('project', $projects, $project, 'onchange=changeProject(this.value) class="form-control chosen"') . '</li>';
     echo "<li id='bysearchTab'>" . html::a('#', '<i class="icon-search icon"></i>&nbsp;' . $lang->action->dynamic->search) . "</li>";
     ?>
   </ul>
@@ -37,14 +36,15 @@ var browseType = '<?php echo $browseType;?>';
   
 <table class='table table-condensed table-hover table-striped tablesorter table-fixed'>
   <thead>
-  <tr class='colhead'>
-    <th class='w-150px'><?php echo $lang->action->date;?></th>
-    <th class='w-user'> <?php echo $lang->action->actor;?></th>
-    <th class='w-100px'><?php echo $lang->action->action;?></th>
-    <th class='w-80px'> <?php echo $lang->action->objectType;?></th>
-    <th class='w-id'>   <?php echo $lang->idAB;?></th>
-    <th><?php echo $lang->action->objectName;?></th>
-  </tr>
+    <tr class='colhead'>
+      <?php $vars = "browseType=$browseType&param=$param&orderBy=%s&recTotal={$pager->recTotal}&recPerPage={$pager->recPerPage}";?>
+      <th class='w-150px'><?php common::printOrderLink('date',       $orderBy, $vars, $lang->action->date);?></th>
+      <th class='w-user'> <?php common::printOrderLink('actor',      $orderBy, $vars, $lang->action->actor);?></th>
+      <th class='w-100px'><?php common::printOrderLink('action',     $orderBy, $vars, $lang->action->action);?></th>
+      <th class='w-80px'> <?php common::printOrderLink('objectType', $orderBy, $vars, $lang->action->objectType);?></th>
+      <th class='w-id'>   <?php common::printOrderLink('objectID',   $orderBy, $vars, $lang->idAB);?></th>
+      <th><?php echo $lang->action->objectName;?></th>
+    </tr>
   </thead>
   <tbody>
   <?php foreach($actions as $action):?>

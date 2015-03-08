@@ -2,8 +2,8 @@
 /**
  * The html template file of index method of install module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     ZenTaoPMS
  * @version     $Id: step5.html.php 2568 2012-02-18 15:53:35Z zhujinyong@cnezsoft.com$
@@ -16,7 +16,7 @@
       <strong><?php echo $lang->install->success;?></strong>
     </div>
     <div class='modal-body'>
-      <div class='alert alert-success'>
+      <div class='alert with-icon alert-pure'>
         <i class='icon-ok-sign'></i>
         <div class='content'><?php echo nl2br(sprintf($lang->install->joinZentao, $config->version, $this->createLink('admin', 'register'), $this->createLink('admin', 'bind'), inlink('step6')));?></div>
       </div>

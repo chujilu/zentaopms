@@ -2,8 +2,8 @@
 /**
  * The install module zh-cn file of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     install
  * @version     $Id: zh-cn.php 4972 2013-07-02 06:50:10Z zhujinyonging@gmail.com $
@@ -21,16 +21,17 @@ $lang->install->start            = '开始安装';
 $lang->install->keepInstalling   = '继续安装当前版本';
 $lang->install->seeLatestRelease = '看看最新的版本';
 $lang->install->welcome          = '欢迎使用禅道项目管理软件！';
+$lang->install->license          = '禅道项目管理软件使用 Z PUBLIC LICENSE(ZPL) 1.1 授权协议';
 $lang->install->desc             = <<<EOT
 禅道项目管理软件(ZenTaoPMS)是一款国产的，基于LGPL协议，开源免费的项目管理软件，它集产品管理、项目管理、测试管理于一体，同时还包含了事务管理、组织管理等诸多功能，是中小型企业项目管理的首选。
 
 禅道项目管理软件使用PHP + MySQL开发，基于自主的PHP开发框架──ZenTaoPHP而成。第三方开发者或者企业可以非常方便的开发插件或者进行定制。
-
+EOT;
+$lang->install->links = <<<EOT
 禅道项目管理软件由<strong><a href='http://www.cnezsoft.com' target='_blank' class='text-danger'>青岛易软天创网络科技有限公司</a>开发</strong>。
 官方网站：<a href='http://www.zentao.net' target='_blank'>http://www.zentao.net</a>
 技术支持: <a href='http://www.zentao.net/ask/' target='_blank'>http://www.zentao.net/ask/</a>
 新浪微博：<a href='http://t.sina.com.cn/zentaopms' target='_blank'>t.sina.com.cn/zentaopms</a>
-腾讯微博：<a href='http://t.qq.com/zentaopms/' target='_blank'>t.qq.com/zentaopms</a>
 
 您现在正在安装的版本是 <strong class='text-danger'>%s</strong>。
 EOT;
@@ -88,6 +89,7 @@ $lang->install->requestTypes['GET']       = '普通方式';
 $lang->install->requestTypes['PATH_INFO'] = '静态友好方式';
 
 $lang->install->errorConnectDB      = '数据库连接失败 ';
+$lang->install->errorDBName         = '数据库名不能含有 “.” ';
 $lang->install->errorCreateDB       = '数据库创建失败';
 $lang->install->errorTableExists    = '数据表已经存在，您之前应该有安装过禅道，继续安装请返回前页并选择清空数据';
 $lang->install->errorCreateTable    = '创建表失败';
@@ -97,7 +99,7 @@ $lang->install->setConfig  = '生成配置文件';
 $lang->install->key        = '配置项';
 $lang->install->value      = '值';
 $lang->install->saveConfig = '保存配置文件';
-$lang->install->save2File  = '<div class="a-center"><span class="fail">尝试写入配置文件，失败！</span></div>拷贝上面文本框中的内容，将其保存到 "<strong> %s </strong>"中。您以后还可继续修改此配置文件。';
+$lang->install->save2File  = '<div class="alert alert-warning">拷贝上面文本框中的内容，将其保存到 "<strong> %s </strong>"中。您以后还可继续修改此配置文件。</div>';
 $lang->install->saved2File = '配置信息已经成功保存到" <strong>%s</strong> "中。您后面还可继续修改此文件。';
 $lang->install->errorNotSaveConfig = '还没有保存配置文件';
 
@@ -133,6 +135,6 @@ $lang->install->login    = '登录禅道管理系统';
 $lang->install->register = '禅道社区注册';
 
 $lang->install->joinZentao = <<<EOT
-<p>您已经成功安装禅道管理系统%s，<strong class='text-danger'>请及时删除install.php</strong>。</p>
-<p>友情提示：为了您及时获得禅道的最新动态，请在禅道社区(<a href='http://www.zentao.net' class='alert-link' target='_blank'>www.zentao.net</a>)进行登记。</p>
+<p>您已经成功安装禅道管理系统%s，<strong class='text-danger'>请及时删除install.php</strong>。</p><p>友情提示：为了您及时获得禅道的最新动态，请在禅道社区(<a href='http://www.zentao.net' class='alert-link' target='_blank'>www.zentao.net</a>)进行登记。</p>
+
 EOT;

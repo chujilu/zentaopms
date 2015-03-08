@@ -2,8 +2,8 @@
 /**
  * The control file of common module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     common
  * @version     $Id: control.php 5036 2013-07-06 05:26:44Z wyd621@gmail.com $
@@ -52,25 +52,6 @@ class common extends control
         {
             $referer  = helper::safe64Encode($this->app->getURI(true));
             $this->locate($this->createLink('user', 'login', "referer=$referer"));
-        }
-    }
-
-    /**
-     * Check upgrade's status file is ok or not.
-     * 
-     * @access public
-     * @return void
-     */
-    public function checkUpgradeStatus()
-    {
-        $statusFile = $this->app->getAppRoot() . 'www' . $this->pathFix . 'ok';
-        if(!file_exists($statusFile) or time() - filemtime($statusFile) > 3600)
-        {
-            $this->app->loadLang('upgrade');
-            echo "<html><head><meta http-equiv='Content-Type' content='text/html; charset=utf-8' /></head><body>";
-            echo "<table align='center' style='margin-top:100px; border:1px solid gray; font-size:14px;'><tr><td>";
-            printf($this->lang->upgrade->setStatusFile, $statusFile, $statusFile, $statusFile);
-            die('</td></tr></table></body></html>');
         }
     }
 
@@ -278,7 +259,6 @@ class common extends control
         }
 
         /* Set module and method, then create link to it. */
-        if(strtolower($module) == 'testcase' and strtolower($method) == 'createbug')  ($module = 'bug') and ($method = 'create');
         if(strtolower($module) == 'story'    and strtolower($method) == 'createcase') ($module = 'testcase') and ($method = 'create');
         if(strtolower($module) == 'bug'      and strtolower($method) == 'tostory')    ($module = 'story') and ($method = 'create');
         if(strtolower($module) == 'bug'      and strtolower($method) == 'createcase') ($module = 'testcase') and ($method = 'create');
@@ -348,7 +328,7 @@ class common extends control
      * @access public
      * @return void
      */
-    static public function printRPN($backLink, $preAndNext = '')
+    static public function printRPN($backLink, $preAndNext = '', $linkTemplate = '')
     {
         global $lang, $app;
         if(isonlybody()) return false;
@@ -360,14 +340,16 @@ class common extends control
             $id = (isset($_SESSION['testcaseOnlyCondition']) and !$_SESSION['testcaseOnlyCondition'] and $app->getModuleName() == 'testcase' and isset($preAndNext->pre->case)) ? 'case' : 'id';
             $title = isset($preAndNext->pre->title) ? $preAndNext->pre->title : $preAndNext->pre->name;
             $title = '#' . $preAndNext->pre->$id . ' ' . $title;
-            echo html::a(inLink('view', "ID={$preAndNext->pre->$id}"), '<i class="icon-pre icon-chevron-left"></i>', '', "id='pre' class='btn' title='{$title}'");
+            $link  = $linkTemplate ? sprintf($linkTemplate, $preAndNext->pre->$id) : inLink('view', "ID={$preAndNext->pre->$id}");
+            echo html::a($link, '<i class="icon-pre icon-chevron-left"></i>', '', "id='pre' class='btn' title='{$title}'");
         }
         if(isset($preAndNext->next) and $preAndNext->next) 
         {
             $id = (isset($_SESSION['testcaseOnlyCondition']) and !$_SESSION['testcaseOnlyCondition'] and $app->getModuleName() == 'testcase' and isset($preAndNext->next->case)) ? 'case' : 'id';
             $title = isset($preAndNext->next->title) ? $preAndNext->next->title : $preAndNext->next->name;
             $title = '#' . $preAndNext->next->$id . ' ' . $title;
-            echo html::a(inLink('view', "ID={$preAndNext->next->$id}"), '<i class="icon-pre icon-chevron-right"></i>', '', "id='next' class='btn' title='$title'");
+            $link  = $linkTemplate ? sprintf($linkTemplate, $preAndNext->next->$id) : inLink('view', "ID={$preAndNext->next->$id}");
+            echo html::a($link, '<i class="icon-pre icon-chevron-right"></i>', '', "id='next' class='btn' title='$title'");
         }
     }
 

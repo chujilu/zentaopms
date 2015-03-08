@@ -2,8 +2,8 @@
 /**
  * The model file of common module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     common
  * @version     $Id$
@@ -73,7 +73,7 @@ class commonModel extends model
         {
             $this->app->user = $this->session->user;
         }
-        elseif($this->app->company->guest or defined('IN_SHELL'))
+        elseif($this->app->company->guest or PHP_SAPI == 'cli')
         {
             $user             = new stdClass();
             $user->id         = 0;
@@ -81,6 +81,7 @@ class commonModel extends model
             $user->realname   = 'guest';
             $user->role       = 'guest';
             $user->rights     = $this->loadModel('user')->authorize('guest');
+            $user->groups     = array('group');
             $this->session->set('user', $user);
             $this->app->user = $this->session->user;
         }
@@ -147,7 +148,6 @@ class commonModel extends model
         if($module == 'user' and strpos('login|logout|deny', $method) !== false) return true;
         if($module == 'api'  and $method == 'getsessionid') return true;
         if($module == 'misc' and $method == 'ping') return true;
-        if($module == 'sso'  and strpos('auth|depts|users', $method) !== false) return true;
 
         if($this->loadModel('user')->isLogon())
         {
@@ -446,9 +446,6 @@ class commonModel extends model
 
         if(!isset($lang->$moduleName->menu)) {echo "<ul></ul>"; return;}
 
-        /* Unset clearData menu when the data of pms is demo. */
-        if(!isset($app->config->global->showDemoUsers) or !$app->config->global->showDemoUsers) unset($lang->admin->menu->clearData);
-
         /* Get the sub menus of the module, and get current module and method. */
         $submenus      = $lang->$moduleName->menu;  
         $currentModule = $app->getModuleName();
@@ -584,8 +581,9 @@ class commonModel extends model
     {
         global $lang;
         echo html::a('javascript:;', "<i class='icon-qrcode'></i>", '', "class='qrCode $color' id='qrcodeBtn' title='{$lang->user->mobileLogin}'");
-        echo "<div class='popover top' id='qrcodePopover'><div class='arrow'></div><h3 class='popover-title'>{$lang->user->mobileLogin}</h3><div class='popover-content'><img src=\"" . helper::createLink('misc', 'qrCode') . "\"></div></div>";
+        echo "<div class='popover top' id='qrcodePopover'><div class='arrow'></div><h3 class='popover-title'>{$lang->user->mobileLogin}</h3><div class='popover-content'><img src=\"javascript:;\"></div></div>";
         echo '<script>$(function(){$("#qrcodeBtn").click(function(){$("#qrcodePopover").toggleClass("show");}); $("#wrap").click(function(){$("#qrcodePopover").removeClass("show");});});</script>';
+        echo '<script>$(function(){$("#qrcodeBtn").hover(function(){$(".popover-content img").attr("src", "' . helper::createLink('misc', 'qrCode') . '");});});</script>';
     }
 
     /**
@@ -648,9 +646,13 @@ class commonModel extends model
         $preAndNextObject = new stdClass();
 
         if(strpos('story, task, bug, testcase, doc', $type) === false) return $preAndNextObject;
-        $table = $this->config->objectTables[$type];
+
+        /* Use existObject when the preAndNextObject of this objectID has exist in session. */
+        $existObject = $type . 'PreAndNext';
+        if(isset($_SESSION[$existObject]) and $_SESSION[$existObject]['objectID'] == $objectID) return $_SESSION[$existObject]['preAndNextObject'];
 
         /* Get objectIDs. */
+        $table             = $this->config->objectTables[$type];
         $queryCondition    = $type . 'QueryCondition';
         $typeOnlyCondition = $type . 'OnlyCondition';
         $queryCondition = $this->session->$queryCondition;
@@ -660,40 +662,41 @@ class commonModel extends model
 
         if(empty($queryCondition) or $this->session->$typeOnlyCondition)
         {
-            $objects = $this->dao->select('*')->from($table)
-                ->where('id')->eq($objectID)
+            $queryObjects = $this->dao->select('*')->from($table)->where('id')->eq($objectID)
                 ->beginIF($queryCondition != false)->orWhere($queryCondition)->fi()
                 ->beginIF($orderBy != false)->orderBy($orderBy)->fi()
-                ->fetchAll();
+                ->query();
         }
         else
         {
-            $objects = $this->dbh->query($queryCondition . " ORDER BY $orderBy")->fetchAll();
+            $queryObjects = $this->dao->query($queryCondition . " ORDER BY $orderBy");
         }
 
-        $tmpObjectIDs = array();
-        foreach($objects as $key => $object) $tmpObjectIDs[$key] = (!$this->session->$typeOnlyCondition and $type == 'testcase' and isset($object->case)) ? $object->case : $object->id;
-        $objectIDs = array_flip($tmpObjectIDs);
-
-        /* Current object. */
-        $currentKey = array_search($objectID, $tmpObjectIDs);
-
-        $preKey = $currentKey - 1;
-        $preAndNextObject->pre = '';
-        if($preKey >= 0) 
-        {
-            $preID = $tmpObjectIDs[$preKey];
-            $preAndNextObject->pre = $objects[$objectIDs[$preID]];
-        }
-        
-        /* Get the next object. */
-        $nextKey = $currentKey + 1;
+        $preObj  = false;
+        $preAndNextObject->pre  = '';
         $preAndNextObject->next = '';
-        if($nextKey < count($tmpObjectIDs)) 
+        while($object = $queryObjects->fetch())
         {
-            $nextID = $tmpObjectIDs[$nextKey];
-            $preAndNextObject->next = $objects[$objectIDs[$nextID]];
+            $key = (!$this->session->$typeOnlyCondition and $type == 'testcase' and isset($object->case)) ? 'case' : 'id';
+            $id  = $object->$key;
+
+            /* Get next object. */
+            if($preObj === true)
+            {
+                $preAndNextObject->next = $object;
+                break;
+            }
+
+            /* Get pre object. */
+            if($id == $objectID)
+            {
+                if($preObj) $preAndNextObject->pre = $preObj;
+                $preObj = true;
+            }
+            if($preObj !== true) $preObj = $object;
         }
+
+        $this->session->set($existObject, array('objectID' => $objectID, 'preAndNextObject' => $preAndNextObject));
         return $preAndNextObject;
     }
 
@@ -738,5 +741,57 @@ class commonModel extends model
         {
             $this->session->set($objectType . 'OrderBy', '');
         }
+    }
+
+    /**
+     * Remove duplicate for story, task, bug, case, doc.
+     * 
+     * @param  string       $type  e.g. story task bug case doc.
+     * @param  array|object $data 
+     * @param  string       $condition 
+     * @access public
+     * @return array
+     */
+    public function removeDuplicate($type, $data = '', $condition = '')
+    {
+        $table      = $this->config->objectTables[$type];
+        $titleField = $type == 'task' ? 'name' : 'title';
+        $date       = date(DT_DATETIME1, time() - $this->config->duplicateTime);
+        $dateField  = $type == 'doc' ? 'addedDate' : 'openedDate';
+        $titles     = $data->$titleField;
+
+        if(empty($titles)) return false;
+        $duplicate = $this->dao->select("id,$titleField")->from($table)
+            ->where('deleted')->eq(0)
+            ->andWhere($titleField)->in($titles)
+            ->andWhere($dateField)->ge($date)->fi()
+            ->beginIF($condition)->andWhere($condition)->fi()
+            ->fetchPairs();
+
+        if($duplicate and is_string($titles)) return array('stop' => true, 'duplicate' => key($duplicate));
+        if($duplicate and is_array($titles))
+        {
+            foreach($titles as $i => $title)
+            {
+                if(in_array($title, $duplicate)) unset($titles[$i]);
+            }
+            $data->$titleField = $titles;
+        }
+        return array('stop' => false, 'data' => $data);
+    }
+
+    /**
+     * Append order by.
+     * 
+     * @param  string $orderBy 
+     * @param  string $append 
+     * @access public
+     * @return string
+     */
+    public function appendOrder($orderBy, $append = 'id')
+    {
+        list($firstOrder) = explode(',', $orderBy);
+        $sort = strpos($firstOrder, '_') === false ? '_asc' : strstr($firstOrder, '_');
+        return strpos($orderBy, $append) === false ? $orderBy . ',' . $append . $sort : $orderBy;
     }
 }

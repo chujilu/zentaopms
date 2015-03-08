@@ -2,8 +2,8 @@
 /**
  * The importtask view file of project module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     project
  * @version     $Id: importtask.html.php 4669 2013-04-23 02:28:08Z chencongzhi520@gmail.com $
@@ -16,10 +16,10 @@
   <div class='heading'>
     <span class='prefix pull-left'><?php echo html::icon($lang->icons['task']);?></span>
     <strong class='pull-left'><small class='text-muted'><?php echo html::icon($lang->icons['import']);?></small> <?php echo $lang->project->importTask;?></strong>
-    <div class='input-group pull-left'>
+    <div class='input-group pull-left' style='font-weight:normal;'>
       <?php $projects = array(0 => $lang->project->fromproject) + $projects;?>
       <span class='input-group-addon'><?php echo $lang->project->selectProject;?></span>
-      <?php  echo html::select('fromproject', $projects, $fromProject, "onchange='reload($projectID, this.value)' class='form-control'");?>
+      <?php  echo html::select('fromproject', $projects, $fromProject, "onchange='reload($projectID, this.value)' class='form-control chosen'");?>
     </div>
   </div>
 </div>
@@ -49,7 +49,7 @@
       </td>
 
       <td><?php echo substr($projects[$task->project], 2);?></td>
-      <td><span class='<?php echo 'pri' . $task->pri?>'><?php echo $task->pri;?></span></td>
+      <td><span class='<?php echo 'pri' . zget($lang->task->priList, $task->pri, $task->pri)?>'><?php echo zget($lang->task->priList, $task->pri, $task->pri);?></span></td>
       <td class='text-left nobr'><?php if(!common::printLink('task', 'view', "task=$task->id", $task->name)) echo $task->name;?></td>
       <td <?php echo $class;?>><?php echo $task->assignedToRealName;?></td>
       <td><?php echo $task->left;?></td>

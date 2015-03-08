@@ -2,8 +2,8 @@
 /**
  * The control file of action module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     action
  * @version     $Id$
@@ -40,8 +40,11 @@ class action extends control
 
         /* Get deleted objects. */
         $this->app->loadClass('pager', $static = true);
-        $pager   = pager::init($recTotal, $recPerPage, $pageID);
-        $trashes = $this->action->getTrashes($type, $orderBy, $pager);
+        $pager = pager::init($recTotal, $recPerPage, $pageID);
+
+        /* Append id for secend sort. */
+        $sort    = $this->loadModel('common')->appendOrder($orderBy);
+        $trashes = $this->action->getTrashes($type, $sort, $pager);
 
         /* Title and position. */
         $this->view->title      = $this->lang->action->trash;
@@ -110,7 +113,7 @@ class action extends control
      */
     public function editComment($actionID)
     {
-        if(!strip_tags($this->post->lastComment)) die(js::locate($this->server->http_referer, 'parent'));
+        if(!strip_tags($this->post->lastComment, '<img>')) die(js::locate($this->server->http_referer, 'parent'));
         $this->action->updateComment($actionID);
         die(js::locate($this->server->http_referer, 'parent'));
     }

@@ -2,8 +2,8 @@
 /**
  * The model file of admin module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     admin
  * @version     $Id: model.php 5148 2013-07-16 01:31:08Z chencongzhi520@gmail.com $
@@ -138,39 +138,4 @@ class adminModel extends model
 		$register->email   = $this->app->user->email;
 		return $register;
 	}
-
-    /**
-     * Clear data.
-     * 
-     * @access public
-     * @return void
-     */
-    public function clearData()
-    {
-        $result = $this->dbh->query('SHOW TABLES')->fetchAll();
-        if(!isset($this->config->global->showDemoUsers)) return false;
-
-        foreach($result as $item) 
-        {
-            $table = current((array)$item); 
-            if(strpos($table, $this->config->db->prefix) === false) continue;
-            if($table == $this->config->db->prefix . 'company') continue;
-            if($table == $this->config->db->prefix . 'group') continue;
-            if($table == $this->config->db->prefix . 'user') 
-            {
-                $deleteUsers = array('productManager', 'projectManager', 'testManager', 'dev1', 'dev2', 'dev3', 'tester1', 'tester2', 'tester3');
-                $this->dao->delete()->from($table)->where('account')->in($deleteUsers)->exec();
-                if(dao::isError()) return false;
-                continue;
-            }
-            if($table == $this->config->db->prefix . 'config') 
-            {
-                $this->loadModel('setting')->deleteItems('key=showDemoUsers');
-                if(dao::isError()) return false;
-                continue;
-            }
-            if(!$this->dbh->query("TRUNCATE TABLE `$table`")) return false;
-        }
-        return true;
-    }
 }

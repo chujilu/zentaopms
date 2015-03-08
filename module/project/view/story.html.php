@@ -2,8 +2,8 @@
 /**
  * The story view file of project module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     project
  * @version     $Id: story.html.php 5117 2013-07-12 07:03:14Z chencongzhi520@gmail.com $
@@ -63,7 +63,7 @@
           <?php endif;?>
           <?php echo html::a($storyLink, sprintf('%03d', $story->id));?>
         </td>
-        <td><span class='<?php echo 'pri' . $lang->story->priList[$story->pri]?>'><?php echo $lang->story->priList[$story->pri];?></span></td>
+        <td><span class='<?php echo 'pri' . zget($lang->story->priList, $story->pri, $story->pri)?>'><?php echo zget($lang->story->priList, $story->pri, $story->pri);?></span></td>
         <td class='text-left' title="<?php echo $story->title?>"><?php echo html::a($storyLink,$story->title);?></td>
         <td><?php echo $users[$story->openedBy];?></td>
         <td><?php echo $users[$story->assignedTo];?></td>
@@ -81,13 +81,13 @@
           $param = "projectID={$project->id}&story={$story->id}&moduleID={$story->module}";
 
           $lang->task->create = $lang->project->wbs;
-          common::printIcon('task', 'create', $param, '', 'list', 'sitemap');
+          common::printIcon('task', 'create', $param, '', 'list', 'smile');
 
           $lang->task->batchCreate = $lang->project->batchWBS;
           common::printIcon('task', 'batchCreate', "projectID={$project->id}&story={$story->id}", '', 'list', 'stack');
 
           $lang->testcase->batchCreate = $lang->testcase->create;
-          if($productID) common::printIcon('testcase', 'batchCreate', "productID=$story->product&moduleID=$story->module&storyID=$story->id", '', 'list', 'smile');
+          if($productID) common::printIcon('testcase', 'batchCreate', "productID=$story->product&moduleID=$story->module&storyID=$story->id", '', 'list', 'sitemap');
 
           if(common::hasPriv('project', 'unlinkStory'))
           {
@@ -108,18 +108,27 @@
           {
             if($canBatchEdit or $canBatchClose) echo "<div class='btn-group'>" . html::selectButton() . '</div>';
 
-              echo "<div class='btn-group'>";
+              echo "<div class='btn-group dropup'>";
               if($canBatchEdit)
               {
                   $actionLink = $this->createLink('story', 'batchEdit', "productID=0&projectID=$project->id");
                   echo html::commonButton($lang->edit, "onclick=\"setFormAction('$actionLink')\"");
               }
+              echo "<button id='moreAction' type='button' class='btn dropdown-toggle' data-toggle='dropdown'><span class='caret'></span></button>";
+              echo "<ul class='dropdown-menu' id='moreActionMenu'>";
               if($canBatchClose)
               {
                   $actionLink = $this->createLink('story', 'batchClose', "productID=0&projectID=$project->id");
-                  echo html::commonButton($lang->close, "onclick=\"setFormAction('$actionLink')\"");
+                  $misc       = "onclick=\"setFormAction('$actionLink')\"";
+                  echo '<li>' . html::a('#', $lang->close, '', $misc) . '</li>';
               }
-              echo '</div>';
+              if(common::hasPriv('story', 'batchUnlinkStory'))
+              {
+                  $actionLink = $this->createLink('project', 'batchUnlinkStory', "projectID=$project->id");
+                  $misc       = "onclick=\"setFormAction('$actionLink')\"";
+                  echo '<li>' . html::a('#', $lang->project->unlinkStory, '', $misc) . '</li>';
+              }
+              echo '</ul></div>';
           }
           echo "<div class='text'>" . $summary . '</div>';
           ?>

@@ -2,8 +2,8 @@
 /**
  * The edit file of case module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     case
  * @version     $Id: edit.html.php 5000 2013-07-03 08:20:57Z chencongzhi520@gmail.com $
@@ -11,7 +11,6 @@
  */
 ?>
 <?php include '../../common/view/header.html.php';?>
-<?php include '../../common/view/chosen.html.php';?>
 <?php include '../../common/view/kindeditor.html.php';?>
 <?php js::set('lblDelete', $lang->testcase->deleteStep);?>
 <?php js::set('lblBefore', $lang->testcase->insertBefore);?>
@@ -90,19 +89,19 @@
         <table class='table table-form' cellpadding='0' cellspacing='0'>
           <tr>
             <th class='w-80px'><?php echo $lang->testcase->product;?></th>
-            <td><?php echo html::select('product', $products, $productID, "onchange=loadAll(this.value); class='form-control'");?></td>
+            <td><?php echo html::select('product', $products, $productID, "onchange=loadAll(this.value); class='form-control chosen'");?></td>
           </tr>
           <tr>
             <th><?php echo $lang->testcase->module;?></th>
             <td>
               <div class='input-group' id='moduleIdBox'>
-                <?php echo html::select('module', $moduleOptionMenu, $currentModuleID, "onchange='loadModuleRelated()' class='form-control'");?>
+                <?php echo html::select('module', $moduleOptionMenu, $currentModuleID, "onchange='loadModuleRelated()' class='form-control chosen'");?>
               </div>
             </td>
           </tr>
           <tr>
             <th><?php echo $lang->testcase->story;?></th>
-            <td class='text-left'><div id='storyIdBox'><?php echo html::select('story', $stories, $case->story, 'class=form-control');?></div>
+            <td class='text-left'><div id='storyIdBox'><?php echo html::select('story', $stories, $case->story, 'class=form-control chosen');?></div>
             </td>
           </tr>
           <tr>

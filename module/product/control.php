@@ -2,8 +2,8 @@
 /**
  * The control file of product module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     product
  * @version     $Id: control.php 5144 2013-07-15 06:37:03Z chencongzhi520@gmail.com $
@@ -40,21 +40,33 @@ class product extends control
      *
      * @param  string $locate     locate to browse page or not. If not, display all products.
      * @param  int    $productID 
+     * @param  string $orderBy 
+     * @param  int    $recTotal 
+     * @param  int    $recPerPage 
+     * @param  int    $pageID 
      * @access public
      * @return void
      */
-    public function index($locate = 'yes', $productID = 0)
+    public function index($locate = 'yes', $productID = 0, $orderBy = 'code_asc', $recTotal = 0, $recPerPage = 10, $pageID = 1)
     {
         if($locate == 'yes') $this->locate($this->createLink($this->moduleName, 'browse'));
         
         $this->session->set('productList', $this->app->getURI(true));
         if($this->app->getViewType() != 'mhtml') $this->product->setMenu($this->products, $productID);
 
+        /* Load pager and get tasks. */
+        $this->app->loadClass('pager', $static = true);
+        $pager = new pager($recTotal, $recPerPage, $pageID);
+
         $this->app->loadLang('my');
         $this->view->title        = $this->lang->product->allProduct;
         $this->view->position[]   = $this->lang->product->allProduct;
-        $this->view->productStats = $this->product->getStats();
+        $this->view->productStats = $this->product->getStats($orderBy, $pager);
         $this->view->productID    = $productID;
+        $this->view->pager        = $pager;
+        $this->view->recTotal     = $pager->recTotal;
+        $this->view->recPerPage   = $pager->recPerPage;
+        $this->view->orderBy      = $orderBy;
         $this->display();
     }
 
@@ -93,7 +105,7 @@ class product extends control
      * @access public
      * @return void
      */
-    public function browse($productID = 0, $browseType = 'allStory', $param = 0, $orderBy = '', $recTotal = 0, $recPerPage = 20, $pageID = 1)
+    public function browse($productID = 0, $browseType = 'unclosed', $param = 0, $orderBy = '', $recTotal = 0, $recPerPage = 20, $pageID = 1)
     {
         /* Lower browse type. */
         $browseType = strtolower($browseType);
@@ -114,6 +126,9 @@ class product extends control
         if(!$orderBy) $orderBy = $this->cookie->productStoryOrder ? $this->cookie->productStoryOrder : 'id_desc';
         setcookie('productStoryOrder', $orderBy, $this->config->cookieLife, $this->config->webRoot);
 
+        /* Append id for secend sort. */
+        $sort = $this->loadModel('common')->appendOrder($orderBy);
+
         /* Set header and position. */
         $this->view->title      = $this->products[$productID]. $this->lang->colon . $this->lang->product->browse;
         $this->view->position[] = $this->products[$productID];
@@ -126,17 +141,24 @@ class product extends control
 
         /* Get stories. */
         $stories = array();
-        if($browseType == 'allstory')    $stories = $this->story->getProductStories($productID, 0, 'all', $orderBy, $pager);
-        if($browseType == 'bymodule')    $stories = $this->story->getProductStories($productID, $this->tree->getAllChildID($moduleID), 'all', $orderBy, $pager);
-        if($browseType == 'bysearch')    $stories = $this->story->getBySearch($productID, $queryID, $orderBy, $pager);
-        if($browseType == 'assignedtome')$stories = $this->story->getByAssignedTo($productID, $this->app->user->account, $orderBy, $pager);
-        if($browseType == 'openedbyme')  $stories = $this->story->getByOpenedBy($productID, $this->app->user->account, $orderBy, $pager);
-        if($browseType == 'reviewedbyme')$stories = $this->story->getByReviewedBy($productID, $this->app->user->account, $orderBy, $pager);
-        if($browseType == 'closedbyme')  $stories = $this->story->getByClosedBy($productID, $this->app->user->account, $orderBy, $pager);
-        if($browseType == 'draftstory')  $stories = $this->story->getByStatus($productID, 'draft', $orderBy, $pager);
-        if($browseType == 'activestory') $stories = $this->story->getByStatus($productID, 'active', $orderBy, $pager);
-        if($browseType == 'changedstory')$stories = $this->story->getByStatus($productID, 'changed', $orderBy, $pager);
-        if($browseType == 'closedstory') $stories = $this->story->getByStatus($productID, 'closed', $orderBy, $pager);
+        if($browseType == 'unclosed')
+        {
+            $unclosedStatus = $this->lang->story->statusList;
+            unset($unclosedStatus['closed']);
+            $stories = $this->story->getProductStories($productID, 0, array_keys($unclosedStatus), $sort, $pager);
+        }
+        if($browseType == 'allstory')    $stories = $this->story->getProductStories($productID, 0, 'all', $sort, $pager);
+        if($browseType == 'bymodule')    $stories = $this->story->getProductStories($productID, $this->tree->getAllChildID($moduleID), 'all', $sort, $pager);
+        if($browseType == 'bysearch')    $stories = $this->story->getBySearch($productID, $queryID, $sort, $pager);
+        if($browseType == 'assignedtome')$stories = $this->story->getByAssignedTo($productID, $this->app->user->account, $sort, $pager);
+        if($browseType == 'openedbyme')  $stories = $this->story->getByOpenedBy($productID, $this->app->user->account, $sort, $pager);
+        if($browseType == 'reviewedbyme')$stories = $this->story->getByReviewedBy($productID, $this->app->user->account, $sort, $pager);
+        if($browseType == 'closedbyme')  $stories = $this->story->getByClosedBy($productID, $this->app->user->account, $sort, $pager);
+        if($browseType == 'draftstory')  $stories = $this->story->getByStatus($productID, 'draft', $sort, $pager);
+        if($browseType == 'activestory') $stories = $this->story->getByStatus($productID, 'active', $sort, $pager);
+        if($browseType == 'changedstory')$stories = $this->story->getByStatus($productID, 'changed', $sort, $pager);
+        if($browseType == 'willclose')   $stories = $this->story->getWillClose($productID, $sort, $pager);
+        if($browseType == 'closedstory') $stories = $this->story->getByStatus($productID, 'closed', $sort, $pager);
 
         /* Process the sql, get the conditon partion, save it to session. */
         $this->loadModel('common')->saveQueryCondition($this->dao->get(), 'story');
@@ -158,7 +180,7 @@ class product extends control
         $this->view->moduleTree    = $this->tree->getTreeMenu($productID, $viewType = 'story', $startModuleID = 0, array('treeModel', 'createStoryLink'));
         $this->view->parentModules = $this->tree->getParents($moduleID);
         $this->view->pager         = $pager;
-        $this->view->users         = $this->user->getPairs('noletter');
+        $this->view->users         = $this->user->getPairs('nodeleted|noletter|pofirst');
         $this->view->orderBy       = $orderBy;
         $this->view->browseType    = $browseType;
         $this->view->moduleID      = $moduleID;
@@ -244,11 +266,10 @@ class product extends control
             {
                 foreach($allChanges as $productID => $changes)
                 {
-                    if(!empty($changes))
-                    {
-                        $actionID = $this->loadModel('action')->create('product', $productID, 'Edited');
-                        $this->action->logHistory($actionID, $changes);
-                    }
+                    if(empty($changes)) continue;
+
+                    $actionID = $this->loadModel('action')->create('product', $productID, 'Edited');
+                    $this->action->logHistory($actionID, $changes);
                 }
             }
             die(js::locate($this->session->productList, 'parent'));
@@ -290,7 +311,7 @@ class product extends control
                 $actionID = $this->action->create('product', $productID, 'Closed', $this->post->comment);
                 $this->action->logHistory($actionID, $changes);
             }
-            die(js::locate($this->createLink('product', 'view', "productID=$productID"), 'parent'));
+            die(js::reload('parent.parent'));
         }
 
         $this->product->setMenu($this->products, $productID);
@@ -425,11 +446,12 @@ class product extends control
 
         $this->product->setMenu($this->products, $productID);
 
+        /* Append id for secend sort. */
+        $sort = $this->loadModel('common')->appendOrder($orderBy);
+
         /* Set the pager. */
         $this->app->loadClass('pager', $static = true);
         $pager = pager::init($recTotal, $recPerPage, $pageID);
-        $this->view->orderBy = $orderBy;
-        $this->view->pager   = $pager;
 
         /* Set the user and type. */
         $account = $type == 'account' ? $param : 'all';
@@ -445,7 +467,10 @@ class product extends control
         $this->view->type      = $type;
         $this->view->users     = $this->loadModel('user')->getPairs('nodeleted|noletter');
         $this->view->account   = $account;
-        $this->view->actions   = $this->loadModel('action')->getDynamic($account, $period, $orderBy, $pager, $productID);
+        $this->view->orderBy   = $orderBy;
+        $this->view->pager     = $pager;
+        $this->view->param     = $param;
+        $this->view->actions   = $this->loadModel('action')->getDynamic($account, $period, $sort, $pager, $productID);
         $this->display();
     }
 
@@ -475,7 +500,7 @@ class product extends control
     public function ajaxGetPlans($productID, $planID = 0, $needCreate = false)
     {
         $plans = $this->loadModel('productplan')->getPairs($productID);
-        $output = html::select('plan', $plans, $planID, "class='form-control'");
+        $output = html::select('plan', $plans, $planID, "class='form-control chosen'");
         if(count($plans) == 1 and $needCreate) 
         {
             $output .= "<span class='input-group-addon'>";

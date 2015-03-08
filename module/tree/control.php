@@ -2,8 +2,8 @@
 /**
  * The control file of tree module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     tree
  * @version     $Id: control.php 5002 2013-07-03 08:25:39Z chencongzhi520@gmail.com $
@@ -180,21 +180,21 @@ class tree extends control
         }
 
         $module = $this->tree->getById($moduleID);
-        if($module->owner == null and $module->root != 0)
+        if($module->owner == null and $module->root != 0 and $module->type != 'task')
         {
-           $module->owner = $this->loadModel('product')->getById($module->root)->QD;
+            $module->owner = $this->loadModel('product')->getById($module->root)->QD;
         }
 
         if($type == 'task')
         {
             $optionMenu = $this->tree->getTaskOptionMenu($module->root);
-            unset($optionMenu[0]);
             $this->view->optionMenu = $optionMenu;
         }
         else
         {
             $this->view->optionMenu = $this->tree->getOptionMenu($module->root, $module->type);
         }
+
         $this->view->module = $module;
         $this->view->type   = $type;
         $this->view->users  = $this->loadModel('user')->getPairs('noclosed|nodeleted', $module->owner);

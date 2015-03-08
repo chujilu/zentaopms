@@ -2,8 +2,8 @@
 /**
  * The create view of case module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     case
  * @version     $Id: create.html.php 4904 2013-06-26 05:37:45Z wyd621@gmail.com $
@@ -12,11 +12,10 @@
 ?>
 <?php include '../../common/view/header.html.php';?>
 <?php include '../../common/view/form.html.php';?>
-<?php include '../../common/view/chosen.html.php';?>
 <?php js::set('lblDelete', $lang->testcase->deleteStep);?>
 <?php js::set('lblBefore', $lang->testcase->insertBefore);?>
 <?php js::set('lblAfter', $lang->testcase->insertAfter);?>
-<div class='container'>
+<div class='container mw-1400px'>
   <div id='titlebar'>
     <div class='heading'>
       <span class='prefix'><?php echo html::icon($lang->icons['testcase']);?></span>
@@ -28,12 +27,12 @@
       <tr>
         <th class='w-80px'><?php echo $lang->testcase->lblProductAndModule;?></th>
         <td class='w-p25-f'>
-          <?php echo html::select('product', $products, $productID, "onchange=loadAll(this.value); class='form-control'");?>
+          <?php echo html::select('product', $products, $productID, "onchange=loadAll(this.value); class='form-control chosen'");?>
         </td>
         <td class='w-p25-f'>
           <div class='input-group' id='moduleIdBox'>
           <?php 
-          echo html::select('module', $moduleOptionMenu, $currentModuleID, "onchange='loadModuleRelated();' class='form-control'");
+          echo html::select('module', $moduleOptionMenu, $currentModuleID, "onchange='loadModuleRelated();' class='form-control chosen'");
           if(count($moduleOptionMenu) == 1)
           {
               echo "<span class='input-group-addon'>";
@@ -62,7 +61,7 @@
         <th><?php echo $lang->testcase->lblStory;?></th>
         <td colspan='3'>
           <div class='input-group' id='storyIdBox'>
-            <?php echo html::select('story', $stories, $storyID, 'class="form-control" onchange=setPreview();');?>
+            <?php echo html::select('story', $stories, $storyID, 'class="form-control chosen" onchange="setPreview();" data-no_results_text="' . $lang->searchMore . '"');?>
             <span class='input-group-btn' style='width: 0.01%'>
             <?php if($storyID == 0): ?>
               <a href='' id='preview' class='btn iframe hidden'><?php echo $lang->preview;?></a>
@@ -125,5 +124,21 @@
       </tr>
     </table>
   </form>
+</div>
+<div class='modal fade' id='searchStories'>
+  <div class='modal-dialog'>
+    <div class='modal-content'>
+      <div class='modal-header'>
+        <button type='button' class='close' data-dismiss='modal'>&times;</button>
+        <div class='searchInput w-p90'>
+          <input id='storySearchInput' type='text' class='form-control' placeholder='<?php echo $lang->testcase->searchStories?>'>
+          <i class='icon icon-search'></i>
+        </div>
+      </div>
+      <div class='modal-body'>
+        <ul id='searchResult'></ul>
+      </div>
+    </div>
+  </div>
 </div>
 <?php include '../../common/view/footer.html.php';?>

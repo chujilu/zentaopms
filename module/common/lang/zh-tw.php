@@ -2,8 +2,8 @@
 /**
  * The common simplified chinese file of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青島易軟天創網絡科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青島易軟天創網絡科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     ZenTaoPMS
  * @version     $Id: zh-tw.php 5116 2013-07-12 06:37:48Z chencongzhi520@gmail.com $
@@ -16,8 +16,9 @@ $lang->dot       = '。';
 $lang->at        = ' 于 ';
 $lang->downArrow = '↓';
 $lang->null      = '空';
+$lang->ellipsis  = '…';
 
-$lang->zentaoPMS      = '禪道項目';
+$lang->zentaoPMS      = '禪道';
 $lang->welcome        = "%s項目管理系統";
 $lang->myControl      = "我的地盤";
 $lang->currentPos     = '當前位置：';
@@ -27,6 +28,7 @@ $lang->aboutZenTao    = '關於';
 $lang->profile        = '個人檔案';
 $lang->changePassword = '更改密碼';
 $lang->runInfo        = "<div class='row'><div class='u-1 a-center' id='debugbar'>時間: %s 毫秒, 內存: %s KB, 查詢: %s.  </div></div>";
+$lang->agreement      = "已閲讀並同意<a href='http://zpl.pub/page/zplv11.html' target='_blank'>《Z PUBLIC LICENSE授權協議1.1》</a>。<span class='text-danger'>未經許可，不得去除、隱藏或遮掩禪道軟件的任何標誌及連結。</span>";
 
 $lang->reset        = '重填';
 $lang->refresh      = '刷新';
@@ -59,7 +61,11 @@ $lang->switchDisplay= '切換顯示';
 $lang->switchHelp   = '切換幫助';
 $lang->addFiles     = '上傳了附件 ';
 $lang->files        = '附件 ';
+$lang->pasteText    = '粘貼文本 ';
+$lang->uploadImages = '多圖上傳 ';
 $lang->timeout      = '連接超時，請檢查網絡環境，或重試！';
+$lang->repairTable  = '資料庫表可能損壞，請用phpmyadmin或myisamchk檢查修復。';
+$lang->duplicate    = '已有相同標題的%s';
 $lang->unfold       = '+';
 $lang->fold         = '-';
 
@@ -105,7 +111,7 @@ $lang->searchObjects['user']        = '用戶';
 $lang->searchObjects['build']       = '版本';
 $lang->searchObjects['release']     = '發佈';
 $lang->searchObjects['productplan'] = '產品計劃';
-$lang->searchObjects['testtask']    = '測試任務';
+$lang->searchObjects['testtask']    = '測試版本';
 $lang->searchObjects['doc']         = '文檔';
 $lang->searchTips                   = '編號(ctrl+g)';
 
@@ -200,7 +206,7 @@ $lang->project->menu->doc       = array('link' => '文檔|project|doc|porjectID=
 $lang->project->menu->product   = '產品|project|manageproducts|projectID=%s';
 $lang->project->menu->view      = array('link' => '概況|project|view|projectID=%s', 'alias' => 'edit,start,suspend,putoff,close');
 $lang->project->menu->create    = array('link' => '<i class="icon-plus"></i>&nbsp;添加項目|project|create', 'float' => 'right');
-$lang->project->menu->all       = array('link' => '<i class="icon-th-large"></i>&nbsp;所有項目|project|index|locate=no&status=all&projectID=%s', 'float' => 'right');
+$lang->project->menu->all       = array('link' => '<i class="icon-th-large"></i>&nbsp;所有項目|project|index|locate=no&status=undone&projectID=%s', 'float' => 'right');
 
 $lang->task  = new stdclass();
 $lang->build = new stdclass();
@@ -213,16 +219,16 @@ $lang->bug->menu = new stdclass();
 
 $lang->bug->menu->product  = '%s';
 $lang->bug->menu->bug      = array('link' => 'Bug|bug|browse|productID=%s', 'alias' => 'view,create,batchcreate,edit,resolve,close,activate,report,batchedit,confirmbug,assignto', 'subModule' => 'tree');
-$lang->bug->menu->testcase = array('link' => '用例|testcase|browse|productID=%s', 'alias' => 'view,create,edit');
-$lang->bug->menu->testtask = array('link' => '測試任務|testtask|browse|productID=%s');
+$lang->bug->menu->testcase = array('link' => '用例|testcase|browse|productID=%s');
+$lang->bug->menu->testtask = array('link' => '版本|testtask|browse|productID=%s');
 
 $lang->testcase = new stdclass();
 $lang->testcase->menu = new stdclass();
 
 $lang->testcase->menu->product  = '%s';
 $lang->testcase->menu->bug      = array('link' => 'Bug|bug|browse|productID=%s');
-$lang->testcase->menu->testcase = array('link' => '用例|testcase|browse|productID=%s', 'alias' => 'view,create,batchcreate,edit,batchedit,showimport', 'subModule' => 'tree');
-$lang->testcase->menu->testtask = array('link' => '測試任務|testtask|browse|productID=%s', 'alias' => 'view,create,edit,linkcase,cases,start,close,batchrun');
+$lang->testcase->menu->testcase = array('link' => '用例|testcase|browse|productID=%s', 'alias' => 'view,create,batchcreate,edit,batchedit,showimport,groupcase', 'subModule' => 'tree');
+$lang->testcase->menu->testtask = array('link' => '版本|testtask|browse|productID=%s', 'alias' => 'view,create,edit,linkcase,cases,start,close,batchrun,groupcase');
 
 $lang->testtask = new stdclass();
 $lang->testtask->menu = $lang->testcase->menu;
@@ -275,28 +281,27 @@ $lang->admin->menu->index     = array('link' => '首頁|admin|index');
 $lang->admin->menu->extension = array('link' => '擴展|extension|browse', 'subModule' => 'extension,editor');
 $lang->admin->menu->custom    = array('link' => '自定義|custom|index', 'subModule' => 'custom');
 $lang->admin->menu->mail      = array('link' => '發信|mail|index', 'subModule' => 'mail');
-$lang->admin->menu->clearData = array('link' => '重置禪道|admin|cleardata');
 $lang->admin->menu->convert   = array('link' => '導入|convert|index', 'subModule' => 'convert');
+$lang->admin->menu->backup    = array('link' => '備份|backup|index', 'subModule' => 'backup');
 $lang->admin->menu->trashes   = array('link' => '資源回收筒|action|trash', 'subModule' => 'action');
-$lang->admin->menu->sso       = array('link' => '單點登錄|sso|browse', 'subModule' => 'sso');
 
-$lang->convert    = new stdclass();
-$lang->upgrade    = new stdclass();
-$lang->action     = new stdclass();
-$lang->extension  = new stdclass();
-$lang->custom     = new stdclass();
-$lang->editor     = new stdclass();
-$lang->mail       = new stdclass();
-$lang->sso        = new stdclass();
+$lang->convert   = new stdclass();
+$lang->upgrade   = new stdclass();
+$lang->action    = new stdclass();
+$lang->backup    = new stdclass();
+$lang->extension = new stdclass();
+$lang->custom    = new stdclass();
+$lang->editor    = new stdclass();
+$lang->mail      = new stdclass();
 
 $lang->convert->menu   = $lang->admin->menu;
 $lang->upgrade->menu   = $lang->admin->menu;
 $lang->action->menu    = $lang->admin->menu;
+$lang->backup->menu    = $lang->admin->menu;
 $lang->extension->menu = $lang->admin->menu;
 $lang->custom->menu    = $lang->admin->menu;
 $lang->editor->menu    = $lang->admin->menu;
 $lang->mail->menu      = $lang->admin->menu;
-$lang->sso->menu       = $lang->admin->menu;
 
 /* 菜單分組。*/
 $lang->menugroup = new stdclass();
@@ -316,11 +321,11 @@ $lang->menugroup->people      = 'company';
 $lang->menugroup->dept        = 'company';
 $lang->menugroup->todo        = 'my';
 $lang->menugroup->action      = 'admin';
+$lang->menugroup->backup      = 'admin';
 $lang->menugroup->extension   = 'admin';
 $lang->menugroup->custom      = 'admin';
 $lang->menugroup->editor      = 'admin';
 $lang->menugroup->mail        = 'admin';
-$lang->menugroup->sso         = 'admin';
 
 /* 錯誤提示信息。*/
 $lang->error = new stdclass();
@@ -341,6 +346,7 @@ $lang->error->account         = "『%s』應當為合法的用戶名。";
 $lang->error->passwordsame    = "兩次密碼應當相等。";
 $lang->error->passwordrule    = "密碼應該符合規則，長度至少為六位。";
 $lang->error->accessDenied    = '您沒有訪問權限';
+$lang->error->pasteImg        = '您的瀏覽器不支持粘貼圖片！';
 $lang->error->noData          = '沒有數據';
 
 /* 分頁信息。*/
@@ -358,12 +364,14 @@ $lang->zentaoSite     = "官方網站";
 $lang->chinaScrum     = "<a href='http://api.zentao.net/goto.php?item=chinascrum' target='_blank'>Scrum社區</a>&nbsp; ";
 $lang->agileTraining  = "<a href='http://api.zentao.net/goto.php?item=agiletrain' target='_blank'>培訓</a> ";
 $lang->donate         = "<a href='http://api.zentao.net/goto.php?item=donate' target='_blank'>捐贈 </a>";
-$lang->proVersion     = "<a href='http://api.zentao.net/goto.php?item=proversion&from=footer' target='_blank' id='proLink' class='text-important'><i class='text-danger icon-reply icon-rotate-90'></i> 升至專業版！</a> &nbsp; ";
+$lang->proVersion     = "<a href='http://api.zentao.net/goto.php?item=proversion&from=footer' target='_blank' id='proLink' class='text-important'><i class='text-danger icon-reply icon-rotate-90'></i> 專業版！</a> &nbsp; ";
 $lang->downNotify     = "下載桌面提醒";
 
-$lang->suhosinInfo = "警告：數據太多，請在php.ini中修改<font color=red>sohusin.post.max_vars</font>和<font color=red>sohusin.request.max_vars</font>（設置更大的數）。 保存並重新啟動apache，否則會造成部分數據無法保存。";
+$lang->suhosinInfo   = "警告：數據太多，請在php.ini中修改<font color=red>sohusin.post.max_vars</font>和<font color=red>sohusin.request.max_vars</font>（設置更大的數）。 保存並重新啟動apache，否則會造成部分數據無法保存。";
+$lang->pasteTextInfo = "粘貼文本到文本域中，每行文字作為一條數據的標題。";
 
 $lang->noResultsMatch     = "沒有匹配結果";
+$lang->searchMore         = "搜索此關鍵字的更多結果：";
 $lang->selectAnOption     = "選擇一個選項";
 $lang->selectSomeOptions  = "選擇一些選項";
 $lang->chooseUsersToMail  = "選擇要發信通知的用戶...";
@@ -449,6 +457,7 @@ $lang->icons['import']         = 'upload-alt';
 $lang->icons['finish']         = 'ok-sign';
 $lang->icons['resolve']        = 'ok-sign';
 $lang->icons['start']          = 'play';
+$lang->icons['restart']        = 'play';
 $lang->icons['run']            = 'play';
 $lang->icons['runCase']        = 'play';
 $lang->icons['batchRun']       = 'play-sign';
@@ -462,9 +471,12 @@ $lang->icons['review']         = 'search';
 $lang->icons['confirm']        = 'search';
 $lang->icons['putoff']         = 'calendar';
 $lang->icons['suspend']        = 'pause';
+$lang->icons['pause']          = 'pause';
 $lang->icons['cancel']         = 'ban-circle';
 $lang->icons['recordEstimate'] = 'time';
 $lang->icons['customFields']   = 'cogs';
 $lang->icons['manage']         = 'cog';
+$lang->icons['unlock']         = 'unlock-alt';
+$lang->icons['confirmStoryChange'] = 'search';
 
 include (dirname(__FILE__) . '/menuOrder.php');

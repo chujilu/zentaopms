@@ -2,16 +2,18 @@
 /**
  * The buildform view of search module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     search
  * @version     $Id: buildform.html.php 4129 2013-01-18 01:58:14Z wwccss $
  * @link        http://www.zentao.net
  */
 ?>
-<?php include '../../common/view/alert.html.php';?>
-<?php include '../../common/view/datepicker.html.php';?>
+<?php
+$jsRoot = $this->app->getWebRoot() . "js/";
+include '../../common/view/datepicker.html.php';
+?>
 <style>
 #bysearchTab {transition: all .3s cubic-bezier(.175, .885, .32, 1);}
 #bysearchTab.active {background: #fff; padding: 2px 10px 3px; padding-bottom: 2px\0; border: 1px solid #ddd; border-bottom: none}

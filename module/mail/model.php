@@ -2,8 +2,8 @@
 /**
  * The model file of mail module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     mail
  * @version     $Id: model.php 4750 2013-05-05 00:22:53Z chencongzhi520@gmail.com $
@@ -242,6 +242,7 @@ class mailModel extends model
     public function send($toList, $subject, $body = '', $ccList = '', $includeMe = false)
     {
         if(!$this->config->mail->turnon) return;
+        if(isset($this->config->mail->async) and $this->config->mail->async) return $this->addQueue($toList, $subject, $body, $ccList, $includeMe);
 
         ob_start();
         $toList  = $toList ? explode(',', str_replace(' ', '', $toList)) : array();
@@ -273,7 +274,7 @@ class mailModel extends model
         $this->clear();
 
         /* Replace full webPath image for mail. */
-        if(strpos($body, 'src="data/upload')) $body = preg_replace('/<img (.*)src="/', '<img $1 src="http://' . $this->server->http_host . $this->config->webRoot, $body);
+        if(strpos($body, 'src="data/upload')) $body = preg_replace('/<img (.*)src="data\/upload/', '<img $1 src="http://' . $this->server->http_host . $this->config->webRoot . 'data/upload', $body);
 
         try 
         {
@@ -287,12 +288,15 @@ class mailModel extends model
         }
         catch (phpmailerException $e) 
         {
-            $this->errors[] = trim(strip_tags($e->errorMessage()));
+            $this->errors[] = nl2br(trim(strip_tags($e->errorMessage()))) . '<br />' . ob_get_contents();
         } 
         catch (Exception $e) 
         {
             $this->errors[] = trim(strip_tags($e->getMessage()));
         }
+
+        /* save errors. */
+        if($this->isError()) $this->app->saveError('E_MAIL', join(' ', $this->errors), __FILE__, __LINE__, true);
 
         $message = ob_get_contents();
         ob_clean();
@@ -372,7 +376,7 @@ class mailModel extends model
      */
     public function convertCharset($string)
     {
-        if($this->config->mail->smtp->charset != strtolower($this->config->charset)) return iconv($this->config->charset, $this->config->mail->smtp->charset, $string);
+        if($this->config->mail->smtp->charset != strtolower($this->config->charset)) return iconv($this->config->charset, $this->config->mail->smtp->charset . '//IGNORE', $string);
         return $string;
     }
 
@@ -432,5 +436,59 @@ class mailModel extends model
         $errors = $this->errors;
         $this->errors = array();
         return $errors;
+    }
+
+    /**
+     * Add queue.
+     * 
+     * @param  string $toList 
+     * @param  string $subject 
+     * @param  string $body 
+     * @param  string $ccList 
+     * @param  bool   $includeMe 
+     * @access public
+     * @return void
+     */
+    public function addQueue($toList, $subject, $body = '', $ccList = '', $includeMe = false)
+    {
+        $toList  = $toList ? explode(',', str_replace(' ', '', $toList)) : array();
+        $ccList  = $ccList ? explode(',', str_replace(' ', '', $ccList)) : array();
+
+        /* Process toList and ccList, remove current user from them. If toList is empty, use the first cc as to. */
+        if($includeMe == false)
+        {
+            $account = isset($this->app->user->account) ? $this->app->user->account : '';
+
+            foreach($toList as $key => $to) if(trim($to) == $account or !trim($to)) unset($toList[$key]);
+            foreach($ccList as $key => $cc) if(trim($cc) == $account or !trim($cc)) unset($ccList[$key]);
+        }
+        $toList = join(',', $toList);
+        $ccList = join(',', $ccList);
+        
+        $data = new stdclass();
+        $data->toList    = $toList;
+        $data->ccList    = $ccList;
+        $data->subject   = $subject;
+        $data->body      = $body;
+        $data->addedBy   = $this->app->user->account;
+        $data->addedDate = helper::now();
+        $this->dao->insert(TABLE_MAILQUEUE)->data($data)->autocheck()->batchCheck('toList,subject', 'notempty')->exec();
+    }
+
+    /**
+     * Get queue.
+     * 
+     * @param  string $status 
+     * @access public
+     * @return array
+     */
+    public function getQueue($status = '', $orderBy = 'id_desc', $pager = null)
+    {
+        return $this->dao->select('*')->from(TABLE_MAILQUEUE)
+            ->where('1=1')
+            ->beginIF($status)->andWhere('status')->eq($status)->fi()
+            ->orderBy($orderBy)
+            ->page($pager)
+            ->fetchAll();
     }
 }

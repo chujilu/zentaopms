@@ -2,8 +2,8 @@
 /**
  * The report view file of bug module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     bug
  * @version     $Id: report.html.php 4657 2013-04-17 02:01:26Z chencongzhi520@gmail.com $
@@ -20,8 +20,8 @@
     <?php echo html::a($this->createLink('bug', 'browse', "productID=$productID&browseType=$browseType&moduleID=$moduleID"), $lang->goback, '', "class='btn'");?>
   </div>
 </div>
-<div class='row'>
-  <div class='col-md-3 col-lg-2'>
+<div class='row-table row-table-side-left'>
+  <div class='col-side'>
     <div class='panel panel-sm'>
       <div class='panel-heading'>
         <strong><?php echo $lang->bug->report->select;?></strong>
@@ -37,7 +37,7 @@
       </div>
     </div>
   </div>
-  <div class='col-md-9 col-lg-10'>
+  <div class='col-main'>
     <div class='panel panel-sm'>
       <div class='panel-heading'>
         <strong><?php echo $lang->bug->report->common;?></strong>

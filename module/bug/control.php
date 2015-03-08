@@ -2,8 +2,8 @@
 /**
  * The control file of bug currentModule of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2013 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     LGPL (http://www.gnu.org/licenses/lgpl.html)
+ * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv11.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     bug
  * @version     $Id: control.php 5107 2013-07-12 01:46:12Z chencongzhi520@gmail.com $
@@ -61,7 +61,7 @@ class bug extends control
      * @access public
      * @return void
      */
-    public function browse($productID = 0, $browseType = 'all', $param = 0, $orderBy = '', $recTotal = 0, $recPerPage = 20, $pageID = 1)
+    public function browse($productID = 0, $browseType = 'unclosed', $param = 0, $orderBy = '', $recTotal = 0, $recPerPage = 20, $pageID = 1)
     {
         /* Set browseType, productID, moduleID and queryID. */
         $browseType = strtolower($browseType);
@@ -77,6 +77,9 @@ class bug extends control
         if(!$orderBy) $orderBy = $this->cookie->qaBugOrder ? $this->cookie->qaBugOrder : 'id_desc';
         setcookie('qaBugOrder', $orderBy, $this->config->cookieLife, $this->config->webRoot);
 
+        /* Append id for secend sort. */
+        $sort = $this->loadModel('common')->appendOrder($orderBy);
+
         /* Load pager. */
         $this->app->loadClass('pager', $static = true);
         if($this->app->getViewType() == 'mhtml') $recPerPage = 10;
@@ -87,22 +90,23 @@ class bug extends control
 
         /* Get bugs. */
         $bugs = array();
-        if($browseType == 'all') $bugs = $this->bug->getAllBugs($productID, $projects, $orderBy, $pager);
+        if($browseType == 'all') $bugs = $this->bug->getAllBugs($productID, $projects, $sort, $pager);
         elseif($browseType == "bymodule")
         {
             $childModuleIds = $this->tree->getAllChildId($moduleID);
-            $bugs = $this->bug->getModuleBugs($productID, $childModuleIds, $projects, $orderBy, $pager);
+            $bugs = $this->bug->getModuleBugs($productID, $childModuleIds, $projects, $sort, $pager);
         }
-        elseif($browseType == 'assigntome')    $bugs = $this->bug->getByAssigntome($productID, $projects, $orderBy, $pager);
-        elseif($browseType == 'openedbyme')    $bugs = $this->bug->getByOpenedbyme($productID, $projects, $orderBy, $pager);
-        elseif($browseType == 'resolvedbyme')  $bugs = $this->bug->getByResolvedbyme($productID, $projects, $orderBy, $pager);
-        elseif($browseType == 'assigntonull')  $bugs = $this->bug->getByAssigntonull($productID, $projects, $orderBy, $pager);
-        elseif($browseType == 'unresolved')    $bugs = $this->bug->getByStatus($productID, $projects, 'unresolved', $orderBy, $pager);
-        elseif($browseType == 'unclosed')      $bugs = $this->bug->getByStatus($productID, $projects, 'unclosed', $orderBy, $pager);
-        elseif($browseType == 'longlifebugs')  $bugs = $this->bug->getByLonglifebugs($productID, $projects, $orderBy, $pager);
-        elseif($browseType == 'postponedbugs') $bugs = $this->bug->getByPostponedbugs($productID, $projects, $orderBy, $pager);
-        elseif($browseType == 'needconfirm')   $bugs = $this->bug->getByNeedconfirm($productID, $projects, $orderBy, $pager);
-        elseif($browseType == 'bysearch')      $bugs = $this->bug->getBySearch($productID, $projects, $queryID, $orderBy, $pager);
+        elseif($browseType == 'assigntome')    $bugs = $this->bug->getByAssigntome($productID, $projects, $sort, $pager);
+        elseif($browseType == 'openedbyme')    $bugs = $this->bug->getByOpenedbyme($productID, $projects, $sort, $pager);
+        elseif($browseType == 'resolvedbyme')  $bugs = $this->bug->getByResolvedbyme($productID, $projects, $sort, $pager);
+        elseif($browseType == 'assigntonull')  $bugs = $this->bug->getByAssigntonull($productID, $projects, $sort, $pager);
+        elseif($browseType == 'unconfirmed')   $bugs = $this->bug->getUnconfirmed($productID, $projects, $sort, $pager);
+        elseif($browseType == 'unresolved')    $bugs = $this->bug->getByStatus($productID, $projects, 'unresolved', $sort, $pager);
+        elseif($browseType == 'unclosed')      $bugs = $this->bug->getByStatus($productID, $projects, 'unclosed', $sort, $pager);
+        elseif($browseType == 'longlifebugs')  $bugs = $this->bug->getByLonglifebugs($productID, $projects, $sort, $pager);
+        elseif($browseType == 'postponedbugs') $bugs = $this->bug->getByPostponedbugs($productID, $projects, $sort, $pager);
+        elseif($browseType == 'needconfirm')   $bugs = $this->bug->getByNeedconfirm($productID, $projects, $sort, $pager);
+        elseif($browseType == 'bysearch')      $bugs = $this->bug->getBySearch($productID, $projects, $queryID, $sort, $pager);
 
         /* Process the sql, get the conditon partion, save it to session. */
         $this->loadModel('common')->saveQueryCondition($this->dao->get(), 'bug', $browseType == 'needconfirm' ? false : true);
@@ -136,6 +140,8 @@ class bug extends control
             $bug->openedBuild   = rtrim($openedBuild, ',');
             $bug->resolvedBuild = isset($builds[$bug->resolvedBuild]) ? $builds[$bug->resolvedBuild] : $bug->resolvedBuild;
         }
+
+        $memberPairs = $this->user->getPairs('noletter|nodeleted');
        
         $title = $this->products[$productID] . $this->lang->colon . $this->lang->bug->common;
         $position[] = html::a($this->createLink('bug', 'browse', "productID=$productID"), $this->products[$productID]);
@@ -154,6 +160,7 @@ class bug extends control
         $this->view->param        = $param;
         $this->view->orderBy      = $orderBy;
         $this->view->moduleID     = $moduleID;
+        $this->view->memberPairs  = $memberPairs;
 
         $this->display();
     }
@@ -214,16 +221,24 @@ class bug extends control
         if(empty($this->products)) $this->locate($this->createLink('product', 'create'));
         $this->app->loadLang('release');
 
-        if(!empty($_POST))
+        if(!empty($_POST) and !isset($_POST['stepIDList']))
         {
             $response['result']  = 'success';
             $response['message'] = '';
 
-            $bugID = $this->bug->create();
-            if(dao::isError())
+            $bugResult = $this->bug->create();
+            if(!$bugResult or dao::isError())
             {
                 $response['result']  = 'fail';
                 $response['message'] = dao::getError();
+                $this->send($response);
+            }
+
+            $bugID = $bugResult['id'];
+            if($bugResult['status'] == 'exists')
+            {
+                $response['message'] = sprintf($this->lang->duplicate, $this->lang->bug->common);
+                $response['locate']  = $this->createLink('bug', 'view', "bugID=$bugID");
                 $this->send($response);
             }
 
@@ -239,11 +254,6 @@ class bug extends control
         $productID = $this->product->saveState($productID, $this->products);
         $this->bug->setMenu($this->products, $productID);
 
-        /* Remove the unused types. */
-        unset($this->lang->bug->typeList['designchange']);
-        unset($this->lang->bug->typeList['newfeature']);
-        unset($this->lang->bug->typeList['trackthings']);
-
         /* Init vars. */
         $moduleID   = 0;
         $projectID  = 0;
@@ -252,6 +262,8 @@ class bug extends control
         $buildID    = 0;
         $caseID     = 0;
         $runID      = 0;
+        $testtask   = 0;
+        $version    = 0;
         $title      = '';
         $steps      = $this->lang->bug->tplStep . $this->lang->bug->tplResult . $this->lang->bug->tplExpect;
         $os         = '';
@@ -314,13 +326,15 @@ class bug extends control
         $this->view->stories          = $stories;
         $this->view->projects         = $this->product->getProjectPairs($productID, $params = 'nodeleted');
         $this->view->builds           = $builds;
-        $this->view->tasks            = $this->loadModel('task')->getProjectTaskPairs($projectID);
         $this->view->moduleID         = $moduleID;
         $this->view->projectID        = $projectID;
         $this->view->taskID           = $taskID;
         $this->view->storyID          = $storyID;
         $this->view->buildID          = $buildID;
         $this->view->caseID           = $caseID;
+        $this->view->runID            = $runID;
+        $this->view->version          = $version;
+        $this->view->testtask         = $testtask;
         $this->view->bugTitle         = $title;
         $this->view->steps            = htmlspecialchars($steps);
         $this->view->os               = $os;
@@ -369,10 +383,22 @@ class bug extends control
             $stories = $this->story->getProductStoryPairs($productID);
         }
 
-        /* Remove the unused types. */
-        unset($this->lang->bug->typeList['designchange']);
-        unset($this->lang->bug->typeList['newfeature']);
-        unset($this->lang->bug->typeList['trackthings']);
+        if($this->session->bugImagesFile)
+        {
+            $extractPath = $this->session->bugImagesFile;
+            if(is_dir($extractPath))
+            {
+                $titles = array();
+                $files = glob($extractPath . '/*');
+                sort($files);
+                foreach($files as $fileName)
+                {
+                    $fileName = basename($fileName);
+                    $titles[$fileName] = preg_replace('/^\d+_/', '', pathinfo($fileName, PATHINFO_FILENAME));
+                }
+                $this->view->titles = $titles;
+            }
+        }
 
         $this->view->title      = $this->products[$productID] . $this->lang->colon . $this->lang->bug->batchCreate;
         $this->view->position[] = html::a($this->createLink('bug', 'browse', "productID=$productID"), $this->products[$productID]);
@@ -487,14 +513,6 @@ class bug extends control
         $projectID       = $bug->project;
         $currentModuleID = $bug->module;
 
-        /**
-         * Remove designchange, newfeature, trackings from the typeList, because should be tracked in story or task. 
-         * These thress types if upgrade from bugfree2.x.
-         */
-        if($bug->type != 'designchange') unset($this->lang->bug->typeList['designchange']);
-        if($bug->type != 'newfeature')   unset($this->lang->bug->typeList['newfeature']);
-        if($bug->type != 'trackthings')  unset($this->lang->bug->typeList['trackthings']);
-
         /* Set the menu. */
         $this->bug->setMenu($this->products, $productID);
 
@@ -544,6 +562,8 @@ class bug extends control
 
             foreach($allChanges as $bugID => $changes)
             {
+                if(empty($changes)) continue;
+
                 $actionID = $this->action->create('bug', $bugID, 'Edited');
                 $this->action->logHistory($actionID, $changes);
                 $this->sendmail($bugID, $actionID);
@@ -645,6 +665,33 @@ class bug extends control
     }
 
     /**
+     * Batch update assign of bug. 
+     * 
+     * @param  int    $projectID 
+     * @access public
+     * @return void
+     */
+    public function batchAssignTo($projectID, $type = 'project')
+    {
+        if(!empty($_POST) && isset($_POST['bugIDList']))
+        {
+            $bugIDList = $this->post->bugIDList;
+            unset($_POST['bugIDList']);
+            foreach($bugIDList as $bugID)
+            {
+                $this->loadModel('action');
+                $changes = $this->bug->assign($bugID);
+                if(dao::isError()) die(js::error(dao::getError()));
+                $actionID = $this->action->create('bug', $bugID, 'Assigned', $this->post->comment, $this->post->assignedTo);
+                $this->action->logHistory($actionID, $changes);
+                $this->sendmail($bugID, $actionID);
+            }
+        }
+        if($type == 'product') die(js::locate($this->createLink('bug', 'browse', "productID=$projectID")));
+        die(js::locate($this->createLink('project', 'bug', "projectID=$projectID")));
+    }
+
+    /**
      * confirm a bug.
      * 
      * @param  int    $bugID 
@@ -709,14 +756,19 @@ class bug extends control
         {
             $this->bug->resolve($bugID);
             if(dao::isError()) die(js::error(dao::getError()));
-            $actionID = $this->action->create('bug', $bugID, 'Resolved', $this->post->comment, $this->post->resolution);
+            $files = $this->loadModel('file')->saveUpload('bug', $bugID);
+
+            $fileAction = !empty($files) ? $this->lang->addFiles . join(',', $files) . "\n" : '';
+            $actionID = $this->action->create('bug', $bugID, 'Resolved', $fileAction . $this->post->comment, $this->post->resolution);
             $this->sendmail($bugID, $actionID);
 
             $bug = $this->bug->getById($bugID);
             if($bug->toTask != 0) 
             {
                 $confirmURL = $this->createLink('task', 'view', "taskID=$bug->toTask");
-                echo js::confirm(sprintf($this->lang->bug->remindTask, $bug->toTask), $confirmURL, '', 'parent');
+                unset($_GET['onlybody']);
+                $cancelURL  = $this->createLink('bug', 'view', "bugID=$bugID");
+                die(js::confirm(sprintf($this->lang->bug->remindTask, $bug->toTask), $confirmURL, $cancelURL, 'parent', 'parent.parent'));
             } 
             if(isonlybody()) die(js::closeModal('parent.parent'));
             die(js::locate($this->createLink('bug', 'view', "bugID=$bugID"), 'parent'));
@@ -936,30 +988,6 @@ class bug extends control
     {
         $this->dao->delete()->from(TABLE_USERTPL)->where('id')->eq($templateID)->andWhere('account')->eq($this->app->user->account)->exec();
         die();
-    }
-
-    /**
-     * Custom fields.
-     * 
-     * @access public
-     * @return void
-     */
-    public function customFields()
-    {
-        if($_POST)
-        {
-            $customFields = $this->post->customFields;
-            $customFields = join(',', $customFields);
-            setcookie('bugFields', $customFields, $this->config->cookieLife, $this->config->webRoot);
-            die(js::reload('parent'));
-        }
-
-        $customFields = $this->cookie->bugFields ? $this->cookie->bugFields : $this->config->bug->list->defaultFields;
-
-        $this->view->allFields     = $this->bug->getFieldPairs($this->config->bug->list->allFields);
-        $this->view->customFields  = $this->bug->getFieldPairs($customFields);
-        $this->view->defaultFields = $this->bug->getFieldPairs($this->config->bug->list->defaultFields);
-        die($this->display());
     }
 
     /**
